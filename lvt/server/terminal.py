@@ -4,27 +4,49 @@ import time
 from lvt.const import *
 from lvt.protocol import *
 import lvt.grammar as grammar
+import rhvoice_wrapper # https://pypi.org/project/rhvoice-wrapper/
 
 config = None
-terminals = None
 
 ########################################################################################
 class Terminal():
-    def setConfig( gConfig, gTerminals ):
+    def setConfig( gConfig ):
         global config
-        global terminals
         config = gConfig
-        terminals = gTerminals
 
-    def __init__(this, id ):
+    def __init__(this, id  ):
         this.id = id
         this.name = f'Terminal #{id}'
         this.currentNode = ''
         this.lastActivity = time.time()
         this.isAwaken = False
-        this.messages = []
+        this.messageQueue = None
         this.setDictionary(this.getFullDictionary())
         this.speaker = None
+
+
+    def say( this, text ):
+        if this.messageQueue == None : return
+        if(config.ttsEngine == TTS_RHVOICE):
+            tts = rhvoice_wrapper.TTS( 
+                threads=1, 
+                data_path=config.rhvDataPath, 
+                config_path=config.rhvConfigPath,
+                lame_path=None, opus_path=None, flac_path=None,
+                quiet=True
+            )
+            waveData = tts.get( 
+                text, 
+                voice=config.rhvVoice, 
+                format_='wav', 
+                sets=config.rhvParams,
+            )
+
+            this.sendDatagram( waveData )
+            #with tts.say(text, voice=config.rhvVoice, format_='pcm', buff=8000, sets=None) as waves:
+            #    for wave in waves: this.sendDatagram(wave)
+            tts = None
+
 
     @property
     def isActive(this) -> bool:
@@ -38,10 +60,11 @@ class Terminal():
         words = grammar.normalizeWords( config.assistantName )
         words = grammar.joinWords( words, config.confirmationPhrases )
         words = grammar.joinWords( words, config.cancellationPhrases )
-        print(words)
         return(words)
 
-    def getDictionaryWords(this) -> str:
+    # Возвращает полный текущий список слов для фильтрации распознавания речи 
+    # или пустую строку если фильтрация не используется
+    def getVocabulary(this) -> str:
         words = ""
         for word in this.dictionary:
             words += word+' '
@@ -73,14 +96,18 @@ class Terminal():
         js += f'"Name":"{this.name}",'
         js += f'"Active":"{this.isActive}",'
         js += f'"UsingDictionary":"{this.usingDictionary}",'
-        js += f'"Dictionary":'+json.dumps(this.dictionary, ensure_ascii=False)+','
-        js += f'"zzz":"zzz"'
+        js += f'"Dictionary":'+json.dumps(this.dictionary, ensure_ascii=False)+''
         js += '}'
         return js
 
     def animate( this, animation ):
         print(f'Animate {animation}')
+        this.sendMessage( MSG_ANIMATE, animation )
 
-        this.messages.append( MESSAGE(MSG_ANIMATE, animation) )
+    def sendMessage( this, msg:str, p1:str=None, p2:str=None ):
+        if this.messageQueue != None: this.messageQueue.append( MESSAGE( msg, p1, p2 ) )
+
+    def sendDatagram( this, data ):
+        if this.messageQueue != None: this.messageQueue.append( data )
 
 

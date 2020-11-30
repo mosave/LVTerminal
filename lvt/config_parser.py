@@ -26,7 +26,7 @@ class ConfigParser:
                 raise Exception( f'Error parsing "{fileName}", line {(i+1)}' )
         this.sections = list( this.sections )
 
-    def getValue( this, section: str, key: str, default: str ):
+    def getValue( this, section: str, key: str, default: str ) ->str:
         for v in this.values:
             if( v[1] == section.strip().lower() and v[2] == key.strip().lower() ):
                 value = str( v[3] )
@@ -34,6 +34,14 @@ class ConfigParser:
                 return value
         return default
 
-    def getIntValue( this, section: str, key: str, default: int ):
+    def getIntValue( this, section: str, key: str, default: int ) -> int:
         return int( this.getValue( section, key, str( default ) ) )
 
+    def getValues( this, section: str ) ->dict():
+        values = dict()
+        for v in this.values:
+            if( v[1] == section.strip().lower() ):
+                value = str( v[3] )
+                for i in range( 4,len( v ) ): value+=' ' + v[i]
+                values[v[2]] = value
+        return values

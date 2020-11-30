@@ -2,45 +2,67 @@ import sys
 import time
 import os
 import psutil
+from lvt.const import *
 from lvt.config_parser import ConfigParser
 
 class Config:
-    def __init__(this, fileName):
-        p = ConfigParser ( fileName )
-        section=""
-        this.serverAddress = p.getValue(section, "ServerAddress","0.0.0.0")
-        this.serverPort = p.getIntValue(section, "ServerPort",2700)
-        this.sslCertFile = p.getValue(section, "SSLCertFile","")
-        this.sslKeyFile = p.getValue(section, "SSLKeyFile","")
-        this.model = p.getValue(section, "Model","model")
-        this.fullModel = p.getValue(section, "Model",this.model)
-        this.spkModel = p.getValue(section, "SpkModel","")
-        this.sampleRate = p.getIntValue(section, "SampleRate",8000)
-        this.recognitionThreads = p.getIntValue(section, "RecognitionThreads",os.cpu_count())
-        if( this.recognitionThreads < 1  ): this.recognitionThreads = 1
+    def __init__( this, fileName ):
+        p = ConfigParser( fileName )
+        section = "LVTServer"
+        this.serverAddress = p.getValue( section, "ServerAddress","0.0.0.0" )
+        this.serverPort = p.getIntValue( section, "ServerPort",2700 )
+        this.sslCertFile = p.getValue( section, "SSLCertFile","" )
+        this.sslKeyFile = p.getValue( section, "SSLKeyFile","" )
+        this.model = p.getValue( section, "Model","model" )
+        this.fullModel = p.getValue( section, "Model",this.model )
+        this.spkModel = p.getValue( section, "SpkModel","" )
+        this.sampleRate = p.getIntValue( section, "SampleRate",8000 )
+        this.recognitionThreads = p.getIntValue( section, "RecognitionThreads",os.cpu_count() )
+        if( this.recognitionThreads < 1 ): this.recognitionThreads = 1
 
-        this.assistantName = p.getValue(section, "AssistantName","") \
-            .replace(',',' ').replace('  ',' ').strip().replace(' ',', ')
+        this.assistantName = p.getValue( section, "AssistantName","" ) \
+            .replace( ',',' ' ).replace( '  ',' ' ).strip().replace( ' ',', ' )
 
-        if( len(this.assistantName.strip()) == 0): 
-            raise Exception('AssistantName should be specified')
+        if( len( this.assistantName.strip() ) == 0 ): 
+            raise Exception( 'AssistantName should be specified' )
 
-        this.confirmationPhrases = p.getValue(section, "ConfirmationPhrases","да, хорошо, согласен, да будет так") \
-            .lower().replace('  ',' ').replace(', ',',')
+        this.confirmationPhrases = p.getValue( section, "ConfirmationPhrases","да, хорошо, согласен, да будет так" ) \
+            .lower().replace( '  ',' ' ).replace( ', ',',' )
 
-        this.cancellationPhrases = p.getValue(section, "CancellationPhrases","нет, отмена, стоп, стой") \
-            .lower().replace('  ',' ').replace(', ',',')
+        this.cancellationPhrases = p.getValue( section, "CancellationPhrases","нет, отмена, стоп, стой" ) \
+            .lower().replace( '  ',' ' ).replace( ', ',',' )
 
-        tts = p.getValue(section, "VoiceEngine","RHVoice")
-        if( tts.lower().strip() == "rhvoice"):
-            this.ttsEngine = 0
+        this.ttsEngine = p.getValue( section, "TTSEngine", "" )
+        print('rhvprarams ')
+
+        if str( this.ttsEngine ) == '':
+            pass
+        elif( this.ttsEngine.lower().strip() == TTS_RHVOICE.lower() ):
+            this.ttsEngine = TTS_RHVOICE
+            section = TTS_RHVOICE
+            print('rhvprarams ')
+            this.rhvVoice = p.getValue( section, "Voice", "Anna+CLB" )
+            this.rhvDataPath = p.getValue( section, "data_path", None )
+            this.rhvConfigPath = p.getValue( section, "config_path", None )
+            print('rhvprarams {this.rhvVoice}')
+            this.rhvParams = p.getValues( section )
+            if( this.rhvParams != None):
+                for key in this.rhvParams: 
+                    try: 
+                        this.rhvParams[key] = int(this.rhvParams[key])
+                    except:
+                        try:
+                            this.rhvParams[key] = float(this.rhvParams[key])
+                        except:
+                            pass
+            print('rhvprarams {this.rhvParams}')
         else:
-            raise Exception("Invalid voice engine specified")
+            raise Exception( "Invalid voice engine specified" )
 
 
     def getJson( this, terminals=None ):
         # '1.20MB', '1.17GB'...
-        def formatSize(bytes, suffix="B"):
+        def formatSize( bytes, suffix="B" ):
             factor = 1024
             for unit in ["", "K", "M", "G", "T", "P"]:
                 if bytes < factor:
@@ -69,7 +91,7 @@ class Config:
         js += f'"MemTotal":"{formatSize(svmem.total)}",'
         js += f'"MemAvail":"{formatSize(svmem.available)}",'
         js += f'"MemUsed":"{formatSize(svmem.used)}",'
-        js += f'"MemLoad":"{svmem.percent}%"'+'}'
+        js += f'"MemLoad":"{svmem.percent}%"' + '}'
         return js
        
 

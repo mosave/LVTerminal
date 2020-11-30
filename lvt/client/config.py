@@ -22,6 +22,7 @@ class Config:
         (this.audioInputDevice, this.audioInputName) = this.getAudioDevice( p.getValue( "", 'AudioInputDevice', None ) )
         (this.audioOutputDevice, this.audioOutputName) = this.getAudioDevice( p.getValue( "", 'AudioOutputDevice', None ) )
         this.noiseThreshold = p.getIntValue( '', "NoiseThreshold", 200 )
+        this.sampleRate = p.getIntValue('', 'SampleRate', 8000)
 
     def getAudioDevice( this, deviceIndex ):
         # Use default device if not specified

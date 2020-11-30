@@ -1,5 +1,15 @@
 Запрашивать словарь через GET и MQTT
 
-MQTT
+Интеграция с MQTT
+Интеграция с MajorDoMo
 
 При распозновании говорящего и пустой базе голосов предлагать сделать его администратором и создать базу
+Добавить в конфигурацию список терминалов и пароли.
+Реализовать HTML websock клиент
+
+
+Features implemented:
+
+- RHVoice as first TTS engine (should be installed on LVT Server environment)
+- Terminal authorization with password 
+- Secure Websock support (+SSL) allowing self-signed certificates

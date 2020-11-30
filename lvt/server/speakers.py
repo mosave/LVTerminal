@@ -1,15 +1,12 @@
 import json
 from lvt.const import *
+from lvt.server.speaker import Speaker
 config = None
-
-class Speaker:
-    def __init__( this ):
-        this.id
-        this.name
 
 class Speakers:
     def __init__( this ):
-        this.speakers = []
+        this.speakers = list()
+        s = Speaker()
 
     def identify(this, spk ) -> Speaker:
         #print("Speaker footprint received")

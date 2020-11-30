@@ -14,7 +14,8 @@ from lvt.const import *
 from lvt.protocol import *
 from lvt.server.config import Config 
 from lvt.server.terminal import Terminal
-from lvt.server.speakers import Speaker, Speakers
+from lvt.server.speaker import Speaker
+from lvt.server.speakers import Speakers
 
 ########################################################################################
 #                               Globals initialization
@@ -26,7 +27,8 @@ terminals = []
 
 config = Config( os.path.splitext( os.path.basename( __file__ ) )[0] + '.cfg' )
 
-Terminal.setConfig( config, terminals )
+#TTS.setConfig( config )
+Terminal.setConfig( config )
 Speakers.setConfig( config )
 
 print( f'Listening port: {config.serverPort}' )
@@ -98,7 +100,7 @@ def processChunk( terminal, recognizer, spkRecognizer, message ):
                 text = j['partial'].strip()
                 if len( text ) > 0 : terminal.processPartial( text )
         except Exception as e: 
-            print(f'Exception processing AcceptWaveForm={result}: {e}')
+            print( f'Exception processing AcceptWaveForm={result}: {e}' )
 
     except Exception as e:
         print( f'Exception processing chunk: {e}' )
@@ -116,51 +118,72 @@ async def Server( connection, path ):
     terminal = None
     # temp var to track Terminal
     words = '-'
+    messageQueue = list()
 
-    async def sendStatus():
+    def sendDatagram( data ):
+        messageQueue.append( data )
+
+    def sendMessage( msg:str, p1:str=None, p2:str=None ):
+        sendDatagram( MESSAGE(msg,p1,p2 ) )
+
+    def sendStatus():
         status = terminal.getStatus() if terminal != None else '{"Terminal":"","Name":"Not Registered"}'
-        await connection.send( MESSAGE( MSG_STATUS, status ) )
+        sendMessage( MSG_STATUS, status )
+
 
     try:
-        while True:
+        while True: # <== Breaking out of here will close connection
+            while len( messageQueue ) > 0:
+                await connection.send( messageQueue[0] )
+                messageQueue.pop( 0 )
+
             if( terminal != None ):
-                w = terminal.getDictionaryWords().strip()
-                if recognizer == None or ( words != w ):
+                # Убеждаемся, что все распознавалки созданы и используется
+                # актуальный словарь для фильтрации слов
+                # Идентификация говорящего функционирует "поверх" основной
+                # голосовой модели, поэтому
+                # пересоздаем ее соответственно.
+                # Инициализация распознавалок занимает от 30-100мс и не требует
+                # много памяти.
+                w = terminal.getVocabulary()
+                if recognizer == None or words != w :
                     words = w
-                    if len( words ) > 0 :
+                    if len( words ) > 0 : # Фильтрация по словарю:
                         recognizer = KaldiRecognizer( model, config.sampleRate, json.dumps( words.split( ' ' ), ensure_ascii=False ) )
-                        if( spkModel != None ):
+                        if( spkModel != None ): 
                             spkRecognizer = KaldiRecognizer( model, spkModel, config.sampleRate )
-                    else:
+                    else: # Распознование без использования словаря
                         recognizer = KaldiRecognizer( fullModel, config.sampleRate )
                         if( spkModel != None ):
                             spkRecognizer = KaldiRecognizer( fullModel, spkModel, config.sampleRate )
 
+            # Получаем сообщение или голосовой поток от клиента
             message = await connection.recv()
 
-            if isinstance( message, str ):
+            if isinstance( message, str ): # Получено сообщение
                 if terminal != None : terminal.lastActivity = time.time()
                 m, p = parseMessage( message )
                 if m == MSG_DISCONNECT:
                     break
                 elif m == MSG_CONFIG:
-                    await connection.send( MESSAGE( MSG_CONFIG, config.getJson() ) )
+                    if terminal == None : break
+                    sendMessage( MSG_CONFIG, config.getJson() )
                 elif m == MSG_STATUS:
-                    await sendStatus()
+                    sendStatus()
                 elif m == MSG_TERMINAL_NAME:
                     if terminal == None : break
                     if p != None :
                         terminal.name = p
                         print( f'Terminal #{terminal.id} renamed to {terminal.name}' )
-                    await sendStatus()
+                    sendStatus()
                 elif m == MSG_TERMINAL :
-                    id, password = split2(p)
+                    id, password = split2( p )
                     try: id = int( id )
                     except: id = 0
 
-                    print( f'Registering Terminal #{id}, password "{password}"' )
+                    #print( f'Registering Terminal #{id}, password "{password}"' )
 
-                    if id<=0 or password != 'Password':
+                    if id <= 0 or password != 'Password':
                         print( 'Not authorized. Disconnecting' )
                         break
 
@@ -175,19 +198,19 @@ async def Server( connection, path ):
                     else:
                         print( f'Reconnecting terminal #{id}' )
 
-                    await sendStatus()
+                    terminal.messageQueue = messageQueue
+
+                    sendStatus()
+                    terminal.say("Терминал авторизован")
 
                 else:
                     print( f'Unknown message: "{message}"' )
+                    break
+            else: # Получен байт-массив
+                if terminal == None : break
 
-            else:
-                if terminal != None:
-                    completed = await loop.run_in_executor( pool, processChunk, terminal, recognizer, spkRecognizer, message )
-                    while len( terminal.messages ) > 0:
-                        await connection.send( terminal.messages[0] )
-                        terminal.messages.pop( 0 )
-                    if completed:
-                        await connection.send( MSG_IDLE )
+                completed = await loop.run_in_executor( pool, processChunk, terminal, recognizer, spkRecognizer, message )
+                if completed: sendMessage( MSG_IDLE )
 
     except Exception as e:
         tn = f'Terminal {terminal.name}' if terminal != None else 'Session '
@@ -198,7 +221,7 @@ async def Server( connection, path ):
         else:
             print( f'{tn}: unhandled exception {e}' )
     finally:
-        
+        if terminal != None : terminal.messageQueue = None
         recognizer = None
         spkRecognizer = None
 ########################################################################################

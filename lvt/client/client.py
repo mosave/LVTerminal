@@ -78,8 +78,9 @@ async def receiveMessages( connection, messages, shared ):
             lastAnimation = p
             messages.put( message )
         else:
-            print()
-            print( message )
+            if isinstance(message, str):
+                print()
+                print( message )
             messages.put( message )
 
 ##############################################################################################
@@ -102,10 +103,11 @@ async def Client( config, messages, shared ):
             # Init audio subsystem
             audio = pyaudio.PyAudio()
             # Open audio stream
-            audioStream = audio.open( format = pyaudio.paInt16, 
+            audioStream = audio.open( 
+                format = pyaudio.paInt16, 
                 channels = 1,
-                rate = 8000,
-                input = True, 
+                rate = config.sampleRate,
+                input = True,
                 input_device_index=config.audioInputDevice,
                 frames_per_buffer = 4000 )
 
