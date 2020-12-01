@@ -14,5 +14,7 @@ class Animator:
     def __init__( this ):
         pass
     def animate( this, animation ):
-        print( f'Animationg effect {animation}' )
+        #print()
+        #print( f'Animation "{animation}"' )
+        pass
     

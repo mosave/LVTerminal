@@ -3,6 +3,7 @@ import sys
 import time
 from lvt.const import *
 from lvt.protocol import *
+from lvt.server.state_machine import StateMachine
 import lvt.grammar as grammar
 import rhvoice_wrapper # https://pypi.org/project/rhvoice-wrapper/
 
@@ -10,23 +11,38 @@ config = None
 
 ########################################################################################
 class Terminal():
+    """Terminal class
+    Properties
+      * id: Unique terminal Id, used for client identification
+      * password: Password for client identification
+      * name: terminal name, speech-friendly Id
+      * speaker: Speaker object containing last speaking person details if available
+    """
     def setConfig( gConfig ):
         global config
         config = gConfig
 
-    def __init__(this, id  ):
-        this.id = id
-        this.name = f'Terminal #{id}'
-        this.currentNode = ''
+    def __init__(this, tCfg  ):
+        this.id = tCfg['id'] if 'id' in tCfg else ''
+        if this.id=='': raise Exception( f'Termininal configuration error: Id is not defined (section "Terminal", line {cfg.sectionId}' )
+        this.password = tCfg['password'] if 'password' in tCfg else ''
+        if this.password=='': raise Exception( f'Termininal configuration error: Password is not defined (section "Terminal", line {cfg.sectionId}' )
+        this.name = tCfg['name'] if 'name' in tCfg else ''
+        if this.name=='': raise Exception( f'Termininal configuration error: Name is not defined (section "Terminal", line {cfg.sectionId}' )
+        this.verbose = (tCfg['verbose']=='1') if 'verbose' in tCfg else False
         this.lastActivity = time.time()
         this.isAwaken = False
         this.messageQueue = None
         this.setDictionary(this.getFullDictionary())
         this.speaker = None
-
+        this.stateMachine = StateMachine( this )
 
     def say( this, text ):
+        """Проговорить сообщение на терминал. 
+          Текст сообщения так же дублируется командой "Text"
+        """
         if this.messageQueue == None : return
+        this.sendMessage( MSG_TEXT, text )
         if(config.ttsEngine == TTS_RHVOICE):
             tts = rhvoice_wrapper.TTS( 
                 threads=1, 
@@ -50,7 +66,8 @@ class Terminal():
 
     @property
     def isActive(this) -> bool:
-        return (time.time() - this.lastActivity < 3*60 )
+        """Терминал способен передавать команды (в онлайне) """
+        return (time.time() - this.lastActivity < 1*60 )
 
     @property
     def usingDictionary(this) -> bool:
@@ -62,9 +79,10 @@ class Terminal():
         words = grammar.joinWords( words, config.cancellationPhrases )
         return(words)
 
-    # Возвращает полный текущий список слов для фильтрации распознавания речи 
-    # или пустую строку если фильтрация не используется
     def getVocabulary(this) -> str:
+        """Возвращает полный текущий список слов для фильтрации распознавания речи 
+           или пустую строку если фильтрация не используется
+        """
         words = ""
         for word in this.dictionary:
             words += word+' '
@@ -78,6 +96,7 @@ class Terminal():
             this.dictionary = []
 
     def processPartial( this, text ):
+        """Основная точка входа для обработки текущего распознанного фрагмента (фраза не завершена)"""
         if not this.isAwaken:
             words = grammar.wordsToList(config.assistantName)
             for w in words:
@@ -85,12 +104,21 @@ class Terminal():
                     this.animate(ANIMATION_AWAKE)
                     this.isAwaken = True
                     break;
+        this.stateMachine.processPartial( text )
 
     def processFinal( this, text ):
+        """Основная точка входа для обработки распознанной фразы"""
+        if this.verbose : this.sendMessage(MSG_TEXT,f'Распознано: "{text}"')
+        this.stateMachine.processFinal( text )
+
         this.isAwaken = False
         this.animate(ANIMATION_NONE)
 
     def getStatus( this ):
+        """JSON строка с описанием текущего состояния терминала на стороне сервера
+          Используется для передачи на сторону клиента.
+          Клиент при этом уже авторизован паролем
+        """
         js = '{'
         js += f'"Terminal":"{this.id}",'
         js += f'"Name":"{this.name}",'
@@ -101,6 +129,7 @@ class Terminal():
         return js
 
     def animate( this, animation ):
+        """Передать слиенту запрос на анимацию"""
         print(f'Animate {animation}')
         this.sendMessage( MSG_ANIMATE, animation )
 

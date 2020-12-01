@@ -6,11 +6,11 @@ MSG_CONFIG = "Config"               # Request / Send server configuration and st
 MSG_DISCONNECT = "Disconnect"       # Close current session
 MSG_TERMINAL = "Terminal"           # Authorize terminal on server.
                                     # Parameters are <TerminalId> and <Pasword>
-MSG_TERMINAL_NAME = "TerminalName"  # Send terminal name to server.  Parameter is <Terminal Name>
+MSG_TEXT = "Text"                   # Server request to display a text (if possible) 
 MSG_ANIMATE = "Animate"             # Server request to play animation
 
 # All available commands (for command validation
-MSG_ALL = { MSG_IDLE, MSG_STATUS, MSG_CONFIG, MSG_DISCONNECT, MSG_TERMINAL, MSG_TERMINAL_NAME, MSG_ANIMATE }
+MSG_ALL = { MSG_IDLE, MSG_STATUS, MSG_CONFIG, MSG_DISCONNECT, MSG_TERMINAL, MSG_TEXT, MSG_ANIMATE }
 
 def split2( s: str):
     if not isinstance(s, str) : return (None, None)
@@ -29,7 +29,7 @@ def parseMessage( message ) :
 
 
 def MESSAGE( msg: str, p1: str=None, p2: str=None ) -> str:
-    if msg not in MSG_ALL: raise Exception( 'Invalid message passed' )
+    if msg not in MSG_ALL: raise Exception( f'Invalid message "{msg}"' )
     if p1 != None: msg += ' ' + str(p1).strip()
     if p2 != None: msg += ' ' + str(p2).strip()
     return msg

@@ -6,6 +6,10 @@ from lvt.const import *
 from lvt.config_parser import ConfigParser
 
 class Config:
+    """LVT Server configuration.
+      * terminals: list of terminal configuration sections to be used in Terminal
+      * rhv* properties are defined if RHV voice engine specified only
+    """
     def __init__( this, fileName ):
         p = ConfigParser( fileName )
         section = "LVTServer"
@@ -32,37 +36,41 @@ class Config:
         this.cancellationPhrases = p.getValue( section, "CancellationPhrases","нет, отмена, стоп, стой" ) \
             .lower().replace( '  ',' ' ).replace( ', ',',' )
 
+        # TTS Engine
         this.ttsEngine = p.getValue( section, "TTSEngine", "" )
-        print('rhvprarams ')
 
         if str( this.ttsEngine ) == '':
             pass
         elif( this.ttsEngine.lower().strip() == TTS_RHVOICE.lower() ):
             this.ttsEngine = TTS_RHVOICE
             section = TTS_RHVOICE
-            print('rhvprarams ')
             this.rhvVoice = p.getValue( section, "Voice", "Anna+CLB" )
             this.rhvDataPath = p.getValue( section, "data_path", None )
             this.rhvConfigPath = p.getValue( section, "config_path", None )
-            print('rhvprarams {this.rhvVoice}')
             this.rhvParams = p.getValues( section )
-            if( this.rhvParams != None):
+            if( this.rhvParams != None ):
                 for key in this.rhvParams: 
                     try: 
-                        this.rhvParams[key] = int(this.rhvParams[key])
+                        this.rhvParams[key] = int( this.rhvParams[key] )
                     except:
                         try:
-                            this.rhvParams[key] = float(this.rhvParams[key])
+                            this.rhvParams[key] = float( this.rhvParams[key] )
                         except:
                             pass
-            print('rhvprarams {this.rhvParams}')
         else:
             raise Exception( "Invalid voice engine specified" )
 
+        # Load terminal configs
+        this.terminals = list()
+        for section in p.sections:
+            if( section.lower().startswith( 'terminal|' ) ):
+                this.terminals.append( p.getValues( section ) )
+
 
     def getJson( this, terminals=None ):
-        # '1.20MB', '1.17GB'...
+        """Returns 'public' options and system state sutable for sending to terminal client """
         def formatSize( bytes, suffix="B" ):
+            """ '1.20MB', '1.17GB'..."""
             factor = 1024
             for unit in ["", "K", "M", "G", "T", "P"]:
                 if bytes < factor:
@@ -81,10 +89,10 @@ class Config:
         js += f'"AssistantName":"{this.assistantName}",'
         js += f'"VoiceEngine":"{this.ttsEngine}",'
         if terminals != None :
-            activeClients = 0
-            for t in terminals: activeClients+= 1 if t.isActive else 0
-            js += f'"TotalClients":"{len(terminals)}",'
-            js += f'"ActiveClients":"{activeClients}",'
+            activeTerminals = 0
+            for t in terminals: activeTerminals+= 1 if t.isActive else 0
+            js += f'"TotalTerminals":"{len(this.terminals)}",'
+            js += f'"ActiveTerminals":"{activeTerminals}",'
         js += f'"CpuCores":"{os.cpu_count()}",'
         js += f'"CpuFreq":"{cpufreq.current:.2f}Mhz",'
         js += f'"CpuLoad":"{psutil.cpu_percent()}%",'

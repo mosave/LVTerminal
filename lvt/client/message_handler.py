@@ -17,8 +17,12 @@ def MessageHandler( config, messages, shared ):
             message = messages.get()
             m,p = parseMessage( message )
             if isinstance( message, str ) :
-                if m == MSG_ANIMATE:
-                    if str( p ) in ANIMATION_ALL:
+                if m == MSG_TEXT:
+                    if p!=None:
+                        print()
+                        print(f'Server: {p}')
+                elif m == MSG_ANIMATE:
+                    if str(p) in ANIMATION_ALL:
                         Animator().animate( p )
                 else:
                     print( f'Message "{msg}" handler not yet implemented' )

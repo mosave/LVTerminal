@@ -23,13 +23,16 @@ from lvt.server.speakers import Speakers
 print( 'Light Voice Terminal server' )
 SetLogLevel( -1 )
 sslContext = None
-terminals = []
+terminals = list()
 
 config = Config( os.path.splitext( os.path.basename( __file__ ) )[0] + '.cfg' )
 
 #TTS.setConfig( config )
 Terminal.setConfig( config )
 Speakers.setConfig( config )
+
+# Fill in terminals configured:
+for tCfg in config.terminals: terminals.append( Terminal( tCfg ) )
 
 print( f'Listening port: {config.serverPort}' )
 if( len( config.sslCertFile ) > 0 and len( config.sslKeyFile ) > 0 ):
@@ -99,9 +102,13 @@ def processChunk( terminal, recognizer, spkRecognizer, message ):
                 j = json.loads( recognizer.PartialResult() )
                 text = j['partial'].strip()
                 if len( text ) > 0 : terminal.processPartial( text )
+        except KeyboardInterrupt as e:
+            loop.stop()
         except Exception as e: 
             print( f'Exception processing AcceptWaveForm={result}: {e}' )
-
+    except KeyboardInterrupt as e:
+        loop.stop()
+        raise e
     except Exception as e:
         print( f'Exception processing chunk: {e}' )
     return result
@@ -127,7 +134,7 @@ async def Server( connection, path ):
         sendDatagram( MESSAGE(msg,p1,p2 ) )
 
     def sendStatus():
-        status = terminal.getStatus() if terminal != None else '{"Terminal":"","Name":"Not Registered"}'
+        status = terminal.getStatus() if terminal != None else '{"Terminal":"?","Name":"Not Registered"}'
         sendMessage( MSG_STATUS, status )
 
 
@@ -165,43 +172,29 @@ async def Server( connection, path ):
                 m, p = parseMessage( message )
                 if m == MSG_DISCONNECT:
                     break
+                elif m == MSG_STATUS:
+                    sendStatus()
                 elif m == MSG_CONFIG:
                     if terminal == None : break
                     sendMessage( MSG_CONFIG, config.getJson() )
-                elif m == MSG_STATUS:
-                    sendStatus()
-                elif m == MSG_TERMINAL_NAME:
+                elif m == MSG_TEXT:
                     if terminal == None : break
-                    if p != None :
-                        terminal.name = p
-                        print( f'Terminal #{terminal.id} renamed to {terminal.name}' )
-                    sendStatus()
+                    print(p)
                 elif m == MSG_TERMINAL :
                     id, password = split2( p )
-                    try: id = int( id )
-                    except: id = 0
-
-                    #print( f'Registering Terminal #{id}, password "{password}"' )
-
-                    if id <= 0 or password != 'Password':
-                        print( 'Not authorized. Disconnecting' )
-                        break
-
                     for t in terminals:
-                        if t.id == id:
+                        if t.id == id and t.password == password:
                             terminal = t
+                            terminal.messageQueue = messageQueue
                             break
-                    if terminal == None:
-                        print( f'Registering terminal #{id}' )
-                        terminal = Terminal( id )
-                        terminals.append( terminal )
+
+                    if terminal != None:
+                        print( f'Terminal #{id} "{terminal.name}" authorized' )
+                        terminal.say("Терминал авторизован")
                     else:
-                        print( f'Reconnecting terminal #{id}' )
-
-                    terminal.messageQueue = messageQueue
-
-                    sendStatus()
-                    terminal.say("Терминал авторизован")
+                        print( 'Not authorized. Disconnecting' )
+                        sendMessage(MSG_TEXT,'Wrong terminal Id or password')
+                        break
 
                 else:
                     print( f'Unknown message: "{message}"' )
@@ -212,12 +205,20 @@ async def Server( connection, path ):
                 completed = await loop.run_in_executor( pool, processChunk, terminal, recognizer, spkRecognizer, message )
                 if completed: sendMessage( MSG_IDLE )
 
+        sendMessage( MSG_DISCONNECT )
+        # send pending messages before disconnecting
+        while len( messageQueue ) > 0:
+            await connection.send( messageQueue[0] )
+            messageQueue.pop( 0 )
+
     except Exception as e:
         tn = f'Terminal {terminal.name}' if terminal != None else 'Session '
         if isinstance( e, websockets.exceptions.ConnectionClosedOK ) :
             print( f'{tn} disconnected' )
         elif isinstance( e, websockets.exceptions.ConnectionClosedError ):
             print( f'{tn} disconnected by error' )
+        elif isinstance( e, KeyboardException ):
+            loop.stop()
         else:
             print( f'{tn}: unhandled exception {e}' )
     finally:
@@ -225,11 +226,18 @@ async def Server( connection, path ):
         recognizer = None
         spkRecognizer = None
 ########################################################################################
-pool = concurrent.futures.ThreadPoolExecutor( config.recognitionThreads )
-start_server = websockets.serve( Server, config.serverAddress, config.serverPort, ssl=sslContext )
-
-loop = asyncio.get_event_loop()
-loop.run_until_complete( start_server )
-loop.run_forever()
-
+# Main server loop
+#region
+try:
+    pool = concurrent.futures.ThreadPoolExecutor( config.recognitionThreads )
+    start_server = websockets.serve( Server, config.serverAddress, config.serverPort, ssl=sslContext )
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete( start_server )
+    loop.run_forever()
+except KeyboardInterrupt:
+    print( f'\n\rLVT Server terminated by user' )
+    loop.stop()
+except Exception as e: 
+    print( f'Exception in main terminal loop {e}' )
+#endregion
 ########################################################################################

@@ -37,9 +37,13 @@
     <Compile Include="lvt\grammar.py" />
     <Compile Include="lvt\protocol.py" />
     <Compile Include="lvt\server\config.py" />
+    <Compile Include="lvt\server\skills\privet.py" />
+    <Compile Include="lvt\server\skills\repeat.py" />
     <Compile Include="lvt\server\speaker.py" />
     <Compile Include="lvt\server\speakers.py" />
+    <Compile Include="lvt\server\state_machine.py" />
     <Compile Include="lvt\server\terminal.py" />
+    <Compile Include="lvt\server\skill.py" />
     <Compile Include="lvt_client.py" />
     <Compile Include="lvt_server.py" />
   </ItemGroup>
@@ -47,6 +51,8 @@
     <Folder Include="docs\" />
     <Folder Include="lvt\" />
     <Folder Include="lvt\client\" />
+    <Folder Include="lvt\server\skills\" />
+    <Folder Include="lvt\tests\" />
     <Folder Include="lvt\server\" />
   </ItemGroup>
   <ItemGroup>

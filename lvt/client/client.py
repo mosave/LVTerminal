@@ -78,9 +78,6 @@ async def receiveMessages( connection, messages, shared ):
             lastAnimation = p
             messages.put( message )
         else:
-            if isinstance(message, str):
-                print()
-                print( message )
             messages.put( message )
 
 ##############################################################################################
@@ -134,8 +131,8 @@ async def Client( config, messages, shared ):
                     shared.isIdle = True
                     print( 'Connected, press Ctrl-C to exit' )
                     await connection.send( MESSAGE( MSG_TERMINAL, config.terminalId, config.password ) )
-                    await connection.send( MESSAGE( MSG_TERMINAL_NAME, config.terminalName ) )
-                    await connection.send( MSG_CONFIG )
+                    #await connection.send( MESSAGE( MSG_TEXT, 'блаблабла. БЛА!' ) )
+                    #await connection.send( MSG_CONFIG )
 
                     while not shared.isTerminated and shared.isConnected:
                         waveBuffer = []
