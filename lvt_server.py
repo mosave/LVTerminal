@@ -20,6 +20,9 @@ from lvt.server.speakers import Speakers
 ########################################################################################
 #                               Globals initialization
 #region
+#First thing first: save store script' folder as ROOT_DIR:
+ROOT_DIR = os.path.abspath( os.path.dirname( __file__ ) )
+
 print( 'Light Voice Terminal server' )
 SetLogLevel( -1 )
 sslContext = None

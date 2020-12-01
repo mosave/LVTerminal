@@ -1,11 +1,11 @@
 import json
 import sys
 import time
+import rhvoice_wrapper # https://pypi.org/project/rhvoice-wrapper/
 from lvt.const import *
 from lvt.protocol import *
-from lvt.server.state_machine import StateMachine
+from lvt.state_machine import StateMachine
 import lvt.grammar as grammar
-import rhvoice_wrapper # https://pypi.org/project/rhvoice-wrapper/
 
 config = None
 
@@ -19,6 +19,7 @@ class Terminal():
       * speaker: Speaker object containing last speaking person details if available
     """
     def setConfig( gConfig ):
+        """Initialize module' config variable for easier access """
         global config
         config = gConfig
 
@@ -130,7 +131,7 @@ class Terminal():
 
     def animate( this, animation ):
         """Передать слиенту запрос на анимацию"""
-        print(f'Animate {animation}')
+        #print(f'Animate {animation}')
         this.sendMessage( MSG_ANIMATE, animation )
 
     def sendMessage( this, msg:str, p1:str=None, p2:str=None ):

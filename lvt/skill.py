@@ -6,6 +6,8 @@ from lvt.server.terminal import Terminal
 #Define base skill class
 class Skill:
     def __init__( this, terminal: Terminal ):
+        # Enable this skill
+        this.enalbed = False
 
         # list of other skills this skill depends on (to ensure they will be registered
         this.dependsOn = list()

@@ -1,7 +1,7 @@
 import os
 
 # Program start directory
-ROOT_DIR = os.path.abspath( os.path.join( os.curdir ) )
+ROOT_DIR = os.path.abspath( os.curdir )
 
 # Animation effect names
 ANIMATION_NONE = "None"

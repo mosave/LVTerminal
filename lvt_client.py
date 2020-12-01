@@ -34,6 +34,9 @@ def showDevices():
 
 ######################################################################################
 if __name__ == '__main__':
+    #First thing first: save store script' folder as ROOT_DIR:
+    ROOT_DIR = os.path.abspath( os.path.dirname( __file__ ) )
+
     print( "Lignt Voice Terminal Client" )
 
     if( len( sys.argv ) > 0 ):

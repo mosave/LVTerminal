@@ -1,15 +1,11 @@
 import sys
-
 from lvt.const import *
 from lvt.grammar import *
-#from lvt.server.skills import *
+from lvt.skill import Skill
 
 #Define base skill class
-class StateMachine:
-    def __init__( this, terminal ):
-        this.terminal = terminal
-
-
+class SkillSSS(Skill):
+    def __init__( this, fileName ):
         pass
 
     def processPartial( this, text ):
