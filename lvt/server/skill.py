@@ -19,7 +19,7 @@ class Skill:
         this.dependsOn = set()
         # Список слов (через пробел), которые необходимо добавить в фильтр
         # распозновалки для работы этого скила
-        this.keywords = ""
+        this.vocabulary = ""
         this.configure()
 
     def configure( this ) -> dict():
@@ -62,10 +62,11 @@ class Skill:
         """
         pass
         
-    def Say( this, text ):
-        """Отправить текстовое сообщение и проговорить сообщение на терминале"""
-        terminal.Say( text )
+    def onTimer( this, state:str, ):
+        pass
 
+# Config-related stuff
+#region 
     def cfgEnable( this, enable:bool=True ):
         """Разрешить использование скилла"""
         this.enable = enable
@@ -82,10 +83,10 @@ class Skill:
         """Привязать вызов process к состоянию"""
         this.subscriptions.remove( stateName )
 
-    def cfgAddKeywords( this, words:str ):
+    def cfgVocabulary( this, words:str ):
         """Добавить список необходимых слов в словарь фильтрации распознавалки голоса"""
         this.keywords = joinWords( this.keywords, words )
-
+#endregion
     def getSkillFileName(this, ext: str) -> str:
         """Generate skill-related file name by adding extension"""
         if not isinstance(ext,str) :

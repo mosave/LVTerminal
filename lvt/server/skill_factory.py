@@ -6,14 +6,14 @@ from lvt.const import *
 class SkillFactory:
     """Dynamically scans skill modules and creates Skill instances"""
     def __init__( this, terminal ):
-        this.skillDir = os.path.abspath( os.path.join( ROOT_DIR,'lvt/server/skills/' ) )
+        this.skillDir = os.path.join( ROOT_DIR,'lvt','server','skills' )
         this.skillModulePreffix = "lvt.server.skills"
         this.terminal = terminal
 
     def loadAllSkills( this ) -> list():
         """Returns list of skill instances.
 
-          * Scans /lvt/skills directory recursively
+          * Scans lvt/skills directory recursively
           * Loads all module found there
           * Creates instance of every lvt.skill.Skill successor class
         """

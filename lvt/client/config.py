@@ -8,7 +8,7 @@ from lvt.config_parser import ConfigParser
 class Config:
     """LVT Client Configuration"""
     def __init__( this, fileName ):
-        p = ConfigParser( os.path.join( ROOT_DIR, fileName ) )
+        p = ConfigParser( fileName )
 
         this.serverAddress = p.getValue( '', "serverAddress","" )
         if len( this.serverAddress.strip() ) == 0:

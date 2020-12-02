@@ -14,6 +14,8 @@ from lvt.const import *
 from lvt.protocol import *
 from lvt.server.config import Config 
 from lvt.server.terminal import Terminal
+from lvt.server.terminal_factory import TerminalFactory
+from lvt.server.state_machine import StateMachine
 from lvt.server.speaker import Speaker
 from lvt.server.speakers import Speakers
 
@@ -26,16 +28,15 @@ ROOT_DIR = os.path.abspath( os.path.dirname( __file__ ) )
 print( 'Light Voice Terminal server' )
 SetLogLevel( -1 )
 sslContext = None
-terminals = list()
 
 config = Config( os.path.splitext( os.path.basename( __file__ ) )[0] + '.cfg' )
 
 #TTS.setConfig( config )
 Terminal.setConfig( config )
+StateMachine.setConfig( config )
 Speakers.setConfig( config )
 
-# Fill in terminals configured:
-for tCfg in config.terminals: terminals.append( Terminal( tCfg ) )
+terminals = Terminal.loadAllTerminals()
 
 print( f'Listening port: {config.serverPort}' )
 if( len( config.sslCertFile ) > 0 and len( config.sslKeyFile ) > 0 ):
@@ -104,7 +105,7 @@ def processChunk( terminal: Terminal, recognizer: KaldiRecognizer, spkRecognizer
                 j = json.loads( recognizer.PartialResult() )
                 text = j['partial'].strip()
 
-            if len( text ) > 0 : terminal.processText( text, result )
+            if len( text ) > 0 : terminal.onText( text, result )
         except KeyboardInterrupt as e:
             loop.stop()
         except Exception as e: 
@@ -129,7 +130,7 @@ async def Server( connection, path ):
     # temp var to track Terminal
     words = '-'
     messageQueue = list()
-
+    lastTickedOn = time.time()
     def sendDatagram( data ):
         messageQueue.append( data )
 
@@ -167,8 +168,17 @@ async def Server( connection, path ):
                         if( spkModel != None ):
                             spkRecognizer = KaldiRecognizer( fullModel, spkModel, config.sampleRate )
 
-            # Получаем сообщение или голосовой поток от клиента
-            message = await connection.recv()
+            # Ждем сообщений, дергая terminal.onTimer примерно раз в секунду
+            message = None
+            while message == None:
+                try:
+                    if terminal != None and time.time() - lastTickedOn > 0.9:
+                        lastTickedOn = time.time()
+                        terminal.onTimer()
+                    # Получаем сообщение или голосовой поток от клиента
+                    message = await asyncio.wait_for( connection.recv(), timeout=0.2 )
+                except asyncio.TimeoutError:
+                    message = None
 
             if isinstance( message, str ): # Получено сообщение
                 if terminal != None : terminal.lastActivity = time.time()
@@ -185,14 +195,12 @@ async def Server( connection, path ):
                     print(p)
                 elif m == MSG_TERMINAL :
                     id, password = split2( p )
-                    for t in terminals:
-                        if t.id == id and t.password == password:
-                            terminal = t
-                            terminal.onConnect( messageQueue )
-                            break
-
-                    if terminal != None:
-                        print( f'Terminal #{id} "{terminal.name}" authorized' )
+                    id = str(id).lower()
+                    print(f'{id} / {password}')
+                    if id in terminals and terminals[id].password == password:
+                        terminal = terminals[id]
+                        terminal.onConnect( messageQueue )
+                        print( f'Terminal {id} ("{terminal.name}") authorized' )
                         #terminal.say("Терминал авторизован")
                         #terminal.play('/home/md/chord.wav')
                     else:

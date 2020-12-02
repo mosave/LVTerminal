@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>f7c765a6-ab0d-40c3-82fb-cd372cb281a9</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>lvt_client.py</StartupFile>
+    <StartupFile>tests\test1.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -55,6 +55,8 @@
     <Folder Include="lvt\" />
     <Folder Include="lvt\client\" />
     <Folder Include="lvt\server\" />
+    <Folder Include="lvt\server\terminals\" />
+    <Folder Include="lvt\server\entities\" />
     <Folder Include="lvt\server\skills\" />
     <Folder Include="tests\" />
   </ItemGroup>
@@ -63,6 +65,12 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="docs\LVT protocol.txt" />
+    <Content Include="lvt\server\entities\actions" />
+    <Content Include="lvt\server\entities\devices" />
+    <Content Include="lvt\server\entities\locations" />
+    <Content Include="lvt\server\entities\well_known_names" />
+    <Content Include="lvt\server\terminals\kitchen.cfg" />
+    <Content Include="lvt\server\terminals\testterminal.cfg" />
     <Content Include="todo.txt" />
     <Content Include="lvt_client.cfg" />
     <Content Include="lvt_server.cfg" />

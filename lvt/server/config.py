@@ -26,9 +26,11 @@ class Config:
 
         this.assistantName = p.getValue( section, "AssistantName","" ) \
             .replace( ',',' ' ).replace( '  ',' ' ).strip().replace( ' ',', ' )
-
         if( len( this.assistantName.strip() ) == 0 ): 
             raise Exception( 'AssistantName should be specified' )
+
+        this.language = p.getValue( section, 'Language','ru' )
+        if this.language not in {'ru','uk','en' } : this.language = 'ru'
 
         this.confirmationPhrases = p.getValue( section, "ConfirmationPhrases","да, хорошо, согласен, да будет так" ) \
             .lower().replace( '  ',' ' ).replace( ', ',',' )
@@ -59,12 +61,6 @@ class Config:
                             pass
         else:
             raise Exception( "Invalid voice engine specified" )
-
-        # Load terminal configs
-        this.terminals = list()
-        for section in p.sections:
-            if( section.lower().startswith( 'terminal|' ) ):
-                this.terminals.append( p.getValues( section ) )
 
 
     def getJson( this, terminals=None ):

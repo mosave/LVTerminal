@@ -22,18 +22,20 @@ from lvt.server.state_machine import StateMachine
 ROOT_DIR = os.path.abspath( os.path.join( os.path.dirname( __file__ ),'../') )
 
 
-messageQueue = list()
-
 config = Config( 'lvt_server.cfg' )
 
 Terminal.setConfig( config )
+StateMachine.setConfig( config )
 Speakers.setConfig( config )
 
-terminal = Terminal( config.terminals[0] )
+terminals = Terminal.loadAllTerminals()
 
+messageQueue = list()
 
+terminal = terminals['testterminal']
+terminal.onConnect(messageQueue)
 
-terminal.processFinal("алиса привет")
+terminal.onText("мажордом, включи свет на кухне", True)
 
 terminal.onDisconnect()
 

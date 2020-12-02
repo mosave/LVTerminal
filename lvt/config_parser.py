@@ -1,6 +1,7 @@
 import sys
 import os
 import shlex
+from lvt.const import *
 
 iLine = 0
 iSection = 1
@@ -17,7 +18,7 @@ class ConfigParser:
                 [ Line number, Section Name, Variable Name, Value, Value 2, .....  ]
     """
     def __init__( this, fileName ):
-        with open( fileName, "r", encoding='utf-8' ) as f:
+        with open( os.path.join( ROOT_DIR, fileName), "r", encoding='utf-8' ) as f:
             lines = list( f.readlines() )
         this.sections = set()
         this.values = []
