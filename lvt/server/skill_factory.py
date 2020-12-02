@@ -6,7 +6,8 @@ from lvt.const import *
 class SkillFactory:
     """Dynamically scans skill modules and creates Skill instances"""
     def __init__( this, terminal ):
-        this.skillDir = os.path.abspath( os.path.join( ROOT_DIR,'lvt/skills/' ) )
+        this.skillDir = os.path.abspath( os.path.join( ROOT_DIR,'lvt/server/skills/' ) )
+        this.skillModulePreffix = "lvt.server.skills"
         this.terminal = terminal
 
     def loadAllSkills( this ) -> list():
@@ -25,32 +26,32 @@ class SkillFactory:
         """
         dirsAndFiles = os.listdir( dir )
         for fileName in dirsAndFiles:
-            fullName = os.path.join( dir,fileName )
+            filePath = os.path.join( dir,fileName )
 
-            if os.path.isdir( fullName ) and not fileName.startswith( '.' ) :
+            if os.path.isdir( filePath ) and not fileName.startswith( '.' ) :
                 # recursively scan for subdirectories ignoring those started
                 # with "."
-                this.loadSkillsFromDir( os.path.join( dir,fileName ) )
-            elif os.path.isfile( fullName ) and fileName.lower().endswith( '.py' ):
+                this.loadSkillsFromDir( os.path.join( dir,filePath ) )
+            elif os.path.isfile( filePath ) and fileName.lower().endswith( '.py' ):
                 try: # Try load module file and search for Skill successors
                     prefix = dir[len( this.skillDir ):].replace( '/','.' ).replace( '\\','.' )
-                    moduleName = f'lvt.skills{prefix}.{fileName[:-3]}'
-                    module = importlib.import_module( moduleName, fullName )
+                    moduleName = f'{this.skillModulePreffix}{prefix}.{fileName[:-3]}'
+                    module = importlib.import_module( moduleName, filePath )
                     module.ROOT_DIR = ROOT_DIR
                     #Search for Skill successors and place instance in
                     #this.skills
-                    this.loadSkillsFromModule( module, moduleName )
+                    this.loadSkillsFromModule( module, moduleName, filePath )
 
                 except Exception as e:
                     print( f'Exception loading module {moduleName}: {e}' )
                     pass
 
-    def loadSkillsFromModule( this, module, moduleName ):
+    def loadSkillsFromModule( this, module, moduleName, filePath ):
         for className in dir( module ):
             try:
                 cls = getattr( module, className )
                 if this.isSkillClass( cls ) :
-                    this.skills.append( cls( this.terminal ) )
+                    this.skills.append( cls( this.terminal, moduleName, filePath ) )
             except Exception as e:
                 print( f'Exception creating class {moduleName}.{className}: {e}' )
 

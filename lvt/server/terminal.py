@@ -1,11 +1,13 @@
 import json
 import sys
 import time
+import datetime
 import rhvoice_wrapper # https://pypi.org/project/rhvoice-wrapper/
 from lvt.const import *
 from lvt.protocol import *
-from lvt.state_machine import StateMachine
+from lvt.server.state_machine import StateMachine
 import lvt.grammar as grammar
+import pymorphy2
 
 config = None
 
@@ -23,97 +25,125 @@ class Terminal():
         global config
         config = gConfig
 
-    def __init__(this, tCfg  ):
+    def __init__( this, tCfg ):
         this.id = tCfg['id'] if 'id' in tCfg else ''
-        if this.id=='': raise Exception( f'Termininal configuration error: Id is not defined (section "Terminal", line {cfg.sectionId}' )
+        if this.id == '': raise Exception( f'Termininal configuration error: Id is not defined (section "Terminal", line {cfg.sectionId}' )
         this.password = tCfg['password'] if 'password' in tCfg else ''
-        if this.password=='': raise Exception( f'Termininal configuration error: Password is not defined (section "Terminal", line {cfg.sectionId}' )
+        if this.password == '': raise Exception( f'Termininal configuration error: Password is not defined (section "Terminal", line {cfg.sectionId}' )
         this.name = tCfg['name'] if 'name' in tCfg else ''
-        if this.name=='': raise Exception( f'Termininal configuration error: Name is not defined (section "Terminal", line {cfg.sectionId}' )
-        this.verbose = (tCfg['verbose']=='1') if 'verbose' in tCfg else False
+        if this.name == '': raise Exception( f'Termininal configuration error: Name is not defined (section "Terminal", line {cfg.sectionId}' )
+        this.verbose = ( tCfg['verbose'] == '1' ) if 'verbose' in tCfg else False
         this.lastActivity = time.time()
         this.isAwaken = False
+        # messages are local output messages buffer used while terminal is disconnected
+        this.messages = list()
+
+        # messageQueue is an external output message queue 
+        # It is assigned on terminal connection and invalidated (set to None) on disconnection
         this.messageQueue = None
-        this.setDictionary(this.getFullDictionary())
+        this.setDictionary( this.getFullDictionary() )
+        # Speaker() class instance for last recognized speaker (if any)
         this.speaker = None
+
+        #Semantic analyser state machine
         this.stateMachine = StateMachine( this )
+        this.connectedOn = None
+        this.disconnectedOn = None
 
     def say( this, text ):
         """Проговорить сообщение на терминал. 
           Текст сообщения так же дублируется командой "Text"
         """
-        if this.messageQueue == None : return
         this.sendMessage( MSG_TEXT, text )
-        if(config.ttsEngine == TTS_RHVOICE):
-            tts = rhvoice_wrapper.TTS( 
-                threads=1, 
+        if( config.ttsEngine == TTS_RHVOICE ):
+            tts = rhvoice_wrapper.TTS( threads=1, 
                 data_path=config.rhvDataPath, 
                 config_path=config.rhvConfigPath,
                 lame_path=None, opus_path=None, flac_path=None,
-                quiet=True
-            )
-            waveData = tts.get( 
-                text, 
+                quiet=True )
+
+            waveData = tts.get( text, 
                 voice=config.rhvVoice, 
                 format_='wav', 
-                sets=config.rhvParams,
-            )
+                sets=config.rhvParams, )
 
             this.sendDatagram( waveData )
-            #with tts.say(text, voice=config.rhvVoice, format_='pcm', buff=8000, sets=None) as waves:
-            #    for wave in waves: this.sendDatagram(wave)
             tts = None
 
+    def play( this, waveFileName: str ):
+        """Проиграть wave файл на терминале."""
+        this.sendMessage( MSG_TEXT, f'Playing "{waveFileName}"' )
+        with open(waveFileName, 'rb') as wave:
+            waveData = wave.read(512000)
+            this.sendDatagram( waveData )
+            tts = None
 
     @property
-    def isActive(this) -> bool:
+    def isActive( this ) -> bool:
         """Терминал способен передавать команды (в онлайне) """
-        return (time.time() - this.lastActivity < 1*60 )
+        return ( time.time() - this.lastActivity < 1 * 60 )
+
+    def onConnect( this, messageQueue:list() ):
+        """Метод вызывается при подключении терминального клиента
+          messageQueue is synchronous message output queue
+        """
+        this.connectedOn = time.time()
+        this.messageQueue = messageQueue
+        # В случае, если предыдущая сессия закончилась недавно
+        if this.disconnectedOn != None and this.connectedOn-this.disconnectedOn < 60*10:
+            while len( this.messages ) > 0:
+                messageQueue.append( this.messages[0] )
+                this.messages.pop( 0 )
+
+        this.morphy = pymorphy2.MorphAnalyzer()
+
+    def onDisconnect( this ):
+        this.disconnectedOn = time.time()
+        this.morphy = None
+        this.messageQueue = None
+
 
     @property
-    def usingDictionary(this) -> bool:
-        return( len(this.dictionary)>0)
+    def usingDictionary( this ) -> bool:
+        return( len( this.dictionary ) > 0 )
 
-    def getFullDictionary(this):
+    def getFullDictionary( this ):
         words = grammar.normalizeWords( config.assistantName )
         words = grammar.joinWords( words, config.confirmationPhrases )
         words = grammar.joinWords( words, config.cancellationPhrases )
-        return(words)
+        return( words )
 
-    def getVocabulary(this) -> str:
+    def getVocabulary( this ) -> str:
         """Возвращает полный текущий список слов для фильтрации распознавания речи 
            или пустую строку если фильтрация не используется
         """
         words = ""
         for word in this.dictionary:
-            words += word+' '
+            words += word + ' '
         return( words.strip() )
 
-    def setDictionary(this, dict ):
-        if( isinstance(dict, str)):
-            dict = dict.lower().replace(',',' ').replace(';',' ').replace('  ',' ').strip()
-            this.dictionary = dict.split(' ') if( len(dict) > 0 ) else []
+    def setDictionary( this, dict ):
+        if( isinstance( dict, str ) ):
+            dict = dict.lower().replace( ',',' ' ).replace( ';',' ' ).replace( '  ',' ' ).strip()
+            this.dictionary = dict.split( ' ' ) if( len( dict ) > 0 ) else []
         else:
             this.dictionary = []
 
-    def processPartial( this, text ):
-        """Основная точка входа для обработки текущего распознанного фрагмента (фраза не завершена)"""
+    def processText( this, text:str, final:bool ):
+        """Основная точка входа для обработки распознанного фрагмента """
         if not this.isAwaken:
-            words = grammar.wordsToList(config.assistantName)
+            words = grammar.wordsToList( config.assistantName )
             for w in words:
                 if grammar.oneOfWords( w, text ): 
-                    this.animate(ANIMATION_AWAKE)
+                    this.animate( ANIMATION_AWAKE )
                     this.isAwaken = True
-                    break;
-        this.stateMachine.processPartial( text )
+                    break
 
-    def processFinal( this, text ):
-        """Основная точка входа для обработки распознанной фразы"""
-        if this.verbose : this.sendMessage(MSG_TEXT,f'Распознано: "{text}"')
-        this.stateMachine.processFinal( text )
-
-        this.isAwaken = False
-        this.animate(ANIMATION_NONE)
+        this.stateMachine.processText( text, final )
+        if final:
+            if this.verbose : this.sendMessage( MSG_TEXT,f'Распознано: "{text}"' )
+            this.isAwaken = False
+            this.animate( ANIMATION_NONE )
 
     def getStatus( this ):
         """JSON строка с описанием текущего состояния терминала на стороне сервера
@@ -125,7 +155,7 @@ class Terminal():
         js += f'"Name":"{this.name}",'
         js += f'"Active":"{this.isActive}",'
         js += f'"UsingDictionary":"{this.usingDictionary}",'
-        js += f'"Dictionary":'+json.dumps(this.dictionary, ensure_ascii=False)+''
+        js += f'"Dictionary":' + json.dumps( this.dictionary, ensure_ascii=False ) + ''
         js += '}'
         return js
 
@@ -135,9 +165,15 @@ class Terminal():
         this.sendMessage( MSG_ANIMATE, animation )
 
     def sendMessage( this, msg:str, p1:str=None, p2:str=None ):
-        if this.messageQueue != None: this.messageQueue.append( MESSAGE( msg, p1, p2 ) )
+        if this.messageQueue != None:
+            this.messageQueue.append( MESSAGE( msg, p1, p2 ) )
+        else:
+            this.messages.append( MESSAGE( msg, p1, p2 ) )
 
     def sendDatagram( this, data ):
-        if this.messageQueue != None: this.messageQueue.append( data )
+        if this.messageQueue != None:
+            this.messageQueue.append( data )
+        else:
+            this.messages.append( data )
 
 

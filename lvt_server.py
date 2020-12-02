@@ -76,7 +76,7 @@ spkModel = SpkModel( config.spkModel ) if len( config.spkModel ) > 0 else None
 
 #endregion
 ########################################################################################
-def processChunk( terminal, recognizer, spkRecognizer, message ):
+def processChunk( terminal: Terminal, recognizer: KaldiRecognizer, spkRecognizer: KaldiRecognizer, message: str ):
     result = False
     try:
         text = ''
@@ -99,12 +99,12 @@ def processChunk( terminal, recognizer, spkRecognizer, message ):
                 #print(recognizer.FinalResult())
                 j = json.loads( recognizer.FinalResult() )
                 text = j['text'].strip()
-                if len( text ) > 0 : terminal.processFinal( text )
             else:
                 #print(recognizer.PartialResult())
                 j = json.loads( recognizer.PartialResult() )
                 text = j['partial'].strip()
-                if len( text ) > 0 : terminal.processPartial( text )
+
+            if len( text ) > 0 : terminal.processText( text, result )
         except KeyboardInterrupt as e:
             loop.stop()
         except Exception as e: 
@@ -125,7 +125,7 @@ async def Server( connection, path ):
     # Kaldi speaker identification object
     spkRecognizer = None
     # Currently connected Terminal
-    terminal = None
+    terminal : Terminal = None
     # temp var to track Terminal
     words = '-'
     messageQueue = list()
@@ -188,12 +188,13 @@ async def Server( connection, path ):
                     for t in terminals:
                         if t.id == id and t.password == password:
                             terminal = t
-                            terminal.messageQueue = messageQueue
+                            terminal.onConnect( messageQueue )
                             break
 
                     if terminal != None:
                         print( f'Terminal #{id} "{terminal.name}" authorized' )
-                        terminal.say("Терминал авторизован")
+                        #terminal.say("Терминал авторизован")
+                        #terminal.play('/home/md/chord.wav')
                     else:
                         print( 'Not authorized. Disconnecting' )
                         sendMessage(MSG_TEXT,'Wrong terminal Id or password')
@@ -220,12 +221,12 @@ async def Server( connection, path ):
             print( f'{tn} disconnected' )
         elif isinstance( e, websockets.exceptions.ConnectionClosedError ):
             print( f'{tn} disconnected by error' )
-        elif isinstance( e, KeyboardException ):
+        elif isinstance( e, KeyboardInterrupt ):
             loop.stop()
         else:
             print( f'{tn}: unhandled exception {e}' )
     finally:
-        if terminal != None : terminal.messageQueue = None
+        if terminal != None : terminal.onDisconnect()
         recognizer = None
         spkRecognizer = None
 ########################################################################################

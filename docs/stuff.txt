@@ -1,0 +1,11 @@
+
+PyMorphy:
+https://pymorphy2.readthedocs.io/
+
+Kaldi:
+
+Vosk:
+
+
+Яндекс Диалоги:
+https://yandex.ru/dev/dialogs/alice/doc/smart-home/concepts/quick-start.html/

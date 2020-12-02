@@ -1,4 +1,8 @@
+
+Skill: реализовать проверку dependsOn
+
 Запрашивать словарь через GET и MQTT
+
 
 Интеграция с MQTT
 Интеграция с MajorDoMo
@@ -13,3 +17,5 @@ Features implemented:
 - RHVoice as first TTS engine (should be installed on LVT Server environment)
 - Terminal authorization with password 
 - Secure Websock support (+SSL) allowing self-signed certificates
+
+
