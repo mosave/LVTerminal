@@ -27,22 +27,23 @@ class Terminal():
         this.id = terminalId
 
         this.password = configParser.getValue( '','Password','' )
-        if this.password == '': raise Exception( f'Termininal configuration error: Password is not defined' )
+        if this.password == '': 
+            this.raiseException(f'Termininal configuration error: Password is not defined')
+
         this.name = configParser.getValue( '','Name',this.id )
-        this.verbose = configParser.getIntValue( '', 'verbose', 0 ) == '1'
+        this.logLevel = configParser.getIntValue( '', 'LogLevel', 0 )
         this.location = configParser.getValue( '','Location', '' )
 
         this.lastActivity = time.time()
-        this.isAwaken = False
         # messages are local output messages buffer used while terminal is
         # disconnected
         this.messages = list()
+        this.logs = list()
 
         # messageQueue is an external output message queue
         # It is assigned on terminal connection and invalidated (set to None)
         # on disconnection
         this.messageQueue = None
-
 
         this.usingVocabulary = False
         this.vocabulary = ""
@@ -57,14 +58,21 @@ class Terminal():
         this.connectedOn = None
         this.disconnectedOn = None
 
-        this.states = set()
+        this.log('Loading skills')
 
-        f = SkillFactory(this)
-        this.skills = f.loadSkills()
+        this.allTopics = set()
+        this.skills = SkillFactory(this).loadSkills()
         for skill in this.skills:
-            this.states = this.states.union(skill.subscriptions )
+            this.allTopics = this.allTopics.union(skill.subscriptions )
 
+        this.reset()
 
+    def reset(this):
+        this.topic = TOPIC_DEFAULT
+        this.isAppealed = False
+        this.text = ''
+        this.words = list()
+        this.animate( ANIMATION_NONE )
 
     def say( this, text ):
         """Проговорить сообщение на терминал. 
@@ -101,51 +109,93 @@ class Terminal():
         """Метод вызывается при подключении терминального клиента
           messageQueue is synchronous message output queue
         """
+        this.log('Terminal connected')
         this.connectedOn = time.time()
         this.messageQueue = messageQueue
         # В случае, если предыдущая сессия закончилась недавно
-        if this.disconnectedOn != None and this.connectedOn - this.disconnectedOn < 60 * 10:
+        if this.disconnectedOn != None and this.connectedOn - this.disconnectedOn < 60 :
             while len( this.messages ) > 0:
                 messageQueue.append( this.messages[0] )
                 this.messages.pop( 0 )
+        else: # Необходимо переинициализировать состояние терминала
+            this.reset()
 
         this.morphy = pymorphy2.MorphAnalyzer( lang=config.language )
 
     def onDisconnect( this ):
         """Вызывается при (после) завершения сессии"""
+        this.log('Terminal disconnected')
         this.disconnectedOn = time.time()
         this.morphy = None
         this.messageQueue = None
 
+
+    def parseWords(this, text:str):
+        # морфологический разбор - для упрощения обработки фразы
+        this.logDebug( f'Text: {text}')
+        this.text = text
+        this.words = list()
+        wds = grammar.wordsToList( text )
+        for w in wds: this.words.append( grammar.ParsedWord(w, this.morphy.parse( w ) ) )
+
+
     def onText( this, text:str, final:bool ):
         """Основная точка входа для обработки распознанного фрагмента """
-        # обнаружено обращение
-        appeal = False
-        wds = grammar.wordsToList( text )
-        # морфологический разбор - для упрощения обработки фразы
-        words = list()
-        for w in wds:
-            word = grammar.ParsedWord(w, this.morphy.parse( w ))
-            words.append( word )
-            if not appeal: 
-                forms = grammar.wordsToList(word.normalForms)
-                for nf in forms:
-                    appeal = appeal or grammar.oneOfWords( nf, config.assistantName )
 
-        if appeal and not this.isAwaken:
-            this.animate( ANIMATION_AWAKE )
-            this.isAwaken = True
+        # обнаружено обращение
+        # Провести морфологический разбор
+        this.parseWords( text )
+
+        for skill in this.skills:
+            # Проверить, подписан ли скилл на текущий топик:
+            if not skill.isSubscribed(this.topic) : 
+                continue
+            try:
+                method = 'onText()'
+                this.newTopic = None
+                this.parsingStopped  = False
+                this.newText = None
+                wasAppealed = this.isAppealed
+                if final: 
+                    skill.onText()
+                else: 
+                    skill.onPartialText()
+
+                # Среагировать на обнаружение обращения
+                if this.isAppealed and not wasAppealed:
+                    this.animate( ANIMATION_AWAKE )
+
+                # Проверить, не изменился ли текст
+                if this.newText != None and this.newText != text :
+                    this.parseWords(text)
+
+                method = 'onTopicChange()'
+                # Проверить, не изменился ли топик
+                if this.newTopic != None and this.newTopic != this.Topic :
+                    this.LogDebug(f'{skill.name}: changing topic to {this.newTopic}')
+                    for s in skills:
+                        if s.isSubscribed(this.topic) or s.isSubscribed(this.newTopic):
+                            s.onTopicChange( this.topic, this.newTopic)
+                    this.topic = this.newTopic
+                    this.newTopic = None
+
+                # If current skill requested to abort further processing
+                if this.parsingStopped: break
+            except Exception as e:
+                this.logError(f'{skill.name}.{method} exception: {e}')
 
         if final:
-            print(text)
-
-            if this.verbose : this.sendMessage( MSG_TEXT,f'Распознано: "{text}"' )
-            this.isAwaken = False
-            this.animate( ANIMATION_NONE )
+            if not this.parsingStopped:
+                this.logDebug('Text not parsed')
+            if this.isAppealed : this.animate( ANIMATION_NONE )
+            this.isAppealed = False
 
     def onTimer( this ):
-        #print('onTimer')
-        pass
+        for skill in this.skills: 
+            try:
+                skill.onTimer()
+            except Exception as e:
+                this.logError(f'{skill.name}.onTimer() exception: {e}')
 
 
     def getVocabulary( this ) -> str:
@@ -159,7 +209,6 @@ class Terminal():
         words = grammar.joinWords( words, config.confirmationPhrases )
         words = grammar.joinWords( words, config.cancellationPhrases )
         #words = grammar.joinWords( words, this.wellKnownNames )
-
 
         this.vocabulary = words
 
@@ -183,6 +232,28 @@ class Terminal():
     def joinEntity(this, entity):
         pass
 
+# Logging
+#region
+    def logError(this, message:str):
+        print(message)
+        if this.logLevel >= LOGLEVEL_ERROR :
+            this.logs.append(f'E {message}')
+
+    def log(this, message:str):
+        if this.logLevel >= LOGLEVEL_INFO :
+            print(message)
+            this.logs.append(f'I {message}')
+
+    def logDebug(this, message:str):
+        if this.logLevel >= LOGLEVEL_DEBUG :
+            print(message)
+            this.logs.append(f'D {message}')
+
+    def raiseException(this, message ):
+        this.logError(message)
+        raise Exception( message )
+#endregion
+
 # Messages 
 #region
     def getStatus( this ):
@@ -205,10 +276,12 @@ class Terminal():
         this.sendMessage( MSG_ANIMATE, animation )
 
     def sendMessage( this, msg:str, p1:str=None, p2:str=None ):
+        message = MESSAGE( msg, p1, p2 )
+        this.logDebug(f'Message: {message}')
         if this.messageQueue != None:
-            this.messageQueue.append( MESSAGE( msg, p1, p2 ) )
+            this.messageQueue.append( message )
         else:
-            this.messages.append( MESSAGE( msg, p1, p2 ) )
+            this.messages.append( message )
 
     def sendDatagram( this, data ):
         if this.messageQueue != None:
@@ -217,7 +290,7 @@ class Terminal():
             this.messages.append( data )
 #endregion
 
-# Static classes
+# Static methods
 #region
     def loadDatabase():
         """Кеширует в память список сконфигурированных терминалов"""
@@ -240,8 +313,7 @@ class Terminal():
                         terminals.append( Terminal( terminalId, configParser ) )
                     configParser = None
                 except Exception as e:
-                    print( f'Exception loading  "{file}" : {e}' )
-                    pass
+                    this.logError( f'Exception loading  "{file}" : {e}' )
 
     def authorize( terminalId:str, password:str ):
         """Авторизация терминала по terminalId и паролю"""

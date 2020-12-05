@@ -3,6 +3,12 @@ import os
 # Program start directory
 ROOT_DIR = os.path.abspath( os.curdir )
 
+LOGLEVEL_NONE = 0
+LOGLEVEL_ERROR = 1
+LOGLEVEL_INFO = 2
+LOGLEVEL_DEBUG = 3
+LOGLEVEL_VERBOSE = 9
+
 # Animation effect names
 ANIMATION_NONE = "None"
 ANIMATION_AWAKE = "Awake"
@@ -17,7 +23,7 @@ TTS_RHVOICE = "RHVoice"
 
 TTS_ALL = {TTS_RHVOICE}
 
-# State macnine "default" states:
+# State macnine well-known toipcs:
 
-STATE_ALL = "*"
-STATE_DEFAULT = "Default"
+TOPIC_ALL = "*"
+TOPIC_DEFAULT = "default"

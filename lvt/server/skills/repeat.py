@@ -7,13 +7,14 @@ from lvt.server.skill import Skill
 class SkillRepeat(Skill):
     def onLoad( this ):
         #print('loading repeat')
-        this.subscribe(STATE_DEFAULT)
+        this.subscribe(TOPIC_DEFAULT)
 
-    def onText( this, state:str, text:str, final: bool, appeal:bool ):
-        if not appeal : return
-
+    def onText( this ):
         pass
 
+
+    #def onPartialText( this, text:str, appeal:bool ):
+    #    pass
     #def onEnterState( this, state:str, text:str, isFinal: bool, isAppeal:bool ):
     #    pass
 

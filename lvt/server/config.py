@@ -70,7 +70,7 @@ class Config:
 
 
     def getJson( this, terminals=None ):
-        """Returns 'public' options and system state sutable for sending to terminal client """
+        """Returns 'public' options and system state suitable for sending to terminal client """
         def formatSize( bytes, suffix='B' ):
             """ '1.20MB', '1.17GB'..."""
             factor = 1024

@@ -21,7 +21,7 @@ class SkillFactory():
             os.path.join( ROOT_DIR,'lvt','server','skills' ), 
             "lvt.server.skills"
         )
-        this.skills.sort( key = lambda s:s.priority, reverse=False)
+        this.skills.sort( key = lambda s:s.priority, reverse=True)
         return this.skills
 
     def loadSkillsFromDir( this, directory:str, prefix:str ):
@@ -45,15 +45,14 @@ class SkillFactory():
                         try:
                             cls = getattr( module, className )
                             if this.isSkillClass( cls ) :
-                                this.skills.append( cls( this.terminal, filePath ) )
+                                this.skills.append( cls( this.terminal, filePath, className ) )
                             this.skillCount += 1
                         except Exception as e:
                             this.skillErrors += 1
-                            print( f'Exception creating class {moduleName}.{className}: {e}' )
+                            this.terminal.logError( f'Exception creating class {moduleName}.{className}: {e}' )
                 except Exception as e:
                     this.skillErrors += 1
-                    print( f'Exception loading module {moduleName}: {e}' )
-                    pass
+                    this.terminal.logError( f'Exception loading module {moduleName}: {e}' )
 
     def isSkillClass( this, cls ):
         if not hasattr( cls, '__name__' ) or not hasattr( cls, '__base__' ) : return False

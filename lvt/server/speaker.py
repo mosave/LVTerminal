@@ -55,8 +55,8 @@ class Speaker():
         for i in range(0,len(speakers)-1):
             for j in range(i+1,len(speakers)):
                 d = Speaker.getSimilarity(speakers[i].signature, speakers[j].signature)
-                print( f'{d}: {speakers[i].name} and {speakers[j].name} ')
-
+                if d > config.voiceSimilarity:
+                    print( f'{speakers[i].name} and {speakers[j].name} have similar voices: {d:.2f}. You may have identification issues')
 
 
     def identify( signature ):

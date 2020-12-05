@@ -5,16 +5,18 @@ from lvt.grammar import *
 
 #Define base skill class
 class Skill:
-    def __init__( this, terminal, moduleFileName: str ):
+    def __init__( this, terminal, moduleFileName: str, name: str ):
         this.terminal = terminal
         this.moduleFileName = moduleFileName
+        this.name = name
 
         this.enable = True
         this.subscriptions = set()
         # Список слов (через пробел), которые необходимо добавить в фильтр
         # распозновалки для работы этого скила
         this.vocabulary = ''
-        this.priority = 9999
+        # Чем выше значение приоритета, тем ближе к началу в цепочке распознавания ставится скил
+        this.priority = 0
         # Переход в новое состояние
         this.onLoad()
 
@@ -26,52 +28,39 @@ class Skill:
         """
 
         # Состояния, в которых скилл должен вызываться в при распозновании фразы
-        # subscribe( STATE_ALL )
-        # subscribe( STATE_DEFAULT )
-        # unsubscribe( STATE_DEFAULT )
+        # subscribe( TOPIC_ALL )
+        # subscribe( TOPIC_DEFAULT )
+        # unsubscribe( TOPIC_DEFAULT )
         pass
 
-    def onText( this, state:str, text:str, final: bool, appeal:bool ):
-        """Вызывается при появлении нового текста в случае если скилл привязан к текущему состоянию
-          * state - текущее состояние 
-          * final - распознавание фразы завершено
+    def onText( this ):
+        """Вызывается после завершения распознавания фразы в случае если скилл привязан к текущему состоянию
           * appeal - в фразе присутствует обращение к ассистенту
         Возвращаемое значение, tuple:
         (<новое состояние>, <прервать дальнейшую обработку фразы> )
         """
-
         pass
 
-    def onEnterState( this, state:str, text:str, isFinal: bool, isAppeal:bool ):
+    def onPartialText( this ):
+        """Вызывается в процессе распознавания фразы если скилл привязан к текущему состоянию
+          * text
+          * appeal - в фразе присутствует обращение к ассистенту
+        Возвращаемое значение, tuple:
+        (<новое состояние>, <прервать дальнейшую обработку фразы> )
+        """
+        pass
+
+    def onTopicChange( this, topic:str, newTopic: str ):
         """Вызывается сразу после перехода синтаксического анализатора в состояние, на которое подписан скилл
         """
-
         pass
 
-    def onExitState( this, state:str, text:str, isFinal: bool, isAppeal:bool ):
-        """Вызывается перед выходом синтаксического анализатора из состояния, на которое подписан скилл
-        """
-        pass
         
-    def onTimer( this, state:str ):
+    def onTimer( this ):
         """Вызывается примерно 1 раз в секунду, в зависимости от """
         pass
 
 
-# Config-related stuff
-#region 
-    def subscribe( this, stateName:str ):
-        """Привязать вызов process к состоянию"""
-        this.subscriptions.add(stateName)
-
-    def unsubscribe( this, stateName:str ):
-        """Привязать вызов process к состоянию"""
-        this.subscriptions.remove( stateName )
-
-    def extendVocabulary( this, words:str ):
-        """Добавить список необходимых слов в словарь фильтрации распознавалки голоса"""
-        this.vocabulary = joinWords( this.vocabulary, words )
-#endregion
     def getSkillFileName(this, ext: str) -> str:
         """Generate skill-related file name by adding extension"""
         if not isinstance(ext,str) :
@@ -81,4 +70,37 @@ class Skill:
         # :)
         if ext=='.py': ext = '.py.dat'
         return os.path.splitext(moduleFileName)[0] + ext
+
+# Config-related stuff
+#region 
+    def subscribe( this, topic:str ):
+        """Привязать вызов process к состоянию"""
+        this.subscriptions.add( str(topic).lower() )
+
+    def unsubscribe( this, topic:str ):
+        """Привязать вызов process к состоянию"""
+        this.subscriptions.remove( str(topic).lower() )
+
+    def isSubscribed( this, topic ):
+        topic = str(topic).strip().lower()
+        for s in this.subscriptions:
+            if s=="*" :return True
+            ab = s.split('*')
+            if len(ab)==1 and ab[0]==topic : return True
+            if len(ab)>1 and topic.startswith(ab[0]) and topic.endswith(ab[-1]): return True
+
+    def extendVocabulary( this, words:str ):
+        """Добавить список необходимых слов в словарь фильтрации распознавалки голоса"""
+        this.vocabulary = joinWords( this.vocabulary, words )
+
+    def changeText(this, newText:str ):
+        this.terminal.newText = newText
+
+    def changeTopic( this, newTopic ):
+        this.terminal.newTopic = str(newTopic).lower()
+
+    def stopParsing( this ):
+        this.terminal.parsingStopped = True
+#endregion
+
 

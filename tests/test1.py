@@ -29,6 +29,8 @@ messageQueue = list()
 terminal = Terminal.authorize( 'testterminal', 'Password')
 terminal.onConnect(messageQueue)
 
+terminal.onText("слушай, мажордом!", True)
+
 terminal.onText("мажордом, включи свет на кухне", True)
 
 terminal.onDisconnect()
