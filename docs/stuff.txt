@@ -9,3 +9,9 @@ Vosk:
 
 Яндекс Диалоги:
 https://yandex.ru/dev/dialogs/alice/doc/smart-home/concepts/quick-start.html/
+
+        # Именованные сущности (низкоуровневые алгоритмы):
+        # https://yandex.ru/dev/dialogs/alice/doc/naming-entities.html
+        # * Имя пользователя
+        # * Расположение (справочник)
+        # * Дата и время

@@ -14,10 +14,7 @@ from lvt.const import *
 from lvt.protocol import *
 from lvt.server.config import Config 
 from lvt.server.terminal import Terminal
-from lvt.server.terminal_factory import TerminalFactory
-from lvt.server.state_machine import StateMachine
 from lvt.server.speaker import Speaker
-from lvt.server.speakers import Speakers
 
 ########################################################################################
 #                               Globals initialization
@@ -32,18 +29,13 @@ sslContext = None
 config = Config( os.path.splitext( os.path.basename( __file__ ) )[0] + '.cfg' )
 
 #TTS.setConfig( config )
-Terminal.setConfig( config )
-StateMachine.setConfig( config )
-Speakers.setConfig( config )
-
-terminals = Terminal.loadAllTerminals()
+Terminal.Initialize( config )
+Speaker.Initialize( config )
 
 print( f'Listening port: {config.serverPort}' )
 if( len( config.sslCertFile ) > 0 and len( config.sslKeyFile ) > 0 ):
     print( f'Connection: Secured' )
     try:
-        print( config.sslCertFile )
-        print( config.sslKeyFile )
         sslContext = ssl.SSLContext( ssl.PROTOCOL_TLS_SERVER )
         sslContext.load_cert_chain( config.sslCertFile, config.sslKeyFile )
     except Exception as e:
@@ -71,54 +63,60 @@ print( f'Assistant Name(s): {config.assistantName}' )
 # def thread_init():
 #     GpuInstantiate()
 #endregion
-model = Model( config.model )
-fullModel = Model if config.model == config.fullModel else Model( config.fullModel )
-spkModel = SpkModel( config.spkModel ) if len( config.spkModel ) > 0 else None
+model = Model( config.model ) if config.model != '' else None
+fullModel = Model( config.fullModel ) if config.fullModel != '' and config.fullModel != config.model else None
+spkModel = SpkModel( config.spkModel ) if config.spkModel != '' else None
 
 #endregion
 ########################################################################################
-def processChunk( terminal: Terminal, recognizer: KaldiRecognizer, spkRecognizer: KaldiRecognizer, message: str ):
-    result = False
+def processChunk( 
+        waveform, 
+        terminal: Terminal, 
+        recognizer: KaldiRecognizer, 
+        spkRecognizer: KaldiRecognizer,
+        usingVocabulary: bool
+    ):
+    text = ''
+    final = False
     try:
-        text = ''
 
-        if spkRecognizer != None and terminal.speaker == None :
-            # Current speaker identification
-            if spkRecognizer.AcceptWaveform( message ):
+        # Если включена идентификация говорящего - извлечь результаты распознавания с помощью spkRecognizer
+        if spkRecognizer != None:
+            final = spkRecognizer.AcceptWaveform( waveform )
+            if final: # Фраза распознана полностью
                 j = json.loads( spkRecognizer.FinalResult() )
-                # Get speaker footprpint
-                spk = j["spk"] if 'spk' in j else []
-                if len( spk ) > 0 :
-                    # Speakers database
-                    speakers = Speakers()
-                    terminal.speaker = speakers.identify( spk )
-
-        try:
-            # Speech recognition
-            result = recognizer.AcceptWaveform( message )
-            if result: 
-                #print(recognizer.FinalResult())
-                j = json.loads( recognizer.FinalResult() )
-                text = j['text'].strip()
+                # Получить распознанный текст
+                text = str(j['text']).strip() if 'text' in j else ''
+                # Извлечь сигнатуру голоса:
+                signature = j["spk"] if 'spk' in j else []
+                if len( signature ) > 0 : # Идентифицировать говоращего по сигнатуре
+                    #print(signature)
+                    terminal.speaker = Speaker.identify( signature )
             else:
-                #print(recognizer.PartialResult())
-                j = json.loads( recognizer.PartialResult() )
-                text = j['partial'].strip()
+                # Получить распознанный текст
+                j = json.loads( spkRecognizer.PartialResult() )
+                text = str(j['partial']).strip() if 'partial' in j else ''
 
-            if len( text ) > 0 : terminal.onText( text, result )
-        except KeyboardInterrupt as e:
-            loop.stop()
-        except Exception as e: 
-            print( f'Exception processing AcceptWaveForm={result}: {e}' )
+        # Если для распознавания используется словарь - распознаем текст повторно
+        if spkRecognizer == None or usingVocabulary:
+            final = recognizer.AcceptWaveform( waveform )
+            if final: 
+                j = json.loads( recognizer.FinalResult() )
+                text = str(j['text']).strip() if 'text' in j else ''
+            else:
+                j = json.loads( recognizer.PartialResult() )
+                text = str(j['partial']).strip() if 'partial' in j else ''
+
+        if len( text ) > 0 : terminal.onText( text, final )
+
     except KeyboardInterrupt as e:
         loop.stop()
         raise e
     except Exception as e:
-        print( f'Exception processing chunk: {e}' )
-    return result
+        print( f'Exception processing waveform chunk : {e}' )
+    return final
 ########################################################################################
 async def Server( connection, path ):
-    global terminals
     global model
     global spkModel
     # Kaldi speech recognizer objects
@@ -128,7 +126,7 @@ async def Server( connection, path ):
     # Currently connected Terminal
     terminal : Terminal = None
     # temp var to track Terminal
-    words = '-'
+    vocabulary = ''
     messageQueue = list()
     lastTickedOn = time.time()
     def sendDatagram( data ):
@@ -156,23 +154,25 @@ async def Server( connection, path ):
                 # пересоздаем ее соответственно.
                 # Инициализация распознавалок занимает от 30-100мс и не требует
                 # много памяти.
-                w = terminal.getVocabulary()
-                if recognizer == None or words != w :
-                    words = w
-                    if len( words ) > 0 : # Фильтрация по словарю:
-                        recognizer = KaldiRecognizer( model, config.sampleRate, json.dumps( words.split( ' ' ), ensure_ascii=False ) )
+                v = terminal.getVocabulary()
+                if recognizer == None or vocabulary != v :
+                    vocabulary = v
+
+                    if (len( vocabulary ) > 0) and model != None: # Фильтрация по словарю:
+                        recognizer = KaldiRecognizer( model, config.sampleRate, json.dumps( vocabulary.split( ' ' ), ensure_ascii=False ) )
                         if( spkModel != None ): 
                             spkRecognizer = KaldiRecognizer( model, spkModel, config.sampleRate )
                     else: # Распознование без использования словаря
-                        recognizer = KaldiRecognizer( fullModel, config.sampleRate )
+                        recognizer = KaldiRecognizer( fullModel if fullModel != None else model, config.sampleRate )
                         if( spkModel != None ):
-                            spkRecognizer = KaldiRecognizer( fullModel, spkModel, config.sampleRate )
+                            spkRecognizer = KaldiRecognizer( fullModel if fullModel != None else model, spkModel, float(config.sampleRate) )
 
             # Ждем сообщений, дергая terminal.onTimer примерно раз в секунду
             message = None
             while message == None:
                 try:
-                    if terminal != None and time.time() - lastTickedOn > 0.9:
+                    # Примерно раз в секунду дергаем terminal.onTime()
+                    if terminal != None and int(time.time()) != int(lastTickedOn):
                         lastTickedOn = time.time()
                         terminal.onTimer()
                     # Получаем сообщение или голосовой поток от клиента
@@ -195,10 +195,8 @@ async def Server( connection, path ):
                     print(p)
                 elif m == MSG_TERMINAL :
                     id, password = split2( p )
-                    id = str(id).lower()
-                    print(f'{id} / {password}')
-                    if id in terminals and terminals[id].password == password:
-                        terminal = terminals[id]
+                    terminal = Terminal.authorize(id, password)
+                    if terminal != None:
                         terminal.onConnect( messageQueue )
                         print( f'Terminal {id} ("{terminal.name}") authorized' )
                         #terminal.say("Терминал авторизован")
@@ -214,7 +212,7 @@ async def Server( connection, path ):
             else: # Получен байт-массив
                 if terminal == None : break
 
-                completed = await loop.run_in_executor( pool, processChunk, terminal, recognizer, spkRecognizer, message )
+                completed = await loop.run_in_executor( pool, processChunk, message, terminal, recognizer, spkRecognizer, ( vocabulary !='' ) )
                 if completed: sendMessage( MSG_IDLE )
 
         sendMessage( MSG_DISCONNECT )

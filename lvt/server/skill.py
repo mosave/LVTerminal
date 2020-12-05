@@ -1,52 +1,43 @@
 import sys
-
+import importlib
 from lvt.const import *
-from lvt.server.terminal import Terminal
 from lvt.grammar import *
-
-
 
 #Define base skill class
 class Skill:
-    def __init__( this, terminal: Terminal, moduleName: str, moduleFileName: str ):
-
+    def __init__( this, terminal, moduleFileName: str ):
         this.terminal = terminal
-        this.moduleName = moduleName
         this.moduleFileName = moduleFileName
 
         this.enable = True
         this.subscriptions = set()
-        this.dependsOn = set()
         # Список слов (через пробел), которые необходимо добавить в фильтр
         # распозновалки для работы этого скила
-        this.vocabulary = ""
-        this.configure()
+        this.vocabulary = ''
+        this.priority = 9999
+        # Переход в новое состояние
+        this.onLoad()
 
-    def configure( this ) -> dict():
-        """Этот метод необходимо перекрыть для конфигурирования скилла
+    def onLoad( this ):
+        """Вызывается при инициализации скилла. 
         Обазательная конфигурация:
           * Состояния, к которым необходимо прибиндить скил
           * Ключевые слова, которые необходимо добавить в словарь фильтрации распознавалки
         """
 
-        # Запретить использование скила
-        # cfgEnable(False)
-
-        # Список скиллов, от которых зависит работа данного скила
-        # Допустимо использовать как полное имя класса, так частичное
-        # cfgDependsOn('lvt.server.skills.SingTheSong')
-        # cfgDependsOn('skills.SingTheSong')
-        # cfgDependsOn('SingTheSong')
-
         # Состояния, в которых скилл должен вызываться в при распозновании фразы
-        # (stateName, <фраза распознана полностью>, <обнаружено обращение к ассистенту>)
-        # cfgSubscribe( STATE_DEFAULT )
+        # subscribe( STATE_ALL )
+        # subscribe( STATE_DEFAULT )
+        # unsubscribe( STATE_DEFAULT )
         pass
 
-    def onText( this, state:str, text:str, isFinal: bool, isAppeal:bool ):
+    def onText( this, state:str, text:str, final: bool, appeal:bool ):
         """Вызывается при появлении нового текста в случае если скилл привязан к текущему состоянию
-          * isFinal - распознавание фразы завершено
-          * isAppeal - в фразе присутствует обращение к ассистенту
+          * state - текущее состояние 
+          * final - распознавание фразы завершено
+          * appeal - в фразе присутствует обращение к ассистенту
+        Возвращаемое значение, tuple:
+        (<новое состояние>, <прервать дальнейшую обработку фразы> )
         """
 
         pass
@@ -62,30 +53,24 @@ class Skill:
         """
         pass
         
-    def onTimer( this, state:str, ):
+    def onTimer( this, state:str ):
+        """Вызывается примерно 1 раз в секунду, в зависимости от """
         pass
+
 
 # Config-related stuff
 #region 
-    def cfgEnable( this, enable:bool=True ):
-        """Разрешить использование скилла"""
-        this.enable = enable
-
-    def cfgDependsOn( this, classsName:str ):
-        """Добавить имя класса скила, от которого зависит работа"""
-        this.dependsOn = set(this.dependsOn.add(className))
-        
-    def cfgSubscribe( this, stateName:str ):
+    def subscribe( this, stateName:str ):
         """Привязать вызов process к состоянию"""
-        this.subscriptions.add( stateName )
+        this.subscriptions.add(stateName)
 
-    def cfgUnsubscribe( this, stateName:str ):
+    def unsubscribe( this, stateName:str ):
         """Привязать вызов process к состоянию"""
         this.subscriptions.remove( stateName )
 
-    def cfgVocabulary( this, words:str ):
+    def extendVocabulary( this, words:str ):
         """Добавить список необходимых слов в словарь фильтрации распознавалки голоса"""
-        this.keywords = joinWords( this.keywords, words )
+        this.vocabulary = joinWords( this.vocabulary, words )
 #endregion
     def getSkillFileName(this, ext: str) -> str:
         """Generate skill-related file name by adding extension"""

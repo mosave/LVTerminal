@@ -5,13 +5,22 @@ from lvt.server.skill import Skill
 
 #Define base skill class
 class SkillRepeat(Skill):
-    def __init__( this, fileName ):
+    def onLoad( this ):
+        #print('loading repeat')
+        this.subscribe(STATE_DEFAULT)
+
+    def onText( this, state:str, text:str, final: bool, appeal:bool ):
+        if not appeal : return
+
         pass
 
-    def processPartial( this, text ):
-        pass
+    #def onEnterState( this, state:str, text:str, isFinal: bool, isAppeal:bool ):
+    #    pass
 
-    def processFinal( this, text ):
-        pass
+    #def onExitState( this, state:str, text:str, isFinal: bool, isAppeal:bool ):
+    #    pass
+        
+    #def onTimer( this, state:str ):
+    #    pass
 
 

@@ -2,15 +2,17 @@ import json
 import sys
 import time
 import datetime
+import pymorphy2
 import rhvoice_wrapper # https://pypi.org/project/rhvoice-wrapper/
 from lvt.const import *
 from lvt.protocol import *
 from lvt.config_parser import ConfigParser
-from lvt.server.state_machine import StateMachine
+from lvt.server.skill import Skill
+from lvt.server.skill_factory import SkillFactory
 import lvt.grammar as grammar
-import pymorphy2
 
 config = None
+terminals = list()
 
 ########################################################################################
 class Terminal():
@@ -21,16 +23,14 @@ class Terminal():
       * name: terminal name, speech-friendly Id
       * speaker: Speaker object containing last speaking person details if available
     """
-    def __init__( this, terminalConfigFileName ):
-        p = ConfigParser( terminalConfigFileName )
+    def __init__( this, terminalId: str, configParser: ConfigParser ):
+        this.id = terminalId
 
-        this.id = os.path.splitext( os.path.basename( terminalConfigFileName ) )[0].lower()
-
-        this.password = p.getValue( '','Password','' )
+        this.password = configParser.getValue( '','Password','' )
         if this.password == '': raise Exception( f'Termininal configuration error: Password is not defined' )
-        this.name = p.getValue( '','Name',this.id )
-        this.verbose = p.getIntValue( '', 'verbose', 0 ) == '1'
-        this.location = p.getValue( '','Location', '' )
+        this.name = configParser.getValue( '','Name',this.id )
+        this.verbose = configParser.getIntValue( '', 'verbose', 0 ) == '1'
+        this.location = configParser.getValue( '','Location', '' )
 
         this.lastActivity = time.time()
         this.isAwaken = False
@@ -43,6 +43,7 @@ class Terminal():
         # on disconnection
         this.messageQueue = None
 
+
         this.usingVocabulary = False
         this.vocabulary = ""
 
@@ -53,10 +54,17 @@ class Terminal():
         # Speaker() class instance for last recognized speaker (if any)
         this.speaker = None
 
-        #Semantic analyser state machine
-        this.stateMachine = StateMachine( this )
         this.connectedOn = None
         this.disconnectedOn = None
+
+        this.states = set()
+
+        f = SkillFactory(this)
+        this.skills = f.loadSkills()
+        for skill in this.skills:
+            this.states = this.states.union(skill.subscriptions )
+
+
 
     def say( this, text ):
         """Проговорить сообщение на терминал. 
@@ -128,16 +136,16 @@ class Terminal():
             this.animate( ANIMATION_AWAKE )
             this.isAwaken = True
 
-        this.sendMessage(MSG_TEXT, f'{final}, {appeal}, {text}')
-        this.stateMachine.onText( text, words, final, appeal )
         if final:
+            print(text)
+
             if this.verbose : this.sendMessage( MSG_TEXT,f'Распознано: "{text}"' )
             this.isAwaken = False
             this.animate( ANIMATION_NONE )
 
     def onTimer( this ):
-        this.stateMachine.onTimer()
-
+        #print('onTimer')
+        pass
 
 
     def getVocabulary( this ) -> str:
@@ -150,18 +158,18 @@ class Terminal():
         words = grammar.normalizeWords( config.assistantName )
         words = grammar.joinWords( words, config.confirmationPhrases )
         words = grammar.joinWords( words, config.cancellationPhrases )
-        words = grammar.joinWords( words, this.WellKnownNames config.cancellationPhrases )
+        #words = grammar.joinWords( words, this.wellKnownNames )
 
 
         this.vocabulary = words
 
-    def loadEntities():
-        this.wellKnownNames = loadEntity("well_known_names")
-        this.devices = loadEntity("devices")
-        this.locations = loadEntity("locations")
-        this.actions = loadEntity("actions")
+    def loadEntities(this):
+        this.wellKnownNames = this.loadEntity("well_known_names")
+        this.devices = this.loadEntity("devices")
+        this.locations = this.loadEntity("locations")
+        this.actions = this.loadEntity("actions")
 
-    def loadEntity( entityFileName ):
+    def loadEntity( this, entityFileName ):
         entities = list()
         p = ConfigParser(  os.path.join( 'lvt','server','entities', entityFileName ) )
         for v in p.values:
@@ -171,6 +179,9 @@ class Terminal():
             entities.append(entity)
         return entities
 
+
+    def joinEntity(this, entity):
+        pass
 
 # Messages 
 #region
@@ -182,15 +193,15 @@ class Terminal():
         js = '{'
         js += f'"Terminal":"{this.id}",'
         js += f'"Name":"{this.name}",'
-        js += f'"Active":"{this.isActive}",'
         js += f'"UsingVocabulary":"{this.usingVocabulary}",'
-        js += f'"Dictionary":' + json.dumps( this.dictionary, ensure_ascii=False ) + ''
+        if this.usingVocabulary :
+            js += f'"Vocabulary":' + json.dumps( this.vocabulary, ensure_ascii=False ) + ', '
+        js += f'"Active":"{this.isActive}" '
         js += '}'
         return js
 
     def animate( this, animation ):
         """Передать слиенту запрос на анимацию"""
-        #print(f'Animate {animation}')
         this.sendMessage( MSG_ANIMATE, animation )
 
     def sendMessage( this, msg:str, p1:str=None, p2:str=None ):
@@ -208,28 +219,43 @@ class Terminal():
 
 # Static classes
 #region
-    def setConfig( gConfig ):
-        """Initialize module' config variable for easier access """
+    def loadDatabase():
+        """Кеширует в память список сконфигурированных терминалов"""
         global config
-        config = gConfig
-
-
-    def loadAllTerminals():
+        global terminals
         """Returns dictionary of terminals[terminalId]
         terminalId is a lowered terminal config file name
         """
-        dir = os.path.join( ROOT_DIR,'lvt','server','terminals' )
-        terminals = dict()
+        dir = os.path.join( 'lvt','server','terminals' )
+        terminals = list()
 
-        files = os.listdir( dir )
+        files = os.listdir( os.path.join( ROOT_DIR, dir ) )
         for file in files:
             path = os.path.join( dir, file )
             if os.path.isfile( path ) and file.lower().endswith( '.cfg' ):
                 try: 
-                    t = Terminal( path[len( ROOT_DIR ) + 1:] )
-                    terminals[t.id] = t 
+                    terminalId = os.path.splitext( file )[0].lower()
+                    configParser = ConfigParser( path )
+                    if configParser.getValue('','Enable','1') == '1':
+                        terminals.append( Terminal( terminalId, configParser ) )
+                    configParser = None
                 except Exception as e:
                     print( f'Exception loading  "{file}" : {e}' )
                     pass
-        return terminals
+
+    def authorize( terminalId:str, password:str ):
+        """Авторизация терминала по terminalId и паролю"""
+        terminalId = str(terminalId).lower()
+        for t in terminals :
+            if t.id == terminalId and t.password == password: 
+                return(t)
+        return None
+
+    def Initialize( gConfig ):
+        """Initialize module' config variable for easier access """
+        global config
+        global terminals
+        config = gConfig
+        Terminal.loadDatabase()
+
 #endregion

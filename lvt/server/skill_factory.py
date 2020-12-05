@@ -1,59 +1,59 @@
-import os
 import sys
 import importlib
 from lvt.const import *
+from lvt.grammar import *
+from lvt.server.skill import Skill
 
-class SkillFactory:
-    """Dynamically scans skill modules and creates Skill instances"""
+class SkillFactory():
     def __init__( this, terminal ):
-        this.skillDir = os.path.join( ROOT_DIR,'lvt','server','skills' )
-        this.skillModulePreffix = "lvt.server.skills"
         this.terminal = terminal
-
-    def loadAllSkills( this ) -> list():
+        pass
+    def loadSkills( this ) -> list():
         """Returns list of skill instances.
-
           * Scans lvt/skills directory recursively
           * Loads all module found there
           * Creates instance of every lvt.skill.Skill successor class
         """
         this.skills = list()
-        this.loadSkillsFromDir( this.skillDir )
+        this.skillCount = 0
+        this.skillErrors = 0
+        this.loadSkillsFromDir(
+            os.path.join( ROOT_DIR,'lvt','server','skills' ), 
+            "lvt.server.skills"
+        )
+        this.skills.sort( key = lambda s:s.priority, reverse=False)
         return this.skills
 
-    def loadSkillsFromDir( this, dir:str ):
+    def loadSkillsFromDir( this, directory:str, prefix:str ):
         """Recursively Load modules starting from folder specified and place Skill instancess in this.skills
         """
-        dirsAndFiles = os.listdir( dir )
+        dirsAndFiles = os.listdir( directory )
         for fileName in dirsAndFiles:
-            filePath = os.path.join( dir,fileName )
+            filePath = os.path.join( directory,fileName )
+            moduleName, ext = os.path.splitext(fileName)
+            moduleName = prefix + '.' + moduleName
 
             if os.path.isdir( filePath ) and not fileName.startswith( '.' ) :
                 # recursively scan for subdirectories ignoring those started
                 # with "."
-                this.loadSkillsFromDir( os.path.join( dir,filePath ) )
-            elif os.path.isfile( filePath ) and fileName.lower().endswith( '.py' ):
+                this.loadSkillsFromDir( filePath, moduleName )
+            elif os.path.isfile( filePath ) and ext == '.py':
                 try: # Try load module file and search for Skill successors
-                    prefix = dir[len( this.skillDir ):].replace( '/','.' ).replace( '\\','.' )
-                    moduleName = f'{this.skillModulePreffix}{prefix}.{fileName[:-3]}'
                     module = importlib.import_module( moduleName, filePath )
-                    module.ROOT_DIR = ROOT_DIR
                     #Search for Skill successors and place instance in
-                    #this.skills
-                    this.loadSkillsFromModule( module, moduleName, filePath )
-
+                    for className in dir( module ):
+                        try:
+                            cls = getattr( module, className )
+                            if this.isSkillClass( cls ) :
+                                this.skills.append( cls( this.terminal, filePath ) )
+                            this.skillCount += 1
+                        except Exception as e:
+                            this.skillErrors += 1
+                            print( f'Exception creating class {moduleName}.{className}: {e}' )
                 except Exception as e:
+                    this.skillErrors += 1
                     print( f'Exception loading module {moduleName}: {e}' )
                     pass
-
-    def loadSkillsFromModule( this, module, moduleName, filePath ):
-        for className in dir( module ):
-            try:
-                cls = getattr( module, className )
-                if this.isSkillClass( cls ) :
-                    this.skills.append( cls( this.terminal, moduleName, filePath ) )
-            except Exception as e:
-                print( f'Exception creating class {moduleName}.{className}: {e}' )
 
     def isSkillClass( this, cls ):
         if not hasattr( cls, '__name__' ) or not hasattr( cls, '__base__' ) : return False
@@ -61,9 +61,4 @@ class SkillFactory:
         while base != None :
             if str( base.__name__ ) == 'Skill': return True
             base = base.__base__
-
-
-
-
-
 

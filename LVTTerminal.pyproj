@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>f7c765a6-ab0d-40c3-82fb-cd372cb281a9</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>tests\test1.py</StartupFile>
+    <StartupFile>lvt_client.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -38,14 +38,12 @@
     <Compile Include="lvt\grammar.py" />
     <Compile Include="lvt\protocol.py" />
     <Compile Include="lvt\server\config.py" />
+    <Compile Include="lvt\server\skill_factory.py" />
     <Compile Include="lvt\server\speaker.py" />
-    <Compile Include="lvt\server\speakers.py" />
     <Compile Include="lvt\server\terminal.py" />
     <Compile Include="lvt\server\skill.py" />
     <Compile Include="lvt\server\skills\privet.py" />
     <Compile Include="lvt\server\skills\repeat.py" />
-    <Compile Include="lvt\server\skill_factory.py" />
-    <Compile Include="lvt\server\state_machine.py" />
     <Compile Include="lvt_client.py" />
     <Compile Include="lvt_server.py" />
     <Compile Include="tests\test1.py" />
@@ -55,6 +53,7 @@
     <Folder Include="lvt\" />
     <Folder Include="lvt\client\" />
     <Folder Include="lvt\server\" />
+    <Folder Include="lvt\server\speakers\" />
     <Folder Include="lvt\server\terminals\" />
     <Folder Include="lvt\server\entities\" />
     <Folder Include="lvt\server\skills\" />

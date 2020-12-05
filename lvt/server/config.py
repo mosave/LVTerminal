@@ -12,19 +12,25 @@ class Config:
     """
     def __init__( this, fileName ):
         p = ConfigParser( fileName )
-        section = "LVTServer"
-        this.serverAddress = p.getValue( section, "ServerAddress","0.0.0.0" )
-        this.serverPort = p.getIntValue( section, "ServerPort",2700 )
-        this.sslCertFile = p.getValue( section, "SSLCertFile","" )
-        this.sslKeyFile = p.getValue( section, "SSLKeyFile","" )
-        this.model = p.getValue( section, "Model","model" )
-        this.fullModel = p.getValue( section, "Model",this.model )
-        this.spkModel = p.getValue( section, "SpkModel","" )
-        this.sampleRate = p.getIntValue( section, "SampleRate",8000 )
-        this.recognitionThreads = p.getIntValue( section, "RecognitionThreads",os.cpu_count() )
+        section = 'LVTServer'
+        this.serverAddress = p.getValue( section, 'ServerAddress','0.0.0.0' )
+        this.serverPort = p.getIntValue( section, 'ServerPort',2700 )
+        this.sslCertFile = p.getValue( section, 'SSLCertFile','' )
+        this.sslKeyFile = p.getValue( section, 'SSLKeyFile','' )
+        this.model = p.getValue( section, 'Model','' ).strip()
+        this.fullModel = p.getValue( section, 'FullModel','' ).strip()
+        if this.model=='' and this.fullModel== '':
+            raise Exception( 'No models specified' )
+
+        this.spkModel = p.getValue( section, 'SpkModel','' ).strip()
+        this.sampleRate = p.getIntValue( section, 'SampleRate',8000 )
+        this.recognitionThreads = p.getIntValue( section, 'RecognitionThreads',os.cpu_count() )
         if( this.recognitionThreads < 1 ): this.recognitionThreads = 1
 
-        this.assistantName = p.getValue( section, "AssistantName","" ) \
+        this.voiceSimilarity = p.getFloatValue( section, 'VoiceSimilarity', 0.6 )
+        this.voiceSelectivity = p.getFloatValue( section, 'VoiceSelectivity', 0.2 )
+
+        this.assistantName = p.getValue( section, 'AssistantName','' ) \
             .replace( ',',' ' ).replace( '  ',' ' ).strip().replace( ' ',', ' )
         if( len( this.assistantName.strip() ) == 0 ): 
             raise Exception( 'AssistantName should be specified' )
@@ -32,23 +38,23 @@ class Config:
         this.language = p.getValue( section, 'Language','ru' )
         if this.language not in {'ru','uk','en' } : this.language = 'ru'
 
-        this.confirmationPhrases = p.getValue( section, "ConfirmationPhrases","да, хорошо, согласен, да будет так" ) \
+        this.confirmationPhrases = p.getValue( section, 'ConfirmationPhrases','да, хорошо, согласен, да будет так' ) \
             .lower().replace( '  ',' ' ).replace( ', ',',' )
 
-        this.cancellationPhrases = p.getValue( section, "CancellationPhrases","нет, отмена, стоп, стой" ) \
+        this.cancellationPhrases = p.getValue( section, 'CancellationPhrases','нет, отмена, стоп, стой' ) \
             .lower().replace( '  ',' ' ).replace( ', ',',' )
 
         # TTS Engine
-        this.ttsEngine = p.getValue( section, "TTSEngine", "" )
+        this.ttsEngine = p.getValue( section, 'TTSEngine', '' )
 
         if str( this.ttsEngine ) == '':
             pass
         elif( this.ttsEngine.lower().strip() == TTS_RHVOICE.lower() ):
             this.ttsEngine = TTS_RHVOICE
             section = TTS_RHVOICE
-            this.rhvVoice = p.getValue( section, "Voice", "Anna+CLB" )
-            this.rhvDataPath = p.getValue( section, "data_path", None )
-            this.rhvConfigPath = p.getValue( section, "config_path", None )
+            this.rhvVoice = p.getValue( section, 'Voice', 'Anna+CLB' )
+            this.rhvDataPath = p.getValue( section, 'data_path', None )
+            this.rhvConfigPath = p.getValue( section, 'config_path', None )
             this.rhvParams = p.getValues( section )
             if( this.rhvParams != None ):
                 for key in this.rhvParams: 
@@ -60,17 +66,17 @@ class Config:
                         except:
                             pass
         else:
-            raise Exception( "Invalid voice engine specified" )
+            raise Exception( 'Invalid voice engine specified' )
 
 
     def getJson( this, terminals=None ):
         """Returns 'public' options and system state sutable for sending to terminal client """
-        def formatSize( bytes, suffix="B" ):
+        def formatSize( bytes, suffix='B' ):
             """ '1.20MB', '1.17GB'..."""
             factor = 1024
-            for unit in ["", "K", "M", "G", "T", "P"]:
+            for unit in ['', 'K', 'M', 'G', 'T', 'P']:
                 if bytes < factor:
-                    return f"{bytes:.2f}{unit}{suffix}"
+                    return f'{bytes:.2f}{unit}{suffix}'
                 bytes /= factor
 
         cpufreq = psutil.cpu_freq()

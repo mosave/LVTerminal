@@ -174,7 +174,7 @@ async def Client( config, messages, shared ):
                     if isinstance( e, websockets.exceptions.ConnectionClosedOK ) :
                         print( 'Disconnected' )
                     elif isinstance( e, websockets.exceptions.ConnectionClosedError ):
-                        print( 'Disconnected by error' )
+                        print( 'Disconnected due to error: {e} ' )
                     else:
                         print(f'Client loop error: {e}')
                         try: await connection.send( MSG_DISCONNECT )

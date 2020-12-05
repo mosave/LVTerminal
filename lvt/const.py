@@ -19,4 +19,5 @@ TTS_ALL = {TTS_RHVOICE}
 
 # State macnine "default" states:
 
+STATE_ALL = "*"
 STATE_DEFAULT = "Default"

@@ -17,14 +17,18 @@ class ConfigParser:
       * values: list of values parsed. Each record have following format:
                 [ Line number, Section Name, Variable Name, Value, Value 2, .....  ]
     """
-    def __init__( this, fileName ):
+    def __init__( this, fileName:str, allowKeysOnly=False ):
+        this.fileName = fileName
+
         with open( os.path.join( ROOT_DIR, fileName), "r", encoding='utf-8' ) as f:
             lines = list( f.readlines() )
         this.sections = set()
         this.values = []
         section = '|1'
         for line in range( len( lines ) ):
-            a = list( shlex.shlex( lines[line], posix=True ) )
+            lex = shlex.shlex( lines[line], posix=True )
+            lex.wordchars += 'АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдеёжзийклмнопрстуфхцчшщъыьэюя'
+            a = list( lex )
             # New section name detected
             if ( len( a ) == 3 ) and ( a[0] == '[' ) and ( a[-1] == ']' ) :
                 section = a[1]
@@ -33,17 +37,14 @@ class ConfigParser:
                    section += a[i]
                    i += 1
                 section = section.replace( '|','' ) + '|' + str( line )
-            elif ( len( a ) > 1 ) :
+            elif ( len( a ) > 0 ) :
                 row = [line + 1, section.lower(), a[0].lower()]
-                i = 2 if a[1] == '=' else 1
-                while i < len( a ): 
-                    row.append( a[i] )
-                    i += 1
+                for i in range(1,len(a)):
+                    if i>1 or a[i]!='=': row.append( a[i] )
 
                 this.values.append( row )
                 this.sections.add( section )
-            elif len( a ) > 0:
-                raise Exception( f'Error parsing "{fileName}", line {(line+1)}: {lines[line]}' )
+
         this.sections = list( this.sections )
 
     def getValue( this, section: str, key: str, default: str=None ) -> str:
@@ -74,7 +75,15 @@ class ConfigParser:
           * key: parameter name, case-insensitive
           * default: string value to return if parameter not found
         """
-        return int( this.getValue( section, key, str( default ) ) )
+        return int( this.getValue( section, key, default ) )
+
+    def getFloatValue( this, section: str, key: str, default: int ) -> int:
+        """Retrieve single (first appearing) value as integer, using default value if not specified
+          * section: could be both "SectionName" or "SectionName|SectionId", case-insensitive
+          * key: parameter name, case-insensitive
+          * default: string value to return if parameter not found
+        """
+        return float( this.getValue( section, key, default ) )
 
     def getValues( this, section: str ) -> dict():
         """Retrieve all values for specific section(s) as dictionary
