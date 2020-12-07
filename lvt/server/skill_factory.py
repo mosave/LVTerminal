@@ -1,7 +1,7 @@
 import sys
 import importlib
 from lvt.const import *
-from lvt.grammar import *
+from lvt.server.grammar import *
 from lvt.server.skill import Skill
 
 class SkillFactory():

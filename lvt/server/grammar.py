@@ -1,15 +1,4 @@
 
-
-class ParsedWord:
-    def __init__( this, word, parses ):
-        this.word = word
-        this.parses = parses
-        this.normalForms = ""
-        for p in parses: 
-            this.normalForms = joinWords( this.normalForms, p.normal_form )
-
-
-
 def normalizeWords( words )->str:
     return words.lower().replace(',',' ').replace('  ',' ').strip()
 

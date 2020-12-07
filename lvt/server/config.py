@@ -31,7 +31,7 @@ class Config:
         this.voiceSelectivity = p.getFloatValue( section, 'VoiceSelectivity', 0.2 )
 
         this.assistantName = p.getValue( section, 'AssistantName','' ) \
-            .replace( ',',' ' ).replace( '  ',' ' ).strip().replace( ' ',', ' )
+            .replace( ',',' ' ).replace( '  ',' ' ).strip().lower()
         if( len( this.assistantName.strip() ) == 0 ): 
             raise Exception( 'AssistantName should be specified' )
 

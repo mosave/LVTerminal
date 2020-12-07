@@ -28,9 +28,8 @@ sslContext = None
 
 config = Config( os.path.splitext( os.path.basename( __file__ ) )[0] + '.cfg' )
 
-#TTS.setConfig( config )
-Terminal.Initialize( config )
-Speaker.Initialize( config )
+Terminal.initialize( config )
+Speaker.initialize( config )
 
 print( f'Listening port: {config.serverPort}' )
 if( len( config.sslCertFile ) > 0 and len( config.sslKeyFile ) > 0 ):
@@ -175,6 +174,11 @@ async def Server( connection, path ):
                     if terminal != None and int(time.time()) != int(lastTickedOn):
                         lastTickedOn = time.time()
                         terminal.onTimer()
+                        # Отправляем новые сообщения клиенту, если они появились
+                        while len( messageQueue ) > 0:
+                            await connection.send( messageQueue[0] )
+                            messageQueue.pop( 0 )
+
                     # Получаем сообщение или голосовой поток от клиента
                     message = await asyncio.wait_for( connection.recv(), timeout=0.2 )
                 except asyncio.TimeoutError:

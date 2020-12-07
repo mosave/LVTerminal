@@ -19,3 +19,4 @@ Features implemented:
 - Secure Websock support (+SSL) allowing self-signed certificates
 
 
+https://mjdm.ru/forum/viewtopic.php?f=5&t=5460&start=50

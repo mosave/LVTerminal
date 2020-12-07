@@ -35,9 +35,11 @@
     <Compile Include="lvt\client\sound_estimator.py" />
     <Compile Include="lvt\config_parser.py" />
     <Compile Include="lvt\const.py" />
-    <Compile Include="lvt\grammar.py" />
+    <Compile Include="lvt\server\entities.py" />
+    <Compile Include="lvt\server\grammar.py" />
     <Compile Include="lvt\protocol.py" />
     <Compile Include="lvt\server\config.py" />
+    <Compile Include="lvt\server\skills\one_word_commands.py" />
     <Compile Include="lvt\server\skill_factory.py" />
     <Compile Include="lvt\server\speaker.py" />
     <Compile Include="lvt\server\terminal.py" />
@@ -53,6 +55,7 @@
     <Folder Include="lvt\" />
     <Folder Include="lvt\client\" />
     <Folder Include="lvt\server\" />
+    <Folder Include="lvt\server\sounds\" />
     <Folder Include="lvt\server\speakers\" />
     <Folder Include="lvt\server\terminals\" />
     <Folder Include="lvt\server\entities\" />
@@ -64,10 +67,10 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="docs\LVT protocol.txt" />
+    <Content Include="lvt\server\entities\acronyms" />
     <Content Include="lvt\server\entities\actions" />
     <Content Include="lvt\server\entities\devices" />
     <Content Include="lvt\server\entities\locations" />
-    <Content Include="lvt\server\entities\well_known_names" />
     <Content Include="lvt\server\terminals\kitchen.cfg" />
     <Content Include="lvt\server\terminals\testterminal.cfg" />
     <Content Include="todo.txt" />

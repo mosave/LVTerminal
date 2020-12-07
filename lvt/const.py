@@ -25,5 +25,5 @@ TTS_ALL = {TTS_RHVOICE}
 
 # State macnine well-known toipcs:
 
-TOPIC_ALL = "*"
-TOPIC_DEFAULT = "default"
+TOPIC_ALL = '*'
+TOPIC_DEFAULT = ''
