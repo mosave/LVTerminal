@@ -87,6 +87,9 @@ class Skill:
     @property
     def appeal( this ): return this.terminal.appeal
     @property
+    def location( this ): return this.terminal.location
+
+    @property
     def words( this ): return this.terminal.words
     @property
     def text( this ): return this.terminal.text
@@ -95,6 +98,9 @@ class Skill:
 
     def say( this, text ): this.terminal.say( text )
     def play( this, waveFileName ): this.terminal.play( waveFileName )
+    def log( this, msg:str ): this.terminal.log(msg)
+    def logError( this, msg:str ): this.terminal.logError(msg)
+    def logDebug( this, msg:str ): this.terminal.logDebug(msg)
 #endregion
 
 # Манипуляции словами и цепочками слов - поиск, удаление, подмена...
@@ -163,7 +169,6 @@ class Skill:
         while wordsToDelete > 0 and index < len( this.terminal.words ):
            this.terminal.words.pop( index )
            wordsToDelete -= 1
-        this.__updateText()
 
     def insertWords( this, index:int, words: str ):
         """Вставить слово или цепочку слов в фразу"""
@@ -173,7 +178,6 @@ class Skill:
             p = this.terminal.morphy.parse( words[-i - 1] )
             # ?  do something with tags
             this.terminal.words.insert( index, p )
-        this.__updateText()
 
     def replaceWordChain( this, chain: str, replaceWithChain: str ) -> bool:
         """Найти в фразе цепочку слов chain и заменить ее на replaceWithChain """
@@ -188,17 +192,6 @@ class Skill:
                 break
 
         return found
-
-    def __updateText( this ):
-        """Привести terminal.text в соответствие с terminal.words """
-        text = ''
-        for w in this.terminal.words:
-            text = text + w[0].word + ' '
-        text = text.strip()
-        if text != this.terminal.text :
-            this.terminal.text = text
-            this.terminal.logDebug( f'Text changed: "{text}"' )
-
 
 #endregion
 
@@ -224,10 +217,6 @@ class Skill:
     def extendVocabulary( this, words:str ):
         """Добавить список необходимых слов в словарь фильтрации распознавалки голоса"""
         this.vocabulary = joinWords( this.vocabulary, words )
-
-    def changeText( this, newText:str ):
-        """Заменить анализируемый текст на новый. Выполняется ПОСЛЕ выхода из обработчика onText/onPartialText"""
-        this.terminal.newText = normalizeWords( newText )
 
     def changeTopic( this, newTopic ):
         """Изменить текущий топик. Выполняется ПОСЛЕ выхода из обработчика onText/onPartialText"""

@@ -11,7 +11,7 @@ WAIT_COMMAND_TIMEOUT = 5 # время в режиме ожидания кома�
 class OneWordCommandSkill(Skill):
     """'Мажордом, свет!'"""
     def onLoad( this ):
-        this.priority = 9950
+        this.priority = 9700
         this.subscribe( TOPIC_DEFAULT )
 
     def onText( this ):

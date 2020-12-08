@@ -10,7 +10,7 @@ WAIT_COMMAND_TIMEOUT = 5 # время в режиме ожидания кома�
 #Define base skill class
 class AcronymaExpanderSkill(Skill):
     def onLoad( this ):
-        this.priority = 9940
+        this.priority = 9950
         this.subscribe( TOPIC_ALL )
 
     def onText( this ):

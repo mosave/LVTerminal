@@ -31,7 +31,8 @@ class Terminal():
 
         this.name = configParser.getValue( '','Name',this.id )
         this.logLevel = configParser.getIntValue( '', 'LogLevel', 0 )
-        this.location = configParser.getValue( '','Location', '' )
+        this.defaultLocation = configParser.getValue( '','Location', '' )
+        this.parsedLocations = []
 
         this.lastActivity = time.time()
         this.appealPos = None
@@ -63,19 +64,19 @@ class Terminal():
         this.skills = SkillFactory( this ).loadSkills()
 
         for skill in this.skills:
-            this.logDebug(f'{skill.priority:6} {skill.name}')
+            this.logDebug( f'{skill.priority:6} {skill.name}' )
             this.allTopics = this.allTopics.union( skill.subscriptions )
 
-        this.acronyms = this.loadEntities('acronyms')
-
+        this.acronyms = this.loadEntities( 'acronyms' )
+        this.knownLocations = this.loadEntities( 'locations' )
+        this.lastAnimation = ''
 
         this.reset()
 
     def reset( this ):
         this.topic = TOPIC_DEFAULT
-        this.appeal = wordsToList(config.assistantName)[0]
+        this.appeal = wordsToList( config.assistantName )[0]
         this.appealPos = -1
-        this.text = ''
         this.words = list()
         this.animate( ANIMATION_NONE )
 
@@ -102,13 +103,13 @@ class Terminal():
     def play( this, waveFileName: str ):
         """Проиграть wave файл на терминале. Максимальный размер файла 500к """
         this.sendMessage( MSG_TEXT, f'Playing "{waveFileName}"' )
-        if os.path.dirname(waveFileName) == '' :
-           waveFileName = os.path.join(ROOT_DIR,'lvt','server','sounds',waveFileName)
-        this.logDebug(f'play("{waveFileName}")')
+        if os.path.dirname( waveFileName ) == '' :
+           waveFileName = os.path.join( ROOT_DIR,'lvt','server','sounds',waveFileName )
         with open( waveFileName, 'rb' ) as wave:
             this.sendDatagram( wave.read( 500 * 1024 ) )
 
-    def getConfig(this):
+    def getConfig( this ):
+        """Возвращает Config"""
         global config
         return config
 
@@ -118,8 +119,30 @@ class Terminal():
         return ( time.time() - this.lastActivity < 1 * 60 )
 
     @property
-    def isAppealed(this)->bool:
-        return this.appealPos!=None
+    def locations( this ) -> str:
+        """Локация, распознанная в процессе анализа фразы либо локация по умолчанию, заданная в конфигурации терминала"""
+        return ( this.parsedLocations if len( this.parsedLocations ) > 0 else [this.defaultLocation] )
+
+    @property
+    def isAppealed( this ) -> bool:
+        return this.appealPos != None
+
+    @property
+    def text (this)->str:
+        """Сгенерировать текст фразы из разолранных слов """
+        text = ''
+        for w in this.words: text += w[0].word + ' '
+        return text.strip()
+
+    @text.setter 
+    def text (this, newText):
+        # Кешируем морфологический разбор слов - для ускорения обработки фразы
+        newText = normalizeWords( newText )
+        this.words = list()
+        wds = wordsToList( newText )
+        for w in wds: 
+            this.words.append( this.morphy.parse( w ) )
+
 
     def onConnect( this, messageQueue:list() ):
         """Метод вызывается при подключении терминального клиента
@@ -142,26 +165,23 @@ class Terminal():
         this.disconnectedOn = time.time()
         this.messageQueue = None
 
-    def parseWords( this, text:str ):
-        # Кешируем морфологический разбор слов - для ускорения обработки фразы
-        this.text = normalizeWords( text )
-        this.words = list()
-        wds = wordsToList( this.text )
-        for w in wds: 
-            this.words.append( this.morphy.parse( w ) )
 
     def onText( this, text:str, final:bool ):
         """Основная точка входа для обработки распознанного фрагмента """
+        text = normalizeWords( text )
+
         if final : 
             speakerName = this.speaker.name if this.speaker != None else 'Человек'
-            this.logDebug( f'{speakerName}: {text}' )
+            this.logDebug( f'{speakerName}: "{text}"' )
         else:
             pass
 
-        wasAppealed = this.isAppealed
         # Провести морфологический разбор слов текста
-        this.parseWords( text )
+        this.text = text
+
         while True:
+            this.parsedLocations = []
+            wasAppealed = this.isAppealed
             for skill in this.skills:
                 # Проверить, подписан ли скилл на текущий топик:
                 if not skill.isSubscribed( this.topic ) : 
@@ -170,21 +190,21 @@ class Terminal():
                     method = 'onText()'
                     this.newTopic = None
                     this.parsingStopped = False
-                    this.newText = None
                     this.parsingRestart = False
+                    _text = this.text
                     if final: 
                         skill.onText()
                     else: 
                         skill.onPartialText()
+                    text = this.text
+                    if text != _text and final:
+                        this.logDebug( f'{skill.name}: changing text to "{text}"' )
 
-                    # Проверить, не изменился ли текст
-                    if this.newText != None and this.newText != text :
-                        this.parseWords( text )
 
                     method = 'onTopicChange()'
                     # Проверить, не изменился ли топик
                     if this.newTopic != None and this.newTopic != this.topic :
-                        this.logDebug( f'{skill.name}: changing topic to {this.newTopic}' )
+                        this.logDebug( f'{skill.name}: changing topic to "{this.newTopic}"' )
                         for s in this.skills:
                             if s.isSubscribed( this.topic ) or s.isSubscribed( this.newTopic ):
                                 s.onTopicChange( this.topic, this.newTopic )
@@ -192,20 +212,22 @@ class Terminal():
                         this.newTopic = None
 
                     # If current skill requested to abort further processing
-                    if this.parsingStopped: break
+                    if this.parsingRestart: 
+                        this.logDebug( 'Перезапуск анализа фразы' )
+                        break
+                    if this.parsingStopped: 
+                        this.logDebug( 'Анализ фразы прерван' )
+                        break
                 except Exception as e:
                     this.logError( f'{skill.name}.{method} exception: {e}' )
             if not this.parsingRestart : break
 
         if final:
-            #if this.isAppealed and this.topic==TOPIC_DEFAULT :
-            #    this.animate( ANIMATION_NONE )
-            pass
+            if this.topic == TOPIC_DEFAULT:
+                this.animate( ANIMATION_NONE )
         else:
-            # Среагировать на обнаружение обращения
-            #if this.isAppealed and not wasAppealed:
-            #    this.animate( ANIMATION_AWAKE )
-            pass
+            if this.isAppealed and this.topic == TOPIC_DEFAULT:
+                this.animate( ANIMATION_AWAKE )
 
 
     def onTimer( this ):
@@ -289,9 +311,11 @@ class Terminal():
         js += '}'
         return js
 
-    def animate( this, animation ):
+    def animate( this, animation:str, force:bool=False  ):
         """Передать слиенту запрос на анимацию"""
-        this.sendMessage( MSG_ANIMATE, animation )
+        if force or animation != this.lastAnimation:
+            this.lastAnimation = animation
+            this.sendMessage( MSG_ANIMATE, animation )
 
     def sendMessage( this, msg:str, p1:str=None, p2:str=None ):
         message = MESSAGE( msg, p1, p2 )
