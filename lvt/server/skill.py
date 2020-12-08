@@ -81,7 +81,7 @@ class Skill:
     @property
     def assistantNames( this ): return this.terminal.assistantNames
     @property
-    def isAppealed( this ): return this.terminal.appealPos!=None
+    def isAppealed( this ): return this.terminal.appealPos != None
     @property
     def appealPos( this ): return this.terminal.appealPos
     @property
@@ -96,7 +96,8 @@ class Skill:
     def say( this, text ): this.terminal.say( text )
     def play( this, waveFileName ): this.terminal.play( waveFileName )
 #endregion
-# Words manipulation
+
+# Манипуляции словами и цепочками слов - поиск, удаление, подмена...
 #region
     def getNormalFormOf( this, word: str, tags=None ) -> str:
         """Возвращает нормальную форму слова с учетом морфологических признаков"""
@@ -114,7 +115,7 @@ class Skill:
         return ''
 
     def isWord( this, index, word: str, tags=None ) -> bool:
-        """Сравнение слова в фразе с заданным с учетом морфологических признаков"""
+        """Сравнение слова со словом в фразе с учетом морфологических признаков"""
         nf = this.getNormalFormOf( word, tags )
         for p in this.terminal.words[index]:
             if ( tags == None or tags in p.tag ) and p.normal_form == nf: 
@@ -136,31 +137,72 @@ class Skill:
                 if ( tags == None or tags in p.tag ) and p.normal_form == nf: 
                     return index
         return None
-    def deleteWord( this, index ):
-        #delete word
-        this.terminal.words.pop( index )
-        this.updateText()
 
-    def insertWords( this, index, words ):
+    def findWordChain( this, chain: str, startIndex: int=0 ) -> int:
+        """Поиск в фразе цепочки слов"""
+
+        cWords = wordsToList( chain )
+        # Количество возможных положений цепочки в фразе (длина фразы-длина
+        # цепочки)
+        n = len( this.terminal.words ) - len( cWords ) - startIndex + 1
+        # Проверить, достаточно ли слов в фразе
+        if n < 1 : return None
+
+        for index in range( startIndex, n ):
+            found = True
+            for i in range( len( cWords ) ) :
+                if not this.isWord( index + i, cWords[i] ) : 
+                    found = False
+                    break
+            if found : return index
+
+        return None
+
+    def deleteWord( this, index: int, wordsToDelete:int=1 ):
+        """ Удаление одного или нескольких слов из фразы"""
+        while wordsToDelete > 0 and index < len( this.terminal.words ):
+           this.terminal.words.pop( index )
+           wordsToDelete -= 1
+        this.__updateText()
+
+    def insertWords( this, index:int, words: str ):
+        """Вставить слово или цепочку слов в фразу"""
         words = wordsToList( words )
 
-        for i in range(len(words)):
-            this.terminal.words.insert(index, this.terminal.morphy.parse(words[-i-1]) )
-        this.updateText()
+        for i in range( len( words ) ):
+            p = this.terminal.morphy.parse( words[-i - 1] )
+            # ?  do something with tags
+            this.terminal.words.insert( index, p )
+        this.__updateText()
 
-    def updateText( this ):
+    def replaceWordChain( this, chain: str, replaceWithChain: str ) -> bool:
+        """Найти в фразе цепочку слов chain и заменить ее на replaceWithChain """
+        found = False
+        while True:
+            n = this.findWordChain( chain )
+            if n != None:
+                this.deleteWord( n, len( wordsToList( chain ) ) )
+                this.insertWords( n, replaceWithChain )
+                found = True
+            else:
+                break
+
+        return found
+
+    def __updateText( this ):
+        """Привести terminal.text в соответствие с terminal.words """
         text = ''
         for w in this.terminal.words:
             text = text + w[0].word + ' '
         text = text.strip()
         if text != this.terminal.text :
             this.terminal.text = text
-            this.terminal.logDebug(f'Text changed: "{text}"')
+            this.terminal.logDebug( f'Text changed: "{text}"' )
 
 
 #endregion
 
-# Config-related stuff
+# Методы конфигурации скила и управления ходом разбора фразы
 #region
     def subscribe( this, topic:str ):
         """Привязать вызов process к состоянию"""
@@ -171,6 +213,7 @@ class Skill:
         this.subscriptions.remove( str( topic ) )
 
     def isSubscribed( this, topic ):
+        """Возвращает True если скилл подписан на Topic с учетом маски *, """
         topic = str( topic ).strip()
         for s in this.subscriptions:
             if s == "*" :return True
@@ -183,15 +226,19 @@ class Skill:
         this.vocabulary = joinWords( this.vocabulary, words )
 
     def changeText( this, newText:str ):
+        """Заменить анализируемый текст на новый. Выполняется ПОСЛЕ выхода из обработчика onText/onPartialText"""
         this.terminal.newText = normalizeWords( newText )
 
     def changeTopic( this, newTopic ):
+        """Изменить текущий топик. Выполняется ПОСЛЕ выхода из обработчика onText/onPartialText"""
         this.terminal.newTopic = str( newTopic )
 
     def stopParsing( this ):
+        """Прервать исполнение цепочки скиллов после выхода из обработчика onText/onPartialText"""
         this.terminal.parsingStopped = True
 
     def restartParsing( this ):
+        """Прервать исполнение цепочки скиллов и перезапустить процесс анализа после выхода из обработчика onText/onPartialText"""
         this.terminal.parsingStopped = True
         this.terminal.parsingRestart = True
 #endregion

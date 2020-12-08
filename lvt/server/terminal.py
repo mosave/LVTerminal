@@ -3,7 +3,6 @@ import sys
 import time
 import datetime
 import pymorphy2
-import rhvoice_wrapper # https://pypi.org/project/rhvoice-wrapper/
 from lvt.const import *
 from lvt.protocol import *
 from lvt.server.grammar import *
@@ -62,8 +61,13 @@ class Terminal():
 
         this.allTopics = set()
         this.skills = SkillFactory( this ).loadSkills()
+
         for skill in this.skills:
+            this.logDebug(f'{skill.priority:6} {skill.name}')
             this.allTopics = this.allTopics.union( skill.subscriptions )
+
+        this.acronyms = this.loadEntities('acronyms')
+
 
         this.reset()
 
@@ -236,6 +240,15 @@ class Terminal():
 
         this.vocabulary = words
 
+    def loadEntities( this, entityFileName ):
+        entities = list()
+        p = ConfigParser( os.path.join( 'lvt','server','entities', entityFileName ) )
+        for v in p.values:
+            entity = list()
+            for i in range( 2,len( v ) ):
+                entity.append( v[i] )
+            entities.append( entity )
+        return entities
 
 # Logging
 #region
@@ -333,6 +346,11 @@ class Terminal():
         global config
         global terminals
         config = gConfig
+        if config.ttsEngine == TTS_RHVOICE :
+            import rhvoice_wrapper # https://pypi.org/project/rhvoice-wrapper/
+        else:
+            pass
+
         Terminal.loadDatabase()
 
 #endregion

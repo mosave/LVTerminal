@@ -39,6 +39,8 @@
     <Compile Include="lvt\server\grammar.py" />
     <Compile Include="lvt\protocol.py" />
     <Compile Include="lvt\server\config.py" />
+    <Compile Include="lvt\server\skills\acronyms.py" />
+    <Compile Include="lvt\server\skills\location_detector.py" />
     <Compile Include="lvt\server\skills\one_word_commands.py" />
     <Compile Include="lvt\server\skill_factory.py" />
     <Compile Include="lvt\server\speaker.py" />

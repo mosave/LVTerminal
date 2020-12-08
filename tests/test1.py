@@ -30,7 +30,7 @@ terminal = Terminal.authorize( 'testterminal', 'Password')
 terminal.logLevel= LOGLEVEL_VERBOSE
 terminal.onConnect(messageQueue)
 
-terminal.onText("слушай мажордом", True)
+terminal.onText("слушай мажордом включи роберта", True)
 
 
 terminal.onText("мажордом включи свет на кухне", True)

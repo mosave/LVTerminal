@@ -8,7 +8,7 @@ TOPIC_WAIT_COMMAND = "WaitCommand"
 WAIT_COMMAND_TIMEOUT = 5 # время в режиме ожидания команды, секунд
 
 #Define base skill class
-class AppealDetector(Skill):
+class AppealDetectorSkill(Skill):
     def onLoad( this ):
         #print('loading AppealDetector')
         this.priority = 10000
