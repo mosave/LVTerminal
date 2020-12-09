@@ -59,6 +59,7 @@ if __name__ == '__main__':
         shared.isTerminated = False
         shared.isConnected = False
         shared.isIdle = True
+        shared.isMicrophoneEnabled = True
         shared.serverStatus = '{"Terminal":""}'
         shared.serverConfig = '{}'
         messages = multiprocessing.Queue()

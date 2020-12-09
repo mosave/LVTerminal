@@ -12,6 +12,7 @@ from lvt.server.skill_factory import SkillFactory
 
 config = None
 terminals = list()
+rhvoiceTTS = None
 
 ########################################################################################
 class Terminal():
@@ -31,7 +32,7 @@ class Terminal():
 
         this.name = configParser.getValue( '','Name',this.id )
         this.logLevel = configParser.getIntValue( '', 'LogLevel', 0 )
-        this.defaultLocation = configParser.getValue( '','Location', '' )
+        this.defaultLocation = configParser.getValue( '','Location', '' ).lower()
         this.parsedLocations = []
 
         this.lastActivity = time.time()
@@ -71,6 +72,11 @@ class Terminal():
         this.knownLocations = this.loadEntities( 'locations' )
         this.lastAnimation = ''
 
+        #if config.ttsEngine == TTS_RHVOICE :
+        #    import rhvoice_wrapper # https://pypi.org/project/rhvoice-wrapper/
+
+
+
         this.reset()
 
     def reset( this ):
@@ -84,21 +90,17 @@ class Terminal():
         """Проговорить сообщение на терминал. 
           Текст сообщения так же дублируется командой "Text"
         """
-        this.sendMessage( MSG_TEXT, text )
+        #this.sendMessage( MSG_TEXT, f'Say {text}' )
+        this.logDebug(f'Say "{text}"')
         if( config.ttsEngine == TTS_RHVOICE ):
-            tts = rhvoice_wrapper.TTS( threads=1, 
-                data_path=config.rhvDataPath, 
-                config_path=config.rhvConfigPath,
-                lame_path=None, opus_path=None, flac_path=None,
-                quiet=True )
+            if rhvoiceTTS != None :
+                waveData = rhvoiceTTS.get( text, 
+                    voice=config.rhvVoice, 
+                    format_='wav', 
+                    sets=config.rhvParams, )
+                this.sendDatagram( waveData )
+            #tts = None
 
-            waveData = tts.get( text, 
-                voice=config.rhvVoice, 
-                format_='wav', 
-                sets=config.rhvParams, )
-
-            this.sendDatagram( waveData )
-            tts = None
 
     def play( this, waveFileName: str ):
         """Проиграть wave файл на терминале. Максимальный размер файла 500к """
@@ -128,21 +130,23 @@ class Terminal():
         return this.appealPos != None
 
     @property
-    def text (this)->str:
+    def text( this ) -> str:
         """Сгенерировать текст фразы из разолранных слов """
         text = ''
         for w in this.words: text += w[0].word + ' '
         return text.strip()
 
     @text.setter 
-    def text (this, newText):
+    def text( this, newText ):
         # Кешируем морфологический разбор слов - для ускорения обработки фразы
         newText = normalizeWords( newText )
         this.words = list()
         wds = wordsToList( newText )
         for w in wds: 
-            this.words.append( this.morphy.parse( w ) )
-
+            parses = this.morphy.parse( w )
+            #Проигнорировать предикативы, наречия, междометия и частицы
+            if {'PRED'} not in parses[0].tag and {'ADVB'} not in parses[0].tag and {'INTJ'} not in parses[0].tag and {'PRCL'} not in parses[0].tag :
+                this.words.append( parses )
 
     def onConnect( this, messageQueue:list() ):
         """Метод вызывается при подключении терминального клиента
@@ -165,19 +169,21 @@ class Terminal():
         this.disconnectedOn = time.time()
         this.messageQueue = None
 
-
     def onText( this, text:str, final:bool ):
         """Основная точка входа для обработки распознанного фрагмента """
         text = normalizeWords( text )
 
         if final : 
+            this.originalText = text
             speakerName = this.speaker.name if this.speaker != None else 'Человек'
             this.logDebug( f'{speakerName}: "{text}"' )
         else:
-            pass
+            this.originalText = ""
 
         # Провести морфологический разбор слов текста
         this.text = text
+        if final and text != this.text :
+            this.logDebug( f'Вычищенный текст: "{this.text}"' )
 
         while True:
             this.parsedLocations = []
@@ -311,7 +317,7 @@ class Terminal():
         js += '}'
         return js
 
-    def animate( this, animation:str, force:bool=False  ):
+    def animate( this, animation:str, force:bool=False ):
         """Передать слиенту запрос на анимацию"""
         if force or animation != this.lastAnimation:
             this.lastAnimation = animation
@@ -369,9 +375,19 @@ class Terminal():
         """Initialize module' config variable for easier access """
         global config
         global terminals
+        global rhvoiceTTS
         config = gConfig
         if config.ttsEngine == TTS_RHVOICE :
-            import rhvoice_wrapper # https://pypi.org/project/rhvoice-wrapper/
+            import rhvoice_wrapper as rhvoiceWrapper # https://pypi.org/project/rhvoice-wrapper/
+            try:
+                rhvoiceTTS = rhvoiceWrapper.TTS( threads=1, 
+                    data_path=config.rhvDataPath, 
+                    config_path=config.rhvConfigPath,
+                    lame_path=None, opus_path=None, flac_path=None,
+                    quiet=True )
+            except Exception as e:
+                print(f'Exception initializing RHVoice engine')
+
         else:
             pass
 

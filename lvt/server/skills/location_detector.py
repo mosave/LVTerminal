@@ -25,7 +25,7 @@ class LocationsDetectorSkill(Skill):
                 if index == None : index = this.findWordChain('около '+location)
 
                 if index != None:
-                    if index>0 and this.isWord( index-1, 'и' ) :
+                    if index>0 and this.isWord( index-1, None, {'CONJ'} ) :# Союз
                         index -= 1
                         this.deleteWord(index)
                     #if index>1 and this.isWord(index-2,'везде') and this.isWord(index-1,'кроме') :

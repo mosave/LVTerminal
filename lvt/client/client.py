@@ -142,12 +142,12 @@ async def Client( config, messages, shared ):
                             await receiveMessages( connection, messages, shared )
 
                             waveData = audioStream.read( 4000 )
-                            waveBuffer.append( waveData )
-                            if len( waveBuffer ) > 3 : waveBuffer.pop( 0 )
-
-                            if estimator.estimate( waveData ):
-                                shared.isIdle = False
-                                break
+                            if shared.isMicrophoneEnabled :
+                                waveBuffer.append( waveData )
+                                if len( waveBuffer ) > 3 : waveBuffer.pop( 0 )
+                                if estimator.estimate( waveData, False ):
+                                    shared.isIdle = False
+                                    break
 
                             printStatus( config, shared, estimator )
 
@@ -158,12 +158,15 @@ async def Client( config, messages, shared ):
                                 waveData = waveBuffer[0]
                                 waveBuffer.pop( 0 )
                             else:
-                                waveData = audioStream.read( 4000 )
-                                estimator.estimate( waveData )
+                                if shared.isMicrophoneEnabled :
+                                    waveData = audioStream.read( 4000 )
+                                    estimator.estimate( waveData, True )
+                                else:
+                                    waveData = list()
                                 printStatus( config, shared, estimator )
 
                             if len( waveData ) == 0 : continue
-                                
+                             
                             await connection.send( waveData )
 
 

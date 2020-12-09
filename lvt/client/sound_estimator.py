@@ -19,7 +19,7 @@ class SoundEstimator:
         this.noiseThreshold = config.noiseThreshold
         this.triggerLevel = this.noiseLevel + this.noiseThreshold
         pass
-    def estimate( this, waveData ) -> bool:
+    def estimate( this, waveData, isActive:bool ) -> bool:
         this.rms = audioop.rms( waveData, this.sampleSize )
 
         if this.rms + this.noiseThreshold < this.noiseLevel :

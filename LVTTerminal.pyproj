@@ -47,7 +47,7 @@
     <Compile Include="lvt\server\terminal.py" />
     <Compile Include="lvt\server\skill.py" />
     <Compile Include="lvt\server\skills\appeal_detector.py" />
-    <Compile Include="lvt\server\skills\repeat.py" />
+    <Compile Include="lvt\server\skills\parrot_mode.py" />
     <Compile Include="lvt_client.py" />
     <Compile Include="lvt_server.py" />
     <Compile Include="tests\test1.py" />

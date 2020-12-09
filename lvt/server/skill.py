@@ -122,9 +122,9 @@ class Skill:
 
     def isWord( this, index, word: str, tags=None ) -> bool:
         """Сравнение слова со словом в фразе с учетом морфологических признаков"""
-        nf = this.getNormalFormOf( word, tags )
+        nf = this.getNormalFormOf( word, tags ) if word != None else None
         for p in this.terminal.words[index]:
-            if ( tags == None or tags in p.tag ) and p.normal_form == nf: 
+            if ( tags == None or tags in p.tag ) and (nf==None or p.normal_form == nf): 
                 return True
         return False
 

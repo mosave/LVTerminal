@@ -1,7 +1,7 @@
 
 
 def normalizePhrases( phrases ) -> str:
-    allowed_chars = 'abcdefghijklmnopqrstuvxyzабвгдеёжзийклмнопрстуфхцчшщъыьэюя 1234567890,'
+    allowed_chars = 'abcdefghijklmnopqrstuvxyzабвгдеёжзийклмнопрстуфхцчшщъыьэюя 1234567890-,'
     phrases = phrases.lower()
     cleaned = ''
     for ch in phrases: cleaned += ch if ch in allowed_chars else ' '

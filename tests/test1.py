@@ -38,7 +38,7 @@ def onText( text ):
 
 def testAppealDetector():
     print( '***** AppealDetectorSkill tests' )
-    onText( 'Ехал грека через реку' )
+    onText( 'Ой, ехал некогда Грека через какую-то реку. И ведь доехал же! ' )
     onText( 'слушай, мажордом, сделай что-нибудь!' )
     onText( "слушай, алиса..." )
     onText( "сделай уже что нибудь!" )
@@ -54,6 +54,13 @@ def testOneWordCommandSkill():
 def testLocationExtractor():
     print( '***** LocationExtractorSkill tests' )
     onText( 'слушай мажордом включи свет на кухне и в туалете' )
+
+def testParrotMode():
+    print( '***** ParrotModeSkill tests' )
+    onText( 'слушай мажордом повторяй за мной' )
+    onText( 'Ехал грека через реку' )
+    onText( 'На мели мы лениво налима ловили' )
+    onText( 'Перестань попугайничать' )
 
 
 
@@ -73,10 +80,12 @@ terminal = Terminal.authorize( 'testterminal', 'Password' )
 terminal.logLevel = LOGLEVEL_VERBOSE
 terminal.onConnect( messageQueue )
 
-testAppealDetector()
-testAcronym()
-testOneWordCommandSkill()
-testLocationExtractor()
+
+#testAppealDetector()
+#testAcronym()
+#testOneWordCommandSkill()
+#testLocationExtractor()
+testParrotMode()
 
 
 

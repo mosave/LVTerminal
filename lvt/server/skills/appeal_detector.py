@@ -20,7 +20,7 @@ class AppealDetectorSkill(Skill):
         # Если в режиме ожидания 
         if this.topic == TOPIC_WAIT_COMMAND:
             # Добавить в начало команды обращение, если нужно
-            if not this.detectAppeals(): this.insertWords(0,"слушай "+this.appeal)
+            if not this.detectAppeals(): this.insertWords(0,'слушай '+this.appeal)
             # И перезапустить распознавание без топика
             this.changeTopic(TOPIC_DEFAULT)
             this.restartParsing()
