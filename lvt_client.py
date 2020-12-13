@@ -9,8 +9,7 @@ import multiprocessing
 import pyaudio
 import contextlib
 from lvt.const import *
-from lvt.client.sound_estimator import SoundEstimator
-from lvt.client.animator import Animator
+from lvt.client.sound_processor import SoundProcessor
 from lvt.client.config import Config
 from lvt.client.client import Client
 from lvt.client.message_handler import MessageHandler
@@ -52,14 +51,12 @@ if __name__ == '__main__':
         global config
 
         config = Config( os.path.splitext( os.path.basename( __file__ ) )[0] + '.cfg' )
-        Animator.setConfig( config )
-        SoundEstimator.setConfig( config )
+        SoundProcessor.setConfig( config )
 
         shared = multiprocessing.Manager().Namespace()
         shared.isTerminated = False
         shared.isConnected = False
-        shared.isIdle = True
-        shared.isMicrophoneEnabled = True
+        shared.isMuted = False
         shared.serverStatus = '{"Terminal":""}'
         shared.serverConfig = '{}'
         messages = multiprocessing.Queue()

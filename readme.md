@@ -27,8 +27,8 @@ Lite Voice Terminal это клиент-серверная платформа с открытым кодом для создания
 * [vosk API](https://github.com/alphacep/vosk-ap): программный интерфейс для kaldi
 * [pymorphy2](https://github.com/kmike/pymorphy2): морфологический анализатор для русского и украинского языков
 * [RHVoice](https://github.com/Olga-Yakovleva/RHVoice):  синтез голоса для русского языка
-
-
+* [APA102](https://pypi.org/project/apa102): управление светодиодной лентой
+* [WebRTC VAD](https://github.com/wiseman/py-webrtcvad): Определение наличия голоса во входном потоке
 
 ## License
 

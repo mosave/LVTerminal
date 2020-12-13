@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>f7c765a6-ab0d-40c3-82fb-cd372cb281a9</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>tests\test1.py</StartupFile>
+    <StartupFile>lvt_client.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -28,20 +28,23 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="lvt\client\animator_apa102.py" />
     <Compile Include="lvt\client\animator.py" />
+    <Compile Include="lvt\client\apa102.py" />
     <Compile Include="lvt\client\client.py" />
     <Compile Include="lvt\client\config.py" />
     <Compile Include="lvt\client\message_handler.py" />
-    <Compile Include="lvt\client\sound_estimator.py" />
+    <Compile Include="lvt\client\sound_processor.py" />
     <Compile Include="lvt\config_parser.py" />
     <Compile Include="lvt\const.py" />
-    <Compile Include="lvt\server\entities.py" />
     <Compile Include="lvt\server\grammar.py" />
     <Compile Include="lvt\protocol.py" />
     <Compile Include="lvt\server\config.py" />
     <Compile Include="lvt\server\skills\acronyms.py" />
+    <Compile Include="lvt\server\skills\datetime_detector.py" />
     <Compile Include="lvt\server\skills\location_detector.py" />
     <Compile Include="lvt\server\skills\one_word_commands.py" />
+    <Compile Include="lvt\server\skills\time_teller.py" />
     <Compile Include="lvt\server\skill_factory.py" />
     <Compile Include="lvt\server\speaker.py" />
     <Compile Include="lvt\server\terminal.py" />
@@ -51,6 +54,7 @@
     <Compile Include="lvt_client.py" />
     <Compile Include="lvt_server.py" />
     <Compile Include="tests\test1.py" />
+    <Compile Include="tests\test_client.py" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="docs\" />

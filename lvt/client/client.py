@@ -4,36 +4,36 @@ import os
 import ssl
 import asyncio
 import websockets
-import pyaudio
 from contextlib import asynccontextmanager, contextmanager, AsyncExitStack
 from lvt.const import *
 from lvt.protocol import *
-from lvt.client.sound_estimator import SoundEstimator
+from lvt.client.sound_processor import SoundProcessor
 
 lastMessageReceived = None
 pingAreadySent = None
 lastAnimation = None
 
 ##############################################################################################
-def printStatus( config, shared, estimator ):
+def printStatus( config, shared, soundProcessor ):
 
     width = 49
     scale = 5000
-    rms = estimator.rms
+    rms = soundProcessor.rms
     if rms > scale : rms = scale
     graph = ''
     for i in range( 0,int( rms * width / scale )+1 ): graph += '='
     graph = f'[{graph:50}] '
-    p = int(  estimator.noiseLevel * width / scale )+1
+    p = int(  soundProcessor.noiseLevel * width / scale )+1
     graph = graph[:p] + '|' + graph[p + 1:]
-    p = int(  estimator.triggerLevel * width / scale )+1
+    p = int(  soundProcessor.triggerLevel * width / scale )+1
     graph = graph[:p] + '|' + graph[p + 1:]
 
-    face = '(-_-)' if shared.isIdle else '(O_O)'
-    print( f'[{lastAnimation:^10}] {face} {rms:>5} {graph} ', end='\r' )
+    face = 'O_O' if soundProcessor.isActive else '-_-'
+    face = f'X{face}X' if soundProcessor.isMuted else f'({face})'
+    print( f'[{lastAnimation:^10}] {face} {rms:>5} {graph}       ', end='\r' )
 
 ##############################################################################################
-async def receiveMessages( connection, messages, shared ):
+async def processMessages( connection, messages, shared, soundProcessor ):
     global lastMessageReceived
     global pingAreadySent
     global lastAnimation
@@ -67,7 +67,7 @@ async def receiveMessages( connection, messages, shared ):
         elif m == MSG_CONFIG:
             if p != None : shared.serverConfig = p
         elif m == MSG_IDLE: 
-            shared.isIdle = True
+            soundProcessor.isActive = False
         elif m == MSG_DISCONNECT: 
             shared.isConnected = True
         elif m == MSG_ANIMATE:
@@ -92,23 +92,12 @@ async def Client( config, messages, shared ):
     else:
         print( 'Using default audio input device' )
 
+    soundProcessor = None
     while not shared.isTerminated:
         try:
-            shared.isIdle = True
             shared.isConnected = False
 
-            # Init audio subsystem
-            audio = pyaudio.PyAudio()
-            # Open audio stream
-            audioStream = audio.open( 
-                format = pyaudio.paInt16, 
-                channels = 1,
-                rate = config.sampleRate,
-                input = True,
-                input_device_index=config.audioInputDevice,
-                frames_per_buffer = 4000 )
-
-            estimator = SoundEstimator( audio.get_sample_size( pyaudio.paInt16 ) )
+            soundProcessor = SoundProcessor()
 
             protocol = 'ws'
             sslContext = None
@@ -128,47 +117,31 @@ async def Client( config, messages, shared ):
                     pingAreadySent = False
 
                     shared.isConnected = True
-                    shared.isIdle = True
                     print( 'Connected, press Ctrl-C to exit' )
                     await connection.send( MESSAGE( MSG_TERMINAL, config.terminalId, config.password ) )
                     #await connection.send( MESSAGE( MSG_TEXT, 'блаблабла. БЛА!' ) )
                     #await connection.send( MSG_CONFIG )
 
                     while not shared.isTerminated and shared.isConnected:
-                        waveBuffer = []
-                        # wait until sound is triggered
 
-                        while not shared.isTerminated and shared.isConnected and shared.isIdle:
-                            await receiveMessages( connection, messages, shared )
+                        # Ждем и обрабатываем сообщения пока не будет обнаружена речь
+                        while not shared.isTerminated and shared.isConnected and not soundProcessor.isActive:
+                            await processMessages( connection, messages, shared, soundProcessor )
+                            soundProcessor.isMuted = shared.isMuted
+                            soundProcessor.process()
+                            printStatus( config, shared, soundProcessor )
 
-                            waveData = audioStream.read( 4000 )
-                            if shared.isMicrophoneEnabled :
-                                waveBuffer.append( waveData )
-                                if len( waveBuffer ) > 3 : waveBuffer.pop( 0 )
-                                if estimator.estimate( waveData, False ):
-                                    shared.isIdle = False
-                                    break
+                        while not shared.isTerminated and shared.isConnected and soundProcessor.isActive:
+                            await processMessages( connection, messages, shared, soundProcessor )
+                            soundProcessor.isMuted = shared.isMuted
 
-                            printStatus( config, shared, estimator )
+                            if not soundProcessor.isActive : break
 
-                        while not shared.isTerminated and shared.isConnected and not shared.isIdle:
-                            await receiveMessages( connection, messages, shared )
+                            data = soundProcessor.read()
+                            printStatus( config, shared, soundProcessor )
 
-                            if len( waveBuffer ) > 0:
-                                waveData = waveBuffer[0]
-                                waveBuffer.pop( 0 )
-                            else:
-                                if shared.isMicrophoneEnabled :
-                                    waveData = audioStream.read( 4000 )
-                                    estimator.estimate( waveData, True )
-                                else:
-                                    waveData = list()
-                                printStatus( config, shared, estimator )
-
-                            if len( waveData ) == 0 : continue
-                             
-                            await connection.send( waveData )
-
+                            if data != None and len(data)>0 :
+                                await connection.send( data )
 
                 except KeyboardInterrupt:
                     if not shared.isTerminated: print( "Terminating..." )
@@ -190,10 +163,10 @@ async def Client( config, messages, shared ):
             print( f'Connection thread exception: {e} ' )
             await asyncio.sleep( 10 )
         finally:
-            #Release audio device
-            try: audioStream.close()
-            except: pass
-            try: audio.terminate() 
-            except: pass
+            #Release sound processor
+            if soundProcessor != None:
+                try:del(soundProcessor)
+                except: pass
+            soundProcessor = None
 
     print( "Finishing Client thread" )

@@ -30,9 +30,13 @@ class Terminal():
         if this.password == '': 
             this.raiseException( f'Termininal configuration error: Password is not defined' )
 
+        this.usingVocabulary = False
+        this.vocabulary = ""
+
         this.name = configParser.getValue( '','Name',this.id )
         this.logLevel = configParser.getIntValue( '', 'LogLevel', 0 )
         this.defaultLocation = configParser.getValue( '','Location', '' ).lower()
+
         this.parsedLocations = []
 
         this.lastActivity = time.time()
@@ -46,11 +50,6 @@ class Terminal():
         # It is assigned on terminal connection and invalidated (set to None)
         # on disconnection
         this.messageQueue = None
-
-        this.usingVocabulary = False
-        this.vocabulary = ""
-
-        this.updateVocabulary()
 
         this.morphy = pymorphy2.MorphAnalyzer( lang=config.language )
         # Speaker() class instance for last recognized speaker (if any)
@@ -70,11 +69,11 @@ class Terminal():
 
         this.acronyms = this.loadEntities( 'acronyms' )
         this.knownLocations = this.loadEntities( 'locations' )
+
         this.lastAnimation = ''
 
         #if config.ttsEngine == TTS_RHVOICE :
         #    import rhvoice_wrapper # https://pypi.org/project/rhvoice-wrapper/
-
 
 
         this.reset()
@@ -235,7 +234,6 @@ class Terminal():
             if this.isAppealed and this.topic == TOPIC_DEFAULT:
                 this.animate( ANIMATION_AWAKE )
 
-
     def onTimer( this ):
         for skill in this.skills: 
             try:
@@ -254,19 +252,18 @@ class Terminal():
             except Exception as e:
                 this.logError( f'{skill.name}.onTimer() exception: {e}' )
 
+    def extendVocabulary(this, words ) :
+        """Расширить словарь. Принимает списки слов как в виде строк так и в виде массивов (рекурсивно)"""
+        if isinstance( words, list) :
+            for word in words : this.extendVocabulary( word )
+        elif isinstance( words, str ):
+            this.vocabulary = joinWords( this.vocabulary, words )
 
     def getVocabulary( this ) -> str:
         """Возвращает полный текущий список слов для фильтрации распознавания речи 
            или пустую строку если фильтрация не используется
         """
         return this.vocabulary if this.usingVocabulary else ''
-
-    def updateVocabulary( this ):
-        words = normalizeWords( config.assistantName )
-        words = joinWords( words, config.confirmationPhrases )
-        words = joinWords( words, config.cancellationPhrases )
-
-        this.vocabulary = words
 
     def loadEntities( this, entityFileName ):
         entities = list()

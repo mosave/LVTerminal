@@ -40,7 +40,6 @@ class ParrotModeSkill(Skill):
                     this.stopParsing()
 
 
-
     def onTopicChange( this, topic:str, newTopic: str ):
         if newTopic == TOPIC_PARROT_MODE :
             this.say( 'Окей, говорите и я буду повторять всё, что услышу!' )

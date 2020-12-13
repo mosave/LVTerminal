@@ -96,6 +96,14 @@ class Skill:
     @property
     def topic( this ): return this.terminal.topic
 
+    @property
+    def usingVocabulary( this )->bool:  
+        return this.terminal.usingVocabulary
+
+    @usingVocabulary.setter
+    def usingVocabulary(this, b:bool):
+        this.terminal.usingVocabulary = b
+
     def say( this, text ): this.terminal.say( text )
     def play( this, waveFileName ): this.terminal.play( waveFileName )
     def log( this, msg:str ): this.terminal.log(msg)
@@ -214,9 +222,9 @@ class Skill:
             if len( ab ) == 1 and ab[0] == topic : return True
             if len( ab ) > 1 and topic.startswith( ab[0] ) and topic.endswith( ab[-1] ): return True
 
-    def extendVocabulary( this, words:str ):
+    def extendVocabulary( this, words ):
         """Добавить список необходимых слов в словарь фильтрации распознавалки голоса"""
-        this.vocabulary = joinWords( this.vocabulary, words )
+        this.terminal.extendVocabulary( words )
 
     def changeTopic( this, newTopic ):
         """Изменить текущий топик. Выполняется ПОСЛЕ выхода из обработчика onText/onPartialText"""

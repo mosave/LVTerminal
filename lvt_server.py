@@ -156,7 +156,7 @@ async def Server( connection, path ):
                 v = terminal.getVocabulary()
                 if recognizer == None or vocabulary != v :
                     vocabulary = v
-
+                    print (v)
                     if (len( vocabulary ) > 0) and model != None: # Фильтрация по словарю:
                         recognizer = KaldiRecognizer( model, config.sampleRate, json.dumps( vocabulary.split( ' ' ), ensure_ascii=False ) )
                         if( spkModel != None ): 

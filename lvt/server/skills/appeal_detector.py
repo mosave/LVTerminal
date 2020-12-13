@@ -62,6 +62,7 @@ class AppealDetectorSkill(Skill):
         if aPos > 0 : 
             if this.isWord(aPos-1,'эй') \
                 or this.isWord(aPos-1,'хэй') \
+                or this.isWord(aPos-1,'алло') \
                 or this.isWord(aPos-1,'и') \
                 or this.isWord(aPos-1,'слушай') :
                 # Удаляем незначащее слово

@@ -8,6 +8,9 @@ import pathlib
 import websockets
 import logging
 import time
+
+sys.path.append(os.path.abspath( os.path.join( os.path.dirname( __file__ ),'../' ) ))
+
 from lvt.const import *
 from lvt.protocol import *
 from lvt.server.grammar import *
@@ -90,8 +93,6 @@ def testParrotMode():
     if( terminal.topic != '') : abort('Терминал не вернулся в нормальный режим')
 
 
-#set project folder to correct value
-ROOT_DIR = os.path.abspath( os.path.join( os.path.dirname( __file__ ),'../' ) )
 
 config = Config( 'lvt_server.cfg' )
 

@@ -7,11 +7,22 @@ import pyaudio
 import wave
 from lvt.const import *
 from lvt.protocol import *
-from lvt.client.animator import Animator
 
 
-def MessageHandler( config, messages, shared ):
+def MessageHandler( config, messages, shared, testMode=False ):
     print( "Event handler thread starting" )
+    if config.animator=="text":
+        from lvt.client.animator import Animator
+        animator = Animator(config,shared)
+        animator.start()
+        pass
+    elif config.animator=="apa102":
+        from lvt.client.animator_apa102 import APA102Animator
+        animator = APA102Animator(config,shared,12)
+        animator.start()
+    else:
+        animator = None
+
     while not shared.isTerminated:
         try:
             message = messages.get()
@@ -22,12 +33,12 @@ def MessageHandler( config, messages, shared ):
                         print()
                         print( f'Server: {p}' )
                 elif m == MSG_ANIMATE:
-                    if str( p ) in ANIMATION_ALL:
-                        Animator().animate( p )
+                    if animator != None and str( p ) in ANIMATION_ALL:
+                        animator.animate( p )
                 else:
                     print( f'Message "{msg}" handler not yet implemented' )
             else: # Treat any binary data messages as wave fragments.
-                shared.isMicrophoneEnabled = False
+                shared.isMuted = True
                 try: #Play wave from memory by with BytesIO via audioStream
                     audio = pyaudio.PyAudio()
                     with wave.open( io.BytesIO( message ), 'rb' ) as wav:
@@ -52,14 +63,23 @@ def MessageHandler( config, messages, shared ):
                     except: pass
                     try: audio.terminate() 
                     except: pass
-                shared.isMicrophoneEnabled = True
+                shared.isMuted = False
 
+            if testMode : 
+                time.sleep(3)
 
         except KeyboardInterrupt:
             if not shared.isTerminated : print( "Terminating..." )
             shared.isTerminated = True
+            break
         except Exception as e:
             print( f'Event handler thread exception: {e}' )
+        
+
+    if animator != None : 
+        animator.off()
+        del(animator)
+        animator = None
 
     print( "Finishing Event handler thread" )
 
