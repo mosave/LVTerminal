@@ -1,7 +1,7 @@
-import json
 import sys
 import time
 import datetime
+import json
 import pymorphy2
 from lvt.const import *
 from lvt.protocol import *
@@ -25,17 +25,21 @@ class Terminal():
     """
     def __init__( this, terminalId: str, configParser: ConfigParser ):
         this.id = terminalId
+        this.logs = list()
+        this.logLevel = configParser.getIntValue( '', 'LogLevel', 0 )
+        this.logDebug(f'Initializing terminal')
 
         this.password = configParser.getValue( '','Password','' )
         if this.password == '': 
             this.raiseException( f'Termininal configuration error: Password is not defined' )
 
+        this.clientVersion = ""
         this.usingVocabulary = False
         this.vocabulary = ""
 
         this.name = configParser.getValue( '','Name',this.id )
-        this.logLevel = configParser.getIntValue( '', 'LogLevel', 0 )
         this.defaultLocation = configParser.getValue( '','Location', '' ).lower()
+        this.autoUpdate = (configParser.getIntValue( '', 'AutoUpdate', 1 ) != 0)
 
         this.parsedLocations = []
 
@@ -44,7 +48,6 @@ class Terminal():
         # messages are local output messages buffer used while terminal is
         # disconnected
         this.messages = list()
-        this.logs = list()
 
         # messageQueue is an external output message queue
         # It is assigned on terminal connection and invalidated (set to None)
@@ -58,7 +61,7 @@ class Terminal():
         this.connectedOn = None
         this.disconnectedOn = None
 
-        this.log( 'Loading skills' )
+        this.logDebug( 'Loading skills' )
 
         this.allTopics = set()
         this.skills = SkillFactory( this ).loadSkills()
@@ -275,21 +278,40 @@ class Terminal():
             entities.append( entity )
         return entities
 
+# UpdateClient
+#region
+    def updateClient(this):
+        def packageFile( fileName ):
+            with open( os.path.join( ROOT_DIR, fileName), "r", encoding='utf-8' ) as f:
+                package.append( (fileName, f.readlines() ) )
+        def packageDirectory( dir ):
+            files = os.listdir( os.path.join( ROOT_DIR, dir ) )
+            for file in files:
+                if file.endswith('.py') : 
+                    packageFile( os.path.join( dir, file ) )
+
+        package = []
+        packageFile('lvt_client.py')
+        packageDirectory( 'lvt' )
+        packageDirectory( os.path.join( 'lvt','client' ) )
+        this.sendMessage( MSG_UPDATE, json.dumps( package, ensure_ascii=False ))
+
+#endregion
 # Logging
 #region
     def logError( this, message:str ):
-        print( f'E {message}' )
+        print( f'E [{this.id}] {message}' )
         if this.logLevel >= LOGLEVEL_ERROR :
             this.logs.append( f'E {message}' )
 
     def log( this, message:str ):
         if this.logLevel >= LOGLEVEL_INFO :
-            print( f'I {message}' )
+            print( f'I [{this.id}] {message}' )
             this.logs.append( f'I {message}' )
 
     def logDebug( this, message:str ):
         if this.logLevel >= LOGLEVEL_DEBUG :
-            print( f'D {message}' )
+            print( f'D [{this.id}] {message}' )
             this.logs.append( f'D {message}' )
 
     def raiseException( this, message ):
@@ -322,7 +344,8 @@ class Terminal():
 
     def sendMessage( this, msg:str, p1:str=None, p2:str=None ):
         message = MESSAGE( msg, p1, p2 )
-        this.logDebug( f'Message: {message}' )
+        m = message if len(message)<80 else message[:80]+'...'
+        this.logDebug( f'Message: {m}' )
         if this.messageQueue != None:
             this.messageQueue.append( message )
         else:
@@ -337,7 +360,7 @@ class Terminal():
 
 # Static methods
 #region
-    def loadDatabase():
+    def loadTerminals():
         """Кеширует в память список сконфигурированных терминалов"""
         global config
         global terminals
@@ -358,7 +381,7 @@ class Terminal():
                         terminals.append( Terminal( terminalId, configParser ) )
                     configParser = None
                 except Exception as e:
-                    this.logError( f'Exception loading  "{file}" : {e}' )
+                    print( f'Exception loading  "{file}" : {e}' )
 
     def authorize( terminalId:str, password:str ):
         """Авторизация терминала по terminalId и паролю"""
@@ -382,12 +405,18 @@ class Terminal():
                     config_path=config.rhvConfigPath,
                     lame_path=None, opus_path=None, flac_path=None,
                     quiet=True )
+                
             except Exception as e:
                 print(f'Exception initializing RHVoice engine')
-
         else:
             pass
 
-        Terminal.loadDatabase()
+        Terminal.loadTerminals()
+    def dispose():
+        if config.ttsEngine == TTS_RHVOICE :
+            try: rhvoiceTTS.join()
+            except: pass
+        else:
+            pass
 
 #endregion

@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>f7c765a6-ab0d-40c3-82fb-cd372cb281a9</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>tests\test_animator.py</StartupFile>
+    <StartupFile>lvt_client.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -33,6 +33,7 @@
     <Compile Include="lvt\client\apa102.py" />
     <Compile Include="lvt\client\config.py" />
     <Compile Include="lvt\client\microphone.py" />
+    <Compile Include="lvt\client\updater.py" />
     <Compile Include="lvt\config_parser.py" />
     <Compile Include="lvt\const.py" />
     <Compile Include="lvt\server\grammar.py" />
@@ -79,7 +80,8 @@
     <Content Include="lvt\server\entities\devices" />
     <Content Include="lvt\server\entities\locations" />
     <Content Include="lvt\server\terminals\kitchen.cfg" />
-    <Content Include="lvt\server\terminals\testterminal.cfg" />
+    <Content Include="lvt\server\terminals\respeaker4.cfg" />
+    <Content Include="lvt\server\terminals\test.cfg" />
     <Content Include="todo.txt" />
     <Content Include="lvt_client.cfg" />
     <Content Include="lvt_server.cfg" />

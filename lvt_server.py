@@ -109,13 +109,14 @@ def processChunk(
         if len( text ) > 0 : terminal.onText( text, final )
 
     except KeyboardInterrupt as e:
-        loop.stop()
+        onCtrlC()
         raise e
     except Exception as e:
         print( f'Exception processing waveform chunk : {e}' )
     return final
 ########################################################################################
 async def Server( connection, path ):
+    print("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
     global model
     global spkModel
     # Kaldi speech recognizer objects
@@ -198,13 +199,21 @@ async def Server( connection, path ):
                     if terminal == None : break
                     print(p)
                 elif m == MSG_TERMINAL :
-                    id, password = split2( p )
+                    id, password, version = split3( p )
                     terminal = Terminal.authorize(id, password)
                     if terminal != None:
+                        terminal.clientVersion = version
                         terminal.onConnect( messageQueue )
                         print( f'Terminal {id} ("{terminal.name}") authorized' )
                         #terminal.say("Терминал авторизован")
                         #terminal.play('/home/md/chord.wav')
+                        if terminal.autoUpdate and version != VERSION :
+                            if terminal.id == 'respeaker4' :
+                                terminal.updateClient()
+                            else:
+                                # Уведомить об устаревании версии и спросить об обновлении.
+                                pass
+
                     else:
                         print( 'Not authorized. Disconnecting' )
                         sendMessage(MSG_TEXT,'Wrong terminal Id or password')
@@ -232,25 +241,32 @@ async def Server( connection, path ):
         elif isinstance( e, websockets.exceptions.ConnectionClosedError ):
             print( f'{tn} disconnected by error' )
         elif isinstance( e, KeyboardInterrupt ):
-            loop.stop()
+            onCtrlC()
         else:
             print( f'{tn}: unhandled exception {e}' )
     finally:
+        print('fin')
         if terminal != None : terminal.onDisconnect()
         recognizer = None
         spkRecognizer = None
+
+def onCtrlC():
+    Terminal.dispose()
+    Speaker.dispose()
+    loop.stop()
+    print()
+    print( "Terminating..." )
 ########################################################################################
 # Main server loop
 #region
 try:
     pool = concurrent.futures.ThreadPoolExecutor( config.recognitionThreads )
-    start_server = websockets.serve( Server, config.serverAddress, config.serverPort, ssl=sslContext, ping_interval=10, ping_timeout=5 )
+    start_server = websockets.serve( Server, config.serverAddress, config.serverPort, ssl=sslContext )
     loop = asyncio.get_event_loop()
     loop.run_until_complete( start_server )
     loop.run_forever()
 except KeyboardInterrupt:
-    print( f'\n\rLVT Server terminated by user' )
-    loop.stop()
+    onCtrlC()
 except Exception as e: 
     print( f'Exception in main terminal loop {e}' )
 #endregion

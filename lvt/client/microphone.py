@@ -99,7 +99,6 @@ class Microphone:
         this._active = newValue
 
     def _callback( this, data, frame_count, time_info, status):
-
         # Если микрофон выключен - ничего не делаем
         if this.muted :
             # .. и даже почистим выходную очередь

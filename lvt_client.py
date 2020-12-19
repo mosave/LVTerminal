@@ -3,6 +3,7 @@ import sys
 import time
 import os
 import io
+import json
 import asyncio
 import pyaudio
 import audioop
@@ -16,6 +17,7 @@ from lvt.const import *
 from lvt.protocol import *
 from lvt.client.microphone import Microphone
 from lvt.client.config import Config
+from lvt.client.updater import Updater
 
 
 config = None
@@ -39,6 +41,13 @@ def showDevices():
         print( f'  {i:>2}    I:{device.get("maxInputChannels")} / O:{device.get("maxOutputChannels")}   "{device.get("name")}"' )
         #print(device)
     audio.terminate()
+
+def onCtrlC():
+    if not shared.isTerminated: 
+        print()
+        print( "Terminating..." )
+    shared.isTerminated = True
+    loop.stop()
 
 def printStatus():
     if shared.quiet : return
@@ -144,9 +153,8 @@ async def processMessages( connection ):
             if animator != None and p in ANIMATION_ALL:
                 animator.animate( p )
             lastAnimation = p
-        #elif m == MSG_RESTART :
-        #    os.execl(f'"{sys.executable}"', *sys.argv)
-        #    shared.isTerminated = True
+        elif m == MSG_UPDATE:
+            if p != None: Updater().update(json.loads(p))
         elif not isinstance(message,str) : # Wave data to play
             shared.messageProcessingPaused = True
             thread = threading.Thread( target=play, args=[message] )
@@ -185,7 +193,7 @@ async def WebsockClient():
 
             uri = f'{protocol}://{config.serverAddress}:{config.serverPort}'
             print( f'Connecting {uri}' )
-            async with websockets.connect( uri, ssl=sslContext, ping_interval=10, ping_timeout=5 ) as connection:
+            async with websockets.connect( uri, ssl=sslContext ) as connection:
                 try:
                     lastAnimation = ANIMATION_NONE
                     lastMessageReceived = time.time()
@@ -193,7 +201,7 @@ async def WebsockClient():
 
                     shared.isConnected = True
                     print( 'Connected, press Ctrl-C to exit' )
-                    await connection.send( MESSAGE( MSG_TERMINAL, config.terminalId, config.password ) )
+                    await connection.send( MESSAGE( MSG_TERMINAL, config.terminalId, config.password, VERSION ) )
                     #await connection.send( MESSAGE( MSG_TEXT, 'блаблабла. БЛА!' ) )
                     #await connection.send( MSG_CONFIG )
 
@@ -208,14 +216,9 @@ async def WebsockClient():
 
                         printStatus()
                         time.sleep(0.1)
-                        
-
 
                 except KeyboardInterrupt:
-                    if not shared.isTerminated: 
-                        print()
-                        print( "Terminating..." )
-                    shared.isTerminated = True
+                    onCtrlC()
                 except Exception as e:
                     if isinstance( e, websockets.exceptions.ConnectionClosedOK ) :
                         print( 'Disconnected' )
@@ -227,10 +230,7 @@ async def WebsockClient():
                         except:pass
 
         except KeyboardInterrupt:
-            if not shared.isTerminated: 
-                print()
-                print( "Terminating..." )
-            shared.isTerminated = True
+            onCtrlC()
         except Exception as e:
             print( f'Connection thread exception: {e} ' )
             await asyncio.sleep( 10 )
@@ -270,6 +270,7 @@ if __name__ == '__main__':
 
     config = Config( os.path.splitext( os.path.basename( __file__ ) )[0] + '.cfg' )
     Microphone.initialize( config )
+    Updater.initialize( config, shared )
 
     if config.animator=="text":
         from lvt.client.animator import Animator
@@ -285,8 +286,9 @@ if __name__ == '__main__':
     try:
         loop = asyncio.get_event_loop()
         loop.run_until_complete( WebsockClient() )
+
     except KeyboardInterrupt:
-        pass
+        onCtrlC()
     except Exception as e:
         print( f'Unhandled exception in main thread: {e}' )
     print( 'Finishing application' )

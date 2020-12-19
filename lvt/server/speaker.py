@@ -28,6 +28,9 @@ class Speaker():
         config = gConfig
         Speaker.loadDatabase()
 
+    def dispose():
+        pass
+
     def getSimilarity( x, y):
         nx = numpy.array(x)
         ny = numpy.array(y)
