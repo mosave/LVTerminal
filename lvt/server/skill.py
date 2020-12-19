@@ -104,6 +104,7 @@ class Skill:
     def usingVocabulary(this, b:bool):
         this.terminal.usingVocabulary = b
 
+    def animate( this, animation:str, force:bool=False ): this.terminal.animate(animation, force)
     def say( this, text ): this.terminal.say( text )
     def play( this, waveFileName ): this.terminal.play( waveFileName )
     def log( this, msg:str ): this.terminal.log(msg)

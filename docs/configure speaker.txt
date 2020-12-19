@@ -7,7 +7,11 @@ https://github.com/SeeedDocument/Seeed-WiKi/blob/master/docs/ReSpeaker_4_Mic_Arr
 sudo apt install python3-pip
 
 sudo pip3 install websockets
-sudo apt-get install python-pyaudio
+sudo apt-get install python3-pyaudio
+sudo pip3 install webrtcvad
+sudo apt install python3-numpy
+sudo apt-get install python3-spidev
+sudo apt-get install python3-gpiozero
 
 raspi-config, включить spi
 

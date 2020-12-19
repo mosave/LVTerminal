@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>f7c765a6-ab0d-40c3-82fb-cd372cb281a9</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>lvt_client.py</StartupFile>
+    <StartupFile>tests\test_animator.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -31,10 +31,8 @@
     <Compile Include="lvt\client\animator_apa102.py" />
     <Compile Include="lvt\client\animator.py" />
     <Compile Include="lvt\client\apa102.py" />
-    <Compile Include="lvt\client\client.py" />
     <Compile Include="lvt\client\config.py" />
-    <Compile Include="lvt\client\message_handler.py" />
-    <Compile Include="lvt\client\sound_processor.py" />
+    <Compile Include="lvt\client\microphone.py" />
     <Compile Include="lvt\config_parser.py" />
     <Compile Include="lvt\const.py" />
     <Compile Include="lvt\server\grammar.py" />
@@ -54,7 +52,7 @@
     <Compile Include="lvt_client.py" />
     <Compile Include="lvt_server.py" />
     <Compile Include="tests\test1.py" />
-    <Compile Include="tests\test_client.py" />
+    <Compile Include="tests\test_animator.py" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="docs\" />
@@ -72,7 +70,10 @@
     <InterpreterReference Include="Global|PythonCore|3.9" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="docs\configure speaker.txt" />
     <Content Include="docs\LVT protocol.txt" />
+    <Content Include="docs\stuff.txt" />
+    <Content Include="docs\todo.txt" />
     <Content Include="lvt\server\entities\acronyms" />
     <Content Include="lvt\server\entities\actions" />
     <Content Include="lvt\server\entities\devices" />

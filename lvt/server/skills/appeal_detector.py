@@ -29,6 +29,7 @@ class AppealDetectorSkill(Skill):
         # Не в режиме ожидания:
         # Проверяем, есть ли в фразе обращение:
         if this.detectAppeals():
+            this.terminal.animate(ANIMATION_AWAKE)
             # В случае если фраза содержит только обращение - переходим в ожидание команды
             if len(this.words)==1 :
                 this.savedTopic = this.topic
@@ -40,8 +41,10 @@ class AppealDetectorSkill(Skill):
         # В режиме ожидания команды - увеличиваем таймаут
         if this.topic == TOPIC_WAIT_COMMAND:
             this.waitUntil = time.time() + WAIT_COMMAND_TIMEOUT
-        else: # Распознаем наличие обращения - вдруг кому понадобится.
-            this.detectAppeals()
+        else: # Распознаем наличие обращения
+            if this.detectAppeals():
+                this.terminal.animate(ANIMATION_AWAKE)
+
 
     def detectAppeals( this ):
         aPos = None
@@ -93,4 +96,6 @@ class AppealDetectorSkill(Skill):
         if( this.topic == TOPIC_WAIT_COMMAND ):
             if time.time() > this.waitUntil:
                 this.changeTopic(this.savedTopic)
+                this.animate( ANIMATION_NONE )
+
 

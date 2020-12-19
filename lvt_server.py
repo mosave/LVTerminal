@@ -244,7 +244,7 @@ async def Server( connection, path ):
 #region
 try:
     pool = concurrent.futures.ThreadPoolExecutor( config.recognitionThreads )
-    start_server = websockets.serve( Server, config.serverAddress, config.serverPort, ssl=sslContext )
+    start_server = websockets.serve( Server, config.serverAddress, config.serverPort, ssl=sslContext, ping_interval=10, ping_timeout=5 )
     loop = asyncio.get_event_loop()
     loop.run_until_complete( start_server )
     loop.run_forever()

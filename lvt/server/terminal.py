@@ -92,13 +92,14 @@ class Terminal():
         #this.sendMessage( MSG_TEXT, f'Say {text}' )
         this.logDebug(f'Say "{text}"')
         if( config.ttsEngine == TTS_RHVOICE ):
+            this.sendMessage(MSG_MUTE)
             if rhvoiceTTS != None :
                 waveData = rhvoiceTTS.get( text, 
                     voice=config.rhvVoice, 
                     format_='wav', 
                     sets=config.rhvParams, )
                 this.sendDatagram( waveData )
-            #tts = None
+            this.sendMessage(MSG_UNMUTE)
 
 
     def play( this, waveFileName: str ):
@@ -228,11 +229,10 @@ class Terminal():
             if not this.parsingRestart : break
 
         if final:
-            if this.topic == TOPIC_DEFAULT:
+            if this.topic == TOPIC_DEFAULT and this.lastAnimation == ANIMATION_AWAKE : 
                 this.animate( ANIMATION_NONE )
         else:
-            if this.isAppealed and this.topic == TOPIC_DEFAULT:
-                this.animate( ANIMATION_AWAKE )
+            pass
 
     def onTimer( this ):
         for skill in this.skills: 

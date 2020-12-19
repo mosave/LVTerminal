@@ -93,6 +93,11 @@ def testParrotMode():
     if( terminal.topic != '') : abort('Терминал не вернулся в нормальный режим')
 
 
+b = bytearray(b'\x01\x02\x03\x30\x31\x32\x01\x02\x03\x30\x31\x32\x01\x02\x03\x30\x31\x32\x01\x02\x03\x30\x31\x32')
+#s = str(b,'UTF-8')
+s = str(b,'bz2_codec')
+b1 = bytearray(s,'UTF-8')
+
 
 config = Config( 'lvt_server.cfg' )
 

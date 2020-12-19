@@ -43,10 +43,10 @@ class Config:
 
         this.channelSelection = p.getValue( '', "ChannelSelection",'0' ).strip().lower()
         try: this.channelSelection = int(this.channelSelection)
-        except: pass
+        except:pass
 
         if isinstance(this.channelSelection, int) and (this.channelSelection<0 or this.channelSelection>15) or \
-           isinstance(this.channelSelection, str) and this.channelSelection not in ['rms','avg'] : 
+           isinstance(this.channelSelection, str) and this.channelSelection not in ['rms','join'] : 
             raise Exception( "Invalid ChannelSelection value specified" )
            
         this.animator = p.getValue( '', "Animator",'' ).strip().lower()

@@ -8,8 +8,9 @@ from lvt.client.config import Config
 from lvt.client.animator import Animator
 
 class APA102Animator(Animator):
+
     def __init__( this, config: Config, shared, nPixels: int ):
-        Animator.__init__( this, config,shared )
+        Animator.__init__( this, config, shared )
 
         this.nPixels = nPixels
 
@@ -23,8 +24,10 @@ class APA102Animator(Animator):
     def __del__( this ):
         print( 'disposing' )
         this.off()
-        this.leds.cleanup()
-        this.power.off()
+        try: this.power.off()
+        except:pass
+        try: this.leds.cleanup()
+        except:pass
 
     def awake( this, restart:bool ):
         """Wake up and listening"""

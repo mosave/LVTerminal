@@ -55,4 +55,5 @@ class ParrotModeSkill(Skill):
             if time.time() > this.remindOn:
                 this.say( 'Для возврата в нормальный режим скажите "выключить режим попугая" или "перестань за мной повторять"!' )
                 this.remindOn = time.time() + REMINDER_TIMEOUT
+                this.animate( ANIMATION_NONE )
 

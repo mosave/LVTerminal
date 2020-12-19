@@ -6,8 +6,6 @@ import queue as Queue
 from lvt.const import *
 from lvt.client.config import Config
 
-config = None
-
 class Animator:
     def __init__( this, config: Config, shared ):
         this.config = config
