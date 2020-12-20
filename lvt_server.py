@@ -116,7 +116,6 @@ def processChunk(
     return final
 ########################################################################################
 async def Server( connection, path ):
-    print("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
     global model
     global spkModel
     # Kaldi speech recognizer objects

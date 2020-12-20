@@ -20,6 +20,7 @@ class Updater:
         targetDir = ROOT_DIR
         #targetDir = 'C:\\Buffer\\3'
         try:
+            print()
             print('Updating LVT Client files')
             for file in package:
                 print(f'    {file[0]}')

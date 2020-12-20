@@ -61,7 +61,12 @@ class Microphone:
             stream_callback=this._callback,
         )
 
-    def __del__(this):
+    def __enter__(this):
+        return this
+
+    #def __del__(this):
+    def __exit__(this, exc_type, exc_value, traceback):
+
         if this.audioStream != None:
             try: this.audioStream.close()
             except:pass

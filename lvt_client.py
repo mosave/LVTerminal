@@ -42,13 +42,6 @@ def showDevices():
         #print(device)
     audio.terminate()
 
-def onCtrlC():
-    if not shared.isTerminated: 
-        print()
-        print( "Terminating..." )
-    shared.isTerminated = True
-    loop.stop()
-
 def printStatus():
     if shared.quiet : return
     width = 48
@@ -69,7 +62,7 @@ def printStatus():
     graph = graph[:pL] + '|' + graph[pL:pR] + '|' + graph[pR+1:]
 
     face = 'O_O' if microphone.active else '-_-'
-    face = f'X{face}X' if microphone.muted else f'({face})'
+    face = f'x{face}x' if microphone.muted else f'({face})'
     print( f'[{lastAnimation:^10}] {face} {rms:>5} [{graph}]  ', end='\r' )
 
 def play( data, onPlayed = None ):
@@ -180,7 +173,6 @@ async def WebsockClient():
         try:
             shared.isConnected = False
 
-            microphone = Microphone()
 
             protocol = 'ws'
             sslContext = None
@@ -193,41 +185,42 @@ async def WebsockClient():
 
             uri = f'{protocol}://{config.serverAddress}:{config.serverPort}'
             print( f'Connecting {uri}' )
-            async with websockets.connect( uri, ssl=sslContext ) as connection:
-                try:
-                    lastAnimation = ANIMATION_NONE
-                    lastMessageReceived = time.time()
-                    pingAreadySent = False
+            with Microphone() as microphone:
+                async with websockets.connect( uri, ssl=sslContext ) as connection:
+                    try:
+                        lastAnimation = ANIMATION_NONE
+                        lastMessageReceived = time.time()
+                        pingAreadySent = False
 
-                    shared.isConnected = True
-                    print( 'Connected, press Ctrl-C to exit' )
-                    await connection.send( MESSAGE( MSG_TERMINAL, config.terminalId, config.password, VERSION ) )
-                    #await connection.send( MESSAGE( MSG_TEXT, 'блаблабла. БЛА!' ) )
-                    #await connection.send( MSG_CONFIG )
+                        shared.isConnected = True
+                        print( 'Connected, press Ctrl-C to exit' )
+                        await connection.send( MESSAGE( MSG_TERMINAL, config.terminalId, config.password, VERSION ) )
+                        #await connection.send( MESSAGE( MSG_TEXT, 'блаблабла. БЛА!' ) )
+                        #await connection.send( MSG_CONFIG )
 
-                    while not shared.isTerminated and shared.isConnected:
-                        await processMessages( connection )
-                        if microphone.active : 
-                            data = microphone.read()
-                            if data != None : await connection.send( data )
+                        while not shared.isTerminated and shared.isConnected:
+                            await processMessages( connection )
+                            if microphone.active : 
+                                data = microphone.read()
+                                if data != None : await connection.send( data )
 
+                            else:
+                                pass
+
+                            printStatus()
+                            time.sleep(0.1)
+
+                    except KeyboardInterrupt:
+                        onCtrlC()
+                    except Exception as e:
+                        if isinstance( e, websockets.exceptions.ConnectionClosedOK ) :
+                            print( 'Disconnected' )
+                        elif isinstance( e, websockets.exceptions.ConnectionClosedError ):
+                            print( f'Disconnected due to error: {e} ' )
                         else:
-                            pass
-
-                        printStatus()
-                        time.sleep(0.1)
-
-                except KeyboardInterrupt:
-                    onCtrlC()
-                except Exception as e:
-                    if isinstance( e, websockets.exceptions.ConnectionClosedOK ) :
-                        print( 'Disconnected' )
-                    elif isinstance( e, websockets.exceptions.ConnectionClosedError ):
-                        print( f'Disconnected due to error: {e} ' )
-                    else:
-                        print(f'Client loop error: {e}')
-                        try: await connection.send( MSG_DISCONNECT )
-                        except:pass
+                            print(f'Client loop error: {e}')
+                            try: await connection.send( MSG_DISCONNECT )
+                            except:pass
 
         except KeyboardInterrupt:
             onCtrlC()
@@ -239,10 +232,19 @@ async def WebsockClient():
             if microphone != None:
                 try: del(microphone)
                 except:pass
-            microphone = None
 
     print( "Finishing Client thread" )
 
+def onCtrlC():
+    global shared
+    try:
+        if not shared.isTerminated: 
+            print()
+            print( "Terminating..." )
+        shared.isTerminated = True
+    except:
+        pass
+    #loop.stop()
 
 ######################################################################################
 if __name__ == '__main__':
@@ -287,9 +289,15 @@ if __name__ == '__main__':
         loop = asyncio.get_event_loop()
         loop.run_until_complete( WebsockClient() )
 
-    except KeyboardInterrupt:
-        onCtrlC()
     except Exception as e:
-        print( f'Unhandled exception in main thread: {e}' )
+        if isinstance( e, websockets.exceptions.ConnectionClosedOK ) :
+            print( f'Disconnected' )
+        elif isinstance( e, websockets.exceptions.ConnectionClosedError ):
+            print( f'Disconnected by error' )
+        elif isinstance( e, KeyboardInterrupt ):
+            onCtrlC()
+        else:
+            print( f'Unhandled exception in main thread: {e}' )
+
     print( 'Finishing application' )
 
