@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>f7c765a6-ab0d-40c3-82fb-cd372cb281a9</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>lvt_client.py</StartupFile>
+    <StartupFile>tests\test1.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -36,14 +36,17 @@
     <Compile Include="lvt\client\updater.py" />
     <Compile Include="lvt\config_parser.py" />
     <Compile Include="lvt\const.py" />
+    <Compile Include="lvt\logger.py" />
     <Compile Include="lvt\server\grammar.py" />
     <Compile Include="lvt\protocol.py" />
     <Compile Include="lvt\server\config.py" />
     <Compile Include="lvt\server\skills\acronyms.py" />
     <Compile Include="lvt\server\skills\datetime_detector.py" />
+    <Compile Include="lvt\server\skills\debug.py" />
     <Compile Include="lvt\server\skills\location_detector.py" />
     <Compile Include="lvt\server\skills\one_word_commands.py" />
     <Compile Include="lvt\server\skills\time_teller.py" />
+    <Compile Include="lvt\server\skills\yes_no.py" />
     <Compile Include="lvt\server\skill_factory.py" />
     <Compile Include="lvt\server\speaker.py" />
     <Compile Include="lvt\server\terminal.py" />
@@ -59,12 +62,10 @@
     <Folder Include="docs\" />
     <Folder Include="lvt\" />
     <Folder Include="lvt\client\" />
+    <Folder Include="lvt\entities\" />
     <Folder Include="lvt\server\" />
-    <Folder Include="lvt\server\sounds\" />
-    <Folder Include="lvt\server\speakers\" />
-    <Folder Include="lvt\server\terminals\" />
-    <Folder Include="lvt\server\entities\" />
     <Folder Include="lvt\server\skills\" />
+    <Folder Include="lvt\sounds\" />
     <Folder Include="tests\" />
   </ItemGroup>
   <ItemGroup>
@@ -75,13 +76,12 @@
     <Content Include="docs\LVT protocol.txt" />
     <Content Include="docs\stuff.txt" />
     <Content Include="docs\todo.txt" />
-    <Content Include="lvt\server\entities\acronyms" />
-    <Content Include="lvt\server\entities\actions" />
-    <Content Include="lvt\server\entities\devices" />
-    <Content Include="lvt\server\entities\locations" />
-    <Content Include="lvt\server\terminals\kitchen.cfg" />
-    <Content Include="lvt\server\terminals\respeaker4.cfg" />
-    <Content Include="lvt\server\terminals\test.cfg" />
+    <Content Include="lvt\entities\acronyms" />
+    <Content Include="lvt\entities\actions" />
+    <Content Include="lvt\entities\devices" />
+    <Content Include="lvt\entities\locations" />
+    <Content Include="lvt\sounds\appeal_off.wav" />
+    <Content Include="lvt\sounds\appeal_on.wav" />
     <Content Include="todo.txt" />
     <Content Include="lvt_client.cfg" />
     <Content Include="lvt_server.cfg" />

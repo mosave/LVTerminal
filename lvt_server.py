@@ -12,6 +12,7 @@ import time
 from vosk import Model, SpkModel, KaldiRecognizer, SetLogLevel
 from lvt.const import *
 from lvt.protocol import *
+from lvt.logger import *
 from lvt.server.config import Config 
 from lvt.server.terminal import Terminal
 from lvt.server.speaker import Speaker
@@ -28,6 +29,7 @@ sslContext = None
 
 config = Config( os.path.splitext( os.path.basename( __file__ ) )[0] + '.cfg' )
 
+Logger.initialize( config )
 Terminal.initialize( config )
 Speaker.initialize( config )
 
@@ -68,24 +70,23 @@ spkModel = SpkModel( config.spkModel ) if config.spkModel != '' else None
 
 #endregion
 ########################################################################################
-def processChunk( 
-        waveform, 
+def processChunk( waveform, 
         terminal: Terminal, 
         recognizer: KaldiRecognizer, 
         spkRecognizer: KaldiRecognizer,
-        usingVocabulary: bool
-    ):
+        usingVocabulary: bool ):
     text = ''
     final = False
     try:
 
-        # Если включена идентификация говорящего - извлечь результаты распознавания с помощью spkRecognizer
+        # Если включена идентификация говорящего - извлечь результаты
+        # распознавания с помощью spkRecognizer
         if spkRecognizer != None:
             final = spkRecognizer.AcceptWaveform( waveform )
             if final: # Фраза распознана полностью
                 j = json.loads( spkRecognizer.FinalResult() )
                 # Получить распознанный текст
-                text = str(j['text']).strip() if 'text' in j else ''
+                text = str( j['text'] ).strip() if 'text' in j else ''
                 # Извлечь сигнатуру голоса:
                 signature = j["spk"] if 'spk' in j else []
                 if len( signature ) > 0 : # Идентифицировать говоращего по сигнатуре
@@ -94,17 +95,18 @@ def processChunk(
             else:
                 # Получить распознанный текст
                 j = json.loads( spkRecognizer.PartialResult() )
-                text = str(j['partial']).strip() if 'partial' in j else ''
+                text = str( j['partial'] ).strip() if 'partial' in j else ''
 
-        # Если для распознавания используется словарь - распознаем текст повторно
+        # Если для распознавания используется словарь - распознаем текст
+        # повторно
         if spkRecognizer == None or usingVocabulary:
             final = recognizer.AcceptWaveform( waveform )
             if final: 
                 j = json.loads( recognizer.FinalResult() )
-                text = str(j['text']).strip() if 'text' in j else ''
+                text = str( j['text'] ).strip() if 'text' in j else ''
             else:
                 j = json.loads( recognizer.PartialResult() )
-                text = str(j['partial']).strip() if 'partial' in j else ''
+                text = str( j['partial'] ).strip() if 'partial' in j else ''
 
         if len( text ) > 0 : terminal.onText( text, final )
 
@@ -112,7 +114,7 @@ def processChunk(
         onCtrlC()
         raise e
     except Exception as e:
-        print( f'Exception processing waveform chunk : {e}' )
+        logError( f'Exception processing waveform chunk : {e}' )
     return final
 ########################################################################################
 async def Server( connection, path ):
@@ -132,7 +134,7 @@ async def Server( connection, path ):
         messageQueue.append( data )
 
     def sendMessage( msg:str, p1:str=None, p2:str=None ):
-        sendDatagram( MESSAGE(msg,p1,p2 ) )
+        sendDatagram( MESSAGE( msg,p1,p2 ) )
 
     def sendStatus():
         status = terminal.getStatus() if terminal != None else '{"Terminal":"?","Name":"Not Registered"}'
@@ -156,25 +158,25 @@ async def Server( connection, path ):
                 v = terminal.getVocabulary()
                 if recognizer == None or vocabulary != v :
                     vocabulary = v
-                    print (v)
-                    if (len( vocabulary ) > 0) and model != None: # Фильтрация по словарю:
+                    if ( len( vocabulary ) > 0 ) and model != None: # Фильтрация по словарю:
                         recognizer = KaldiRecognizer( model, config.sampleRate, json.dumps( vocabulary.split( ' ' ), ensure_ascii=False ) )
                         if( spkModel != None ): 
                             spkRecognizer = KaldiRecognizer( model, spkModel, config.sampleRate )
                     else: # Распознование без использования словаря
                         recognizer = KaldiRecognizer( fullModel if fullModel != None else model, config.sampleRate )
                         if( spkModel != None ):
-                            spkRecognizer = KaldiRecognizer( fullModel if fullModel != None else model, spkModel, float(config.sampleRate) )
+                            spkRecognizer = KaldiRecognizer( fullModel if fullModel != None else model, spkModel, float( config.sampleRate ) )
 
             # Ждем сообщений, дергая terminal.onTimer примерно раз в секунду
             message = None
             while message == None:
                 try:
                     # Примерно раз в секунду дергаем terminal.onTime()
-                    if terminal != None and int(time.time()) != int(lastTickedOn):
+                    if terminal != None and int( time.time() ) != int( lastTickedOn ):
                         lastTickedOn = time.time()
                         terminal.onTimer()
-                        # Отправляем новые сообщения клиенту, если они появились
+                        # Отправляем новые сообщения клиенту, если они
+                        # появились
                         while len( messageQueue ) > 0:
                             await connection.send( messageQueue[0] )
                             messageQueue.pop( 0 )
@@ -196,35 +198,33 @@ async def Server( connection, path ):
                     sendMessage( MSG_CONFIG, config.getJson() )
                 elif m == MSG_TEXT:
                     if terminal == None : break
-                    print(p)
                 elif m == MSG_TERMINAL :
                     id, password, version = split3( p )
-                    terminal = Terminal.authorize(id, password)
+                    terminal = Terminal.authorize( id, password, version )
                     if terminal != None:
-                        terminal.clientVersion = version
                         terminal.onConnect( messageQueue )
-                        print( f'Terminal {id} ("{terminal.name}") authorized' )
                         #terminal.say("Терминал авторизован")
                         #terminal.play('/home/md/chord.wav')
                         if terminal.autoUpdate and version != VERSION :
                             if terminal.id == 'respeaker4' :
                                 terminal.updateClient()
                             else:
-                                # Уведомить об устаревании версии и спросить об обновлении.
+                                # Уведомить об устаревании версии и спросить об
+                                # обновлении.
                                 pass
 
                     else:
                         print( 'Not authorized. Disconnecting' )
-                        sendMessage(MSG_TEXT,'Wrong terminal Id or password')
+                        sendMessage( MSG_TEXT,'Wrong terminal Id or password' )
                         break
 
                 else:
-                    print( f'Unknown message: "{message}"' )
+                    printError( f'Unknown message: "{message}"' )
                     break
             else: # Получен байт-массив
                 if terminal == None : break
 
-                completed = await loop.run_in_executor( pool, processChunk, message, terminal, recognizer, spkRecognizer, ( vocabulary !='' ) )
+                completed = await loop.run_in_executor( pool, processChunk, message, terminal, recognizer, spkRecognizer, ( vocabulary != '' ) )
                 if completed: sendMessage( MSG_IDLE )
 
         sendMessage( MSG_DISCONNECT )
@@ -238,14 +238,14 @@ async def Server( connection, path ):
         if isinstance( e, websockets.exceptions.ConnectionClosedOK ) :
             print( f'{tn} disconnected' )
         elif isinstance( e, websockets.exceptions.ConnectionClosedError ):
-            print( f'{tn} disconnected by error' )
+            printError( f'{tn} disconnected by error' )
         elif isinstance( e, KeyboardInterrupt ):
             onCtrlC()
         else:
-            print( f'{tn}: unhandled exception {e}' )
+            printError( f'{tn}: unhandled exception {e}' )
     finally:
-        print('fin')
-        if terminal != None : terminal.onDisconnect()
+        try: terminal.onDisconnect()
+        except: pass
         recognizer = None
         spkRecognizer = None
 
@@ -267,6 +267,6 @@ try:
 except KeyboardInterrupt:
     onCtrlC()
 except Exception as e: 
-    print( f'Exception in main terminal loop {e}' )
+    printError( f'Exception in main terminal loop {e}' )
 #endregion
 ########################################################################################

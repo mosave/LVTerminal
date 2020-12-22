@@ -22,7 +22,6 @@ class APA102Animator(Animator):
 
 
     def __del__( this ):
-        print( 'disposing' )
         this.off()
         try: this.power.off()
         except:pass

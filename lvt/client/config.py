@@ -27,6 +27,10 @@ class Config:
         this.sslAllowAny = bool( p.getIntValue( '', "AllowAnyCert",0 ) )
         # audioInput and
 
+        this.logFileName = p.getValue( '', "Log", None )
+        this.logLevel = p.getIntValue( '', "LogLevel",20 )
+        this.printLevel = p.getIntValue( '', "PrintLevel",20 )
+
         (this.audioInputDevice, this.audioInputName) = this.getAudioDevice( p.getValue( "", 'AudioInputDevice', None ), True )
         (this.audioOutputDevice, this.audioOutputName) = this.getAudioDevice( p.getValue( "", 'AudioOutputDevice', None ), False )
         this.noiseThreshold = p.getIntValue( '', "NoiseThreshold", 200 )

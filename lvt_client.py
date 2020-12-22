@@ -15,11 +15,12 @@ import multiprocessing
 import contextlib
 from lvt.const import *
 from lvt.protocol import *
+from lvt.logger import *
 from lvt.client.microphone import Microphone
 from lvt.client.config import Config
 from lvt.client.updater import Updater
 
-
+quiet = False
 config = None
 shared = None
 microphone = None
@@ -28,9 +29,10 @@ animator = None
 def showHelp():
     print( "usage: lvt_client.py [option]" )
     print( "Options available:" )
-    print( "  -h | --help      these notes" )
-    print( "  -d | --devices   list audio devices to specify in configuration file" )
-    print( "  -q | --quiet     minimize screen output" )
+    print( "  -h | --help                    these notes" )
+    print( "  -d | --devices                 list audio devices to specify in configuration file" )
+    print( "  -q | --quiet                   hide sound level indicator" )
+    print( "  -l[=<file>] | --log[=<file>]   Overwrite log file location defined in config file " )
 
 def showDevices():
     print( "List of devices supported. Both device index or device name could be used" )
@@ -42,8 +44,14 @@ def showDevices():
         #print(device)
     audio.terminate()
 
+def restartClient():
+    print('Restarting...')
+    os.execl(sys.executable, f'"{format(sys.executable)}"', *sys.argv)
+
 def printStatus():
-    if shared.quiet : return
+    global quiet
+    if quiet : return
+
     width = 48
     scale = 5000
     rms = microphone.rms
@@ -63,7 +71,8 @@ def printStatus():
 
     face = 'O_O' if microphone.active else '-_-'
     face = f'x{face}x' if microphone.muted else f'({face})'
-    print( f'[{lastAnimation:^10}] {face} {rms:>5} [{graph}]  ', end='\r' )
+
+    sys.__stdout__.write( f'[{lastAnimation:^10}] {face} {rms:>5} [{graph}]  \r' )
 
 def play( data, onPlayed = None ):
     #Play wave from memory by with BytesIO via audioStream
@@ -132,22 +141,28 @@ async def processMessages( connection ):
             microphone.muted = True
         elif m == MSG_UNMUTE: 
             microphone.muted = False
-        #elif m == MSG_VOLUME: 
-        #    try: 
-        #        p=int(p)
-        #        p = p if p>0 else 0
-        #        p = p if p<100 else 100
-        #    except: 
-        #        p = shared.volume
-
-        #    shared.volume = int(p)
         elif m == MSG_ANIMATE:
             if p == None : p = ANIMATE_NONE
             if animator != None and p in ANIMATION_ALL:
                 animator.animate( p )
             lastAnimation = p
         elif m == MSG_UPDATE:
-            if p != None: Updater().update(json.loads(p))
+            if p != None: 
+                try:
+                    package = json.loads(p)
+                    updater = Updater()
+                    if updater.update(package) :
+                        shared.isTerminated = True
+                        await connection.send( MESSAGE( MSG_DISCONNECT, "Reboot after file update") )
+                        time.sleep(3);
+                        restartClient()
+                except Exception as e:
+                    printError(f'Error while updating client: {e}')
+        elif m == MSG_REBOOT:
+            print('Device reboot is not yet implemented, resarting client instead')
+            await connection.send( MESSAGE( MSG_DISCONNECT, "Reboot by server request" ) )
+            restartClient()
+            
         elif not isinstance(message,str) : # Wave data to play
             shared.messageProcessingPaused = True
             thread = threading.Thread( target=play, args=[message] )
@@ -164,15 +179,10 @@ async def WebsockClient():
     global microphone
 
     print( "Starting websock client" )
-    if config.audioInputDevice != None :
-        print( f'Audio input device: #{config.audioInputDevice} "{config.audioInputName}"' )
-    else:
-        print( 'Using default audio input device' )
 
     while not shared.isTerminated:
         try:
             shared.isConnected = False
-
 
             protocol = 'ws'
             sslContext = None
@@ -216,22 +226,20 @@ async def WebsockClient():
                         if isinstance( e, websockets.exceptions.ConnectionClosedOK ) :
                             print( 'Disconnected' )
                         elif isinstance( e, websockets.exceptions.ConnectionClosedError ):
-                            print( f'Disconnected due to error: {e} ' )
+                            printError( f'Disconnected due to error: {e} ' )
                         else:
-                            print(f'Client loop error: {e}')
+                            printError(f'Client loop error: {e}')
                             try: await connection.send( MSG_DISCONNECT )
                             except:pass
 
         except KeyboardInterrupt:
             onCtrlC()
         except Exception as e:
-            print( f'Connection thread exception: {e} ' )
+            printError( f'Connection thread exception: {e} ' )
             await asyncio.sleep( 10 )
         finally:
-            #Release microphone
-            if microphone != None:
-                try: del(microphone)
-                except:pass
+            try: del(microphone)
+            except:pass
 
     print( "Finishing Client thread" )
 
@@ -244,7 +252,8 @@ def onCtrlC():
         shared.isTerminated = True
     except:
         pass
-    #loop.stop()
+    try: loop.stop()
+    except: pass
 
 ######################################################################################
 if __name__ == '__main__':
@@ -256,21 +265,33 @@ if __name__ == '__main__':
     #shared.volume = 75
     shared.serverStatus = '{"Terminal":""}'
     shared.serverConfig = '{}'
-    shared.quiet = False
     shared.messageProcessingPaused = False
+    logFileName = None
+    logger = None
+    quiet = False
 
-    for arg in sys.argv:
-        a = arg.strip().lower()
-        if( ( a == '-h' ) or ( a == '--help' ) or ( a == '/?' ) ):
+    for i in range(1,len(sys.argv)):
+        a = argv[i].strip().lower()
+        if ( a == '-h' ) or ( a == '--help' ) or ( a == '/?' ) :
             showHelp()
             exit(0)
-        elif( ( a == '-d' ) or ( a == '--devices' ) ):
+        elif ( a == '-d' ) or ( a == '--devices' ) :
             showDevices()
             exit(0)
-        elif( ( a == '-q' ) or ( a == '--quiet' ) ):
+        elif ( a == '-q' ) or ( a == '--quiet' ) :
             shared.quiet = True
+        elif a.startswith("-l") or a.startswith("-log"):
+            b = argv[i].split('=',2)
+            logFileName = b[1] if len(b)==2 else "logs/client.log"
+
+        else:
+            printError(f'Invalid command line argument: "{arg}"')
 
     config = Config( os.path.splitext( os.path.basename( __file__ ) )[0] + '.cfg' )
+
+    if logFileName != None : config.logFileName = logFileName
+
+    Logger.initialize( config )
     Microphone.initialize( config )
     Updater.initialize( config, shared )
 
@@ -285,6 +306,10 @@ if __name__ == '__main__':
     else:
         animator = None
 
+
+    print( f'Audio input: #{config.audioInputDevice} "{config.audioInputName}"' )
+    print( f'Audio output: #{config.audioOutputDevice} "{config.audioOutputName}"' )
+
     try:
         loop = asyncio.get_event_loop()
         loop.run_until_complete( WebsockClient() )
@@ -293,11 +318,12 @@ if __name__ == '__main__':
         if isinstance( e, websockets.exceptions.ConnectionClosedOK ) :
             print( f'Disconnected' )
         elif isinstance( e, websockets.exceptions.ConnectionClosedError ):
-            print( f'Disconnected by error' )
+            printError( f'Disconnected by error' )
         elif isinstance( e, KeyboardInterrupt ):
             onCtrlC()
         else:
-            print( f'Unhandled exception in main thread: {e}' )
+            printError( f'Unhandled exception in main thread: {e}' )
 
+    if animator != None : del(animator)
     print( 'Finishing application' )
 

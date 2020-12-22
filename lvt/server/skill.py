@@ -1,6 +1,7 @@
 import sys
 import importlib
 from lvt.const import *
+from lvt.logger import *
 from lvt.server.grammar import *
 
 #Define base skill class
@@ -75,13 +76,13 @@ class Skill:
 # Terminal wrappers
 #region
     @property
-    def config( this ): return this.terminal.getConfig()
+    def config( this ): return this.terminal.config
     @property
     def morphy( this ): return this.terminal.morphy
     @property
     def assistantNames( this ): return this.terminal.assistantNames
     @property
-    def isAppealed( this ): return this.terminal.appealPos != None
+    def isAppealed( this ): return this.terminal.isAppealed
     @property
     def appealPos( this ): return this.terminal.appealPos
     @property
@@ -107,9 +108,9 @@ class Skill:
     def animate( this, animation:str, force:bool=False ): this.terminal.animate(animation, force)
     def say( this, text ): this.terminal.say( text )
     def play( this, waveFileName ): this.terminal.play( waveFileName )
-    def log( this, msg:str ): this.terminal.log(msg)
-    def logError( this, msg:str ): this.terminal.logError(msg)
-    def logDebug( this, msg:str ): this.terminal.logDebug(msg)
+    def log( this, msg:str ): log(f'[{terminal.name}:{skill.name}]: {msg}')
+    def logError( this, msg:str ): logError(f'[{terminal.name}:{skill.name}]: {msg}')
+    def logDebug( this, msg:str ): logDebug(f'[{terminal.name}:{skill.name}]: {msg}')
 #endregion
 
 # Манипуляции словами и цепочками слов - поиск, удаление, подмена...

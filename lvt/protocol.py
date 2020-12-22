@@ -19,8 +19,19 @@ MSG_MUTE = "Mute"
 # Unmute microphone
 MSG_UNMUTE = "Unmute"               
 
-# Command to update client
+# Server request to update client
 MSG_UPDATE = "Update" # <update package>
+# Update package is json :
+# [
+#   ["lvt/const.py", "Content of file /lvt/const.py"],
+#   ["File 2 to update, client-relative path", "Updated file content>"],
+#   ["File 3 to update, client-relative path", "Updated file content>"],
+#   ...
+# ]
+
+
+# Server request to reboot terminal device
+MSG_REBOOT = "Reboot" # <update package>
 
 # All available commands (for command validation
 MSG_ALL = { \

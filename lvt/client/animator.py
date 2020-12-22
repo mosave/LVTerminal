@@ -24,23 +24,23 @@ class Animator:
 
     def awake( this, restart:bool ):
         """Wake up and listening"""
-        if restart : print( 'Awaken' )
+        if restart : print( 'Animation: Awake' )
 
     def think( this, restart:bool ):
         """Thinking"""
-        if restart : print( 'Thinking' )
+        if restart : print( 'Animation: Thinking' )
 
     def accept( this, restart:bool ):
         """Accepted"""
-        if restart : print( 'Confirmed' )
+        if restart : print( 'Animation: Confirmed' )
 
     def cancel( this, restart:bool ):
         """Cancelled / Ignoring"""
-        if restart : print( 'Cancelled' )
+        if restart : print( 'Animation: Cancelled' )
 
     def none( this, restart:bool ):
         """standby animation"""
-        if restart : print( 'None' )
+        if restart : print( 'Animation: Off' )
 
     def off( this ):
         """Alias to none() """

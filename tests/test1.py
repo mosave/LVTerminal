@@ -13,6 +13,7 @@ sys.path.append(os.path.abspath( os.path.join( os.path.dirname( __file__ ),'../'
 
 from lvt.const import *
 from lvt.protocol import *
+from lvt.logger import *
 from lvt.server.grammar import *
 from lvt.server.config import Config 
 from lvt.server.terminal import Terminal
@@ -25,6 +26,7 @@ def abort(msg:str):
 
 def onText( text:str, controlPhrase : str=None ):
     messageQueue.clear()
+    logs.clear()
     print( f'>>> Распознавание "{text}"' )
     words = wordsToList( text )
     text = ""
@@ -40,7 +42,7 @@ def onText( text:str, controlPhrase : str=None ):
 
     messageQueue.clear()
     errors = 0
-    for m in terminal.logs :
+    for m in logs :
         if m.startswith('E '): errors += 1
     if errors >0 : abort(f'Обнаружены ошибки: {errors}')
     if controlPhrase != None :
@@ -51,12 +53,13 @@ def onText( text:str, controlPhrase : str=None ):
 
 def checkIfSaid(phrase):
     phrase = normalizeWords(phrase)
-    for m in terminal.logs :
-        if m.startswith('D Say') and normalizeWords(m).find(phrase)>0 : return True
+    for m in logs :
+        if m.startswith('D') and m.find('Say')>0 and normalizeWords(m).find(phrase)>0 : return True
     abort(f'Терминал не произнес ключеву фразу "{phrase}"')
 
 
 def testAppealDetector():
+    logs.clear()
     print( '***** AppealDetectorSkill tests' )
     onText( 'Ой, ехал некогда Грека через какую-то реку. И ведь доехал же! ', \
           'ехал грека через какую-то реку и доехал')
@@ -67,20 +70,24 @@ def testAppealDetector():
     if( terminal.topic != '') : abort('Терминал не вернулся в нормальный режим')
 
 def testAcronym():
+    logs.clear()
     print( '***** AcronymaExpanderSkill tests' )
     terminal.acronyms.append(['зелёный вентилятор ','махатель лопастями'])
     onText( 'слушай мажордом выключи махателя лопастями','зелёный вентилятор' )
 
 def testOneWordCommandSkill():
+    logs.clear()
     print( '***** OneWordCommandSkill tests' )
     onText( 'алиса, свет!', 'алиса включи свет')
 
 def testLocationExtractor():
+    logs.clear()
     print( '***** LocationExtractorSkill tests' )
     onText( 'слушай мажордом включи свет на кухне и в туалете', 'включи свет' )
     if ', '.join( terminal.locations ) != 'кухня, туалет' : abort('Неправильно извлечены локации')
 
 def testParrotMode():
+    logs.clear()
     print( '***** ParrotModeSkill tests' )
     onText( 'слушай мажордом повторяй за мной' )
     checkIfSaid('я буду повторять')
@@ -93,21 +100,19 @@ def testParrotMode():
     if( terminal.topic != '') : abort('Терминал не вернулся в нормальный режим')
 
 
-b = bytearray(b'\x01\x02\x03\x30\x31\x32\x01\x02\x03\x30\x31\x32\x01\x02\x03\x30\x31\x32\x01\x02\x03\x30\x31\x32')
-#s = str(b,'UTF-8')
-s = str(b,'bz2_codec')
-b1 = bytearray(s,'UTF-8')
-
-
 config = Config( 'lvt_server.cfg' )
-
+config.logFileName = "logs/test1.log"
+config.logLevel = logging.DEBUG
+config.printLevel = logging.DEBUG
+logs = list()
+Logger.initialize( config )
+Logger.setLogCapture(logs)
 Terminal.initialize( config )
 Speaker.initialize( config )
 
 messageQueue = list()
 
-terminal = Terminal.authorize( 'testterminal', 'Password' )
-terminal.logLevel = LOGLEVEL_VERBOSE
+terminal = Terminal.authorize( 'test', 'Password', 'testscript' )
 terminal.onConnect( messageQueue )
 
 

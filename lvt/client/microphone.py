@@ -6,6 +6,7 @@ import audioop
 import webrtcvad
 import numpy as np
 from lvt.const import *
+from lvt.logger import *
 # Допустимые значения - 10, 20 или 30 мс
 VAD_FRAME = 20 # ms
 # Обрабатываем звук полусекундными интервалами
@@ -64,7 +65,6 @@ class Microphone:
     def __enter__(this):
         return this
 
-    #def __del__(this):
     def __exit__(this, exc_type, exc_value, traceback):
 
         if this.audioStream != None:

@@ -24,14 +24,16 @@ class Updater:
             print('Updating LVT Client files')
             for file in package:
                 print(f'    {file[0]}')
-                with open( os.path.join( targetDir, file[0]), "w", encoding='utf-8' ) as f:
-                    f.writelines(file[1])
+                dir = os.path.abspath( os.path.join( targetDir, file[0]) )
+                if dir.startswith( targetDir ) :
+                    with open( dir, "w", encoding='utf-8' ) as f:
+                        f.writelines(file[1])
+                else:
+                    print(f'Hack attempt detected!!!')
             print()
-            print('Files updated. Shutting down client...')
-            shared.isTerminated = True
-            time.sleep(5);
-            print('Restarting...')
-            os.execl(sys.executable, f'"{format(sys.executable)}"', *sys.argv)
+            print('All files updated successfuly')
+            return True
         except Exception as e:
-            print(f'Error updating client files: {e}')
+            print(f'Error updating files: {e}')
+            return False
 

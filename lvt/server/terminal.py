@@ -4,6 +4,7 @@ import datetime
 import json
 import pymorphy2
 from lvt.const import *
+from lvt.logger import *
 from lvt.protocol import *
 from lvt.server.grammar import *
 from lvt.config_parser import ConfigParser
@@ -25,8 +26,6 @@ class Terminal():
     """
     def __init__( this, terminalId: str, configParser: ConfigParser ):
         this.id = terminalId
-        this.logs = list()
-        this.logLevel = configParser.getIntValue( '', 'LogLevel', 0 )
         this.logDebug(f'Initializing terminal')
 
         this.password = configParser.getValue( '','Password','' )
@@ -109,11 +108,11 @@ class Terminal():
         """Проиграть wave файл на терминале. Максимальный размер файла 500к """
         this.sendMessage( MSG_TEXT, f'Playing "{waveFileName}"' )
         if os.path.dirname( waveFileName ) == '' :
-           waveFileName = os.path.join( ROOT_DIR,'lvt','server','sounds',waveFileName )
+           waveFileName = os.path.join( ROOT_DIR,'lvt','sounds',waveFileName )
         with open( waveFileName, 'rb' ) as wave:
             this.sendDatagram( wave.read( 500 * 1024 ) )
-
-    def getConfig( this ):
+    @property
+    def config( this ):
         """Возвращает Config"""
         global config
         return config
@@ -155,7 +154,7 @@ class Terminal():
         """Метод вызывается при подключении терминального клиента
           messageQueue is synchronous message output queue
         """
-        this.log( 'Terminal connected' )
+        this.log( f'Terminal connected, client version {this.clientVersion}' )
         this.connectedOn = time.time()
         this.messageQueue = messageQueue
         # В случае, если предыдущая сессия закончилась недавно
@@ -270,7 +269,7 @@ class Terminal():
 
     def loadEntities( this, entityFileName ):
         entities = list()
-        p = ConfigParser( os.path.join( 'lvt','server','entities', entityFileName ) )
+        p = ConfigParser( os.path.join( 'lvt','entities', entityFileName ) )
         for v in p.values:
             entity = list()
             for i in range( 2,len( v ) ):
@@ -300,19 +299,13 @@ class Terminal():
 # Logging
 #region
     def logError( this, message:str ):
-        print( f'E [{this.id}] {message}' )
-        if this.logLevel >= LOGLEVEL_ERROR :
-            this.logs.append( f'E {message}' )
+        printDebug( f'[{this.id}] {message}' )
 
     def log( this, message:str ):
-        if this.logLevel >= LOGLEVEL_INFO :
-            print( f'I [{this.id}] {message}' )
-            this.logs.append( f'I {message}' )
-
+        print( f'{this.id}] {message}' )
+            
     def logDebug( this, message:str ):
-        if this.logLevel >= LOGLEVEL_DEBUG :
-            print( f'D [{this.id}] {message}' )
-            this.logs.append( f'D {message}' )
+        logDebug( f'[{this.id}] {message}' )
 
     def raiseException( this, message ):
         this.logError( message )
@@ -367,7 +360,7 @@ class Terminal():
         """Returns dictionary of terminals[terminalId]
         terminalId is a lowered terminal config file name
         """
-        dir = os.path.join( 'lvt','server','terminals' )
+        dir = os.path.join( 'lvt','terminals' )
         terminals = list()
 
         files = os.listdir( os.path.join( ROOT_DIR, dir ) )
@@ -383,11 +376,12 @@ class Terminal():
                 except Exception as e:
                     print( f'Exception loading  "{file}" : {e}' )
 
-    def authorize( terminalId:str, password:str ):
+    def authorize( terminalId:str, password:str, clientVersion ):
         """Авторизация терминала по terminalId и паролю"""
         terminalId = str( terminalId ).lower()
         for t in terminals :
             if t.id == terminalId and t.password == password: 
+                t.clientVersion = clientVersion
                 return( t )
         return None
 
@@ -407,7 +401,7 @@ class Terminal():
                     quiet=True )
                 
             except Exception as e:
-                print(f'Exception initializing RHVoice engine')
+                printError(f'Exception initializing RHVoice engine')
         else:
             pass
 

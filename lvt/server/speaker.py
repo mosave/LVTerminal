@@ -1,6 +1,7 @@
 import json
 import numpy
 from lvt.const import *
+from lvt.logger import *
 from lvt.config_parser import ConfigParser
 
 config = None
@@ -41,7 +42,7 @@ class Speaker():
         global config
         global speakers
         global diffAccuracy
-        dir = os.path.join( 'lvt','server','speakers' )
+        dir = os.path.join( 'lvt','speakers' )
         speakers = list()
         files = os.listdir( os.path.join( ROOT_DIR, dir ) )
         for file in files:
@@ -54,19 +55,18 @@ class Speaker():
                         speakers.append( Speaker( speakerId, configParser ) )
                     configParser = None
                 except Exception as e:
-                    print( f'Exception loading  "{file}" : {e}' )
+                    printError( f'Exception loading  "{file}" : {e}' )
         for i in range(0,len(speakers)-1):
             for j in range(i+1,len(speakers)):
                 d = Speaker.getSimilarity(speakers[i].signature, speakers[j].signature)
                 if d > config.voiceSimilarity:
-                    print( f'{speakers[i].name} and {speakers[j].name} have similar voices: {d:.2f}. You may have identification issues')
+                    printDebug( f'{speakers[i].name} and {speakers[j].name} have similar voices: {d:.2f}. You may have identification issues')
 
 
     def identify( signature ):
         """Идентифицирует говорящего по сигнатуре. Возвращает None если говорящий не идентифицирован"""
 
-        #print(signature)
-        print()
+        #printDebug(signature)
 
         if len(speakers)<1 : return None
 
@@ -75,7 +75,7 @@ class Speaker():
             diff.append( [ Speaker.getSimilarity(speaker.signature, signature ), speaker ] )
 
         diff.sort( key=lambda s:s[0], reverse=True)
-        #for d in diff: print(f'{d[1].name}: diff={d[0]}')
+        #for d in diff: printDebug(f'{d[1].name}: diff={d[0]}')
 
         # Идентифицирован?
         # Проверка на минимально допустимый уровень похожести
@@ -83,5 +83,5 @@ class Speaker():
 
         # Проверка на селективность оценки
         if len(diff)>1 and diff[0][0]-diff[1][0] < config.voiceSelectivity: return None
-        print(f'Говорит {diff[0][1].name}')
+        printDebug(f'Говорит {diff[0][1].name}')
         return diff[0][1]

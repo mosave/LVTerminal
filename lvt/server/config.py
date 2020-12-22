@@ -35,6 +35,10 @@ class Config:
         if( len( this.assistantName.strip() ) == 0 ): 
             raise Exception( 'AssistantName should be specified' )
 
+        this.logFileName = p.getValue( section, "Log", None )
+        this.logLevel = p.getIntValue( section, "LogLevel",20 )
+        this.printLevel = p.getIntValue( section, "PrintLevel",20 )
+
         this.language = p.getValue( section, 'Language','ru' )
         if this.language not in {'ru','uk','en' } : this.language = 'ru'
 
