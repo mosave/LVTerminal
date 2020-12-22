@@ -22,7 +22,7 @@ Lite Voice Terminal это клиент-серверная платформа с открытым кодом для создания
 * Взаимодействие с устройствами по MQTT протоколу (?)
 * Интеграция в MajorDoMo (?)
 
-### LVT при работе использует следующие библиотеки:
+### При реализации LVT использованы сторонние компоненты и модули:
 
 * [kaldi](https://github.com/alphacep/kaldi): офлайн-распознавание речи
 * [vosk API](https://github.com/alphacep/vosk-ap): программный интерфейс для kaldi
@@ -30,6 +30,8 @@ Lite Voice Terminal это клиент-серверная платформа с открытым кодом для создания
 * [RHVoice](https://github.com/Olga-Yakovleva/RHVoice):  синтез голоса для русского языка
 * [APA102](https://pypi.org/project/apa102): управление светодиодной лентой
 * [WebRTC VAD](https://github.com/wiseman/py-webrtcvad): Определение наличия голоса во входном потоке
+* [ReSpeaker components](https://github.com/respeaker): Взаимодействие с микрофоном и методы обработки звуков
+* [mdmTerminale](https://github.com/Aculeasis/mdmTerminal2): Много идей и кода позаимствовано из реализации голосового терминала MajorDoMo
 
 ## License
 

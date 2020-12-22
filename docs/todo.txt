@@ -20,7 +20,8 @@
   - Skill: YesNoCancel
   - Skill: калькулятор
   - Skill: поиск в интернете (в википедии или поисковике)
-  - Интеграция с MajorDoMo по restfull
+  - Интеграция с MajorDoMo (restfull / droidAPI / ???)
+  - web интерфейс конфигурации LVT Client. Возможно на стороне LVT сервера
   - Реализовать HTML5 websock клиент :)
 
 
