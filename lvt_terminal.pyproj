@@ -41,6 +41,7 @@
     <Compile Include="lvt\protocol.py" />
     <Compile Include="lvt\server\config.py" />
     <Compile Include="lvt\server\skills\acronyms.py" />
+    <Compile Include="lvt\server\skills\client_updater.py" />
     <Compile Include="lvt\server\skills\datetime_detector.py" />
     <Compile Include="lvt\server\skills\debug.py" />
     <Compile Include="lvt\server\skills\location_detector.py" />

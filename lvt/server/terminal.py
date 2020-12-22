@@ -299,10 +299,10 @@ class Terminal():
 # Logging
 #region
     def logError( this, message:str ):
-        printDebug( f'[{this.id}] {message}' )
+        logError( f'[{this.id}] {message}' )
 
     def log( this, message:str ):
-        print( f'{this.id}] {message}' )
+        print( f'[{this.id}] {message}' )
             
     def logDebug( this, message:str ):
         logDebug( f'[{this.id}] {message}' )

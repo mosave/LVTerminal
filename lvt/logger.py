@@ -35,18 +35,6 @@ def logDebug( message: str ):
 
 
 class Logger:
-    def initialize( gConfig ):
-        global config
-        global logWriter
-        config = gConfig
-
-        if config.logFileName != None :
-            logWriter = Logger()
-            sys.stdout = logWriter
-            sys.stderr = logWriter
-
-    def setLogCapture( captureTo: list ):
-        if logWriter != None : logWriter.captureTo = captureTo
 
     def __init__( this ):
         global config
@@ -74,6 +62,7 @@ class Logger:
             this.logMessage( logging.INFO, message )
 
     def logMessage( this, messageLevel: int, message: str ):
+        """"""
         global config
 
         if messageLevel >= config.printLevel:
@@ -100,3 +89,20 @@ class Logger:
     def flush( this ):
         this.logger.handlers[0].flush()
         pass
+# Static methods
+#region
+    def initialize( gConfig ):
+        """Инициализация журнала"""
+        global config
+        global logWriter
+        config = gConfig
+
+        if config.logFileName != None :
+            logWriter = Logger()
+            sys.stdout = logWriter
+            sys.stderr = logWriter
+
+    def setLogCapture( captureTo: list ):
+        """Зарегистрировать list, в который будут копироваться все журналируемые сообщения без фильтрации"""
+        if logWriter != None : logWriter.captureTo = captureTo
+#endregion

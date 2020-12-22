@@ -1,22 +1,28 @@
 
-Skill: 
 
-Запрашивать словарь через GET и MQTT
+  + Поддержка WebSocketSecure, разрешать self-signed certificates
+  + Паролирование терминальных подключений
+  + Самообновление терминального клиента
+  + TextAnimator
+  + APA120 Animator для светодиодной ленты на базе APA120 
+  + RHVoice as first TTS engine (should be installed on LVT Server environment)
+  - Привести к балансу серверные и клиентские файлы конфигурации терминалов 
+  - Skill: при пустой базе голосов предлагать сделать первого говорящего администратором
+  - Skill: по просьбе администратора регистрировать пользователя в базе данных
+  - Skill: сказать текущее время
+  + Skill: выделение location из фразы
+  - Встроить MQTT client
+  - MQTT: заполнение Locations, Devices и прочих entities
+  - Поддержка HTTP/restful, клиент и сервер
+  - restful: заполнение Locations, Devices и прочих entities
+  - devices: общая инфраструктура, класс устройства, генерализация методов взаимодействия.
+  - Skill: включение-выключение устройств
+  - Skill: YesNoCancel
+  - Skill: калькулятор
+  - Skill: поиск в интернете (в википедии или поисковике)
+  - Интеграция с MajorDoMo по restfull
+  - Реализовать HTML5 websock клиент :)
 
-
-Интеграция с MQTT
-Интеграция с MajorDoMo
-
-При распозновании говорящего и пустой базе голосов предлагать сделать его администратором и создать базу
-Добавить в конфигурацию список терминалов и пароли.
-Реализовать HTML websock клиент
-
-
-Features implemented:
-
-- RHVoice as first TTS engine (should be installed on LVT Server environment)
-- Terminal authorization with password 
-- Secure Websock support (+SSL) allowing self-signed certificates
 
 
 https://mjdm.ru/forum/viewtopic.php?f=5&t=5460&start=50

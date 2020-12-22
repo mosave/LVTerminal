@@ -10,6 +10,9 @@ class Config:
       * terminals: list of terminal configuration sections to be used in Terminal
       * rhv* properties are defined if RHV voice engine specified only
     """
+
+### __init__  ##########################################################################
+#region
     def __init__( this, fileName ):
         p = ConfigParser( fileName )
         section = 'LVTServer'
@@ -72,7 +75,10 @@ class Config:
         else:
             raise Exception( 'Invalid voice engine specified' )
 
+#endregion
 
+### getJson() ##########################################################################
+#region
     def getJson( this, terminals=None ):
         """Returns 'public' options and system state suitable for sending to terminal client """
         def formatSize( bytes, suffix='B' ):
@@ -107,5 +113,6 @@ class Config:
         js += f'"MemUsed":"{formatSize(svmem.used)}",'
         js += f'"MemLoad":"{svmem.percent}%"' + '}'
         return js
+#endregion
        
 

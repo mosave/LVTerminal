@@ -17,64 +17,14 @@ from lvt.server.config import Config
 from lvt.server.terminal import Terminal
 from lvt.server.speaker import Speaker
 
-########################################################################################
-#                               Globals initialization
+### processChunk() #####################################################################
 #region
-#First thing first: save store script' folder as ROOT_DIR:
-ROOT_DIR = os.path.abspath( os.path.dirname( __file__ ) )
-
-print( 'Light Voice Terminal server' )
-SetLogLevel( -1 )
-sslContext = None
-
-config = Config( os.path.splitext( os.path.basename( __file__ ) )[0] + '.cfg' )
-
-Logger.initialize( config )
-Terminal.initialize( config )
-Speaker.initialize( config )
-
-print( f'Listening port: {config.serverPort}' )
-if( len( config.sslCertFile ) > 0 and len( config.sslKeyFile ) > 0 ):
-    print( f'Connection: Secured' )
-    try:
-        sslContext = ssl.SSLContext( ssl.PROTOCOL_TLS_SERVER )
-        sslContext.load_cert_chain( config.sslCertFile, config.sslKeyFile )
-    except Exception as e:
-        sslContext = None
-        print( f'Error loading certificate files: {e}' )
-        exit( 1 )
-else:
-    print( f'Connection: Unsecured' )
-
-print( f'Number of recognition threads: {config.recognitionThreads}' )
-print( f'Sampling rate: {config.sampleRate}' )
-print( f'Voice model: {config.model}' )
-print( f'Full voice model: {config.fullModel}' )
-
-if( len( config.spkModel ) > 0 ):
-    print( f'Speaker identification model: {config.spkModel}' )
-else:
-    print( 'Speaker identification disabled' )
-print( f'Assistant Name(s): {config.assistantName}' )
-
-#region Gpu part, uncomment if vosk-api has gpu support
-#
-# from vosk import GpuInit, GpuInstantiate
-# GpuInit()
-# def thread_init():
-#     GpuInstantiate()
-#endregion
-model = Model( config.model ) if config.model != '' else None
-fullModel = Model( config.fullModel ) if config.fullModel != '' and config.fullModel != config.model else None
-spkModel = SpkModel( config.spkModel ) if config.spkModel != '' else None
-
-#endregion
-########################################################################################
 def processChunk( waveform, 
         terminal: Terminal, 
         recognizer: KaldiRecognizer, 
         spkRecognizer: KaldiRecognizer,
         usingVocabulary: bool ):
+    """ Recognize audio chunk and process with terminal.onText() """
     text = ''
     final = False
     try:
@@ -116,8 +66,12 @@ def processChunk( waveform,
     except Exception as e:
         logError( f'Exception processing waveform chunk : {e}' )
     return final
-########################################################################################
-async def Server( connection, path ):
+#endregion
+
+### websockServer ######################################################################
+#region
+async def websockServer( connection, path ):
+    """Main service thread - websock server implementation """
     global model
     global spkModel
     # Kaldi speech recognizer objects
@@ -248,19 +202,91 @@ async def Server( connection, path ):
         except: pass
         recognizer = None
         spkRecognizer = None
+#endregion
 
+### showHelp() #########################################################################
+#region
+def showHelp():
+    """Display usage instructions"""
+    print( "usage: lvt_server.py [options]" )
+    print( "Options available:" )
+    print( " -h | --help                    show these notes" )
+    print( " -l[=<file>] | --log[=<file>]   overwrite log file location defined in config file " )
+
+#endregion
+
+### onCtrlC ############################################################################
+#region
 def onCtrlC():
     Terminal.dispose()
     Speaker.dispose()
     loop.stop()
     print()
     print( "Terminating..." )
-########################################################################################
-# Main server loop
+#endregion
+
+### Main program #######################################################################
 #region
+#First thing first: save store script' folder as ROOT_DIR:
+ROOT_DIR = os.path.abspath( os.path.dirname( __file__ ) )
+print()
+print( f'Light Voice Terminal Server v{VERSION}' )
+
+logFileName = None
+
+config = Config( os.path.splitext( os.path.basename( __file__ ) )[0] + '.cfg' )
+
+for arg in sys.argv[1:]:
+    a = arg.strip().lower()
+    if ( a == '-h' ) or ( a == '--help' ) or ( a == '/?' ) :
+        showHelp()
+        exit(0)
+    elif a.startswith("-l") or a.startswith("-log"):
+        b = arg.split('=',2)
+        config.logFileName = b[1] if len(b)==2 else "logs/server.log"
+    else:
+        printError(f'Invalid command line argument: "{arg}"')
+
+
+Logger.initialize( config )
+Terminal.initialize( config )
+Speaker.initialize( config )
+
+# Set log level to reduce Kaldi/Vosk spuffing
+SetLogLevel( -1 )
+sslContext = None
+
+print( f'Listening port: {config.serverPort}' )
+if( len( config.sslCertFile ) > 0 and len( config.sslKeyFile ) > 0 ):
+    print( f'Connection: Secured' )
+    try:
+        sslContext = ssl.SSLContext( ssl.PROTOCOL_TLS_SERVER )
+        sslContext.load_cert_chain( config.sslCertFile, config.sslKeyFile )
+    except Exception as e:
+        sslContext = None
+        print( f'Error loading certificate files: {e}' )
+        exit( 1 )
+else:
+    print( f'Connection: Unsecured' )
+
+print( f'Voice model: {config.model}' )
+print( f'Full voice model: {config.fullModel}' )
+
+if( len( config.spkModel ) > 0 ):
+    print( f'Speaker identification model: {config.spkModel}' )
+else:
+    print( 'Speaker identification disabled' )
+
+#region Load models
+model = Model( config.model ) if config.model != '' else None
+fullModel = Model( config.fullModel ) if config.fullModel != '' and config.fullModel != config.model else None
+spkModel = SpkModel( config.spkModel ) if config.spkModel != '' else None
+#endregion
+
+# Main server loop
 try:
     pool = concurrent.futures.ThreadPoolExecutor( config.recognitionThreads )
-    start_server = websockets.serve( Server, config.serverAddress, config.serverPort, ssl=sslContext )
+    start_server = websockets.serve( websockServer, config.serverAddress, config.serverPort, ssl=sslContext )
     loop = asyncio.get_event_loop()
     loop.run_until_complete( start_server )
     loop.run_forever()
@@ -269,4 +295,3 @@ except KeyboardInterrupt:
 except Exception as e: 
     printError( f'Exception in main terminal loop {e}' )
 #endregion
-########################################################################################

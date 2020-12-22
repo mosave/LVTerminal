@@ -26,15 +26,19 @@ shared = None
 microphone = None
 animator = None
 
+### showHelp(), showDevices() ##########################################################
+#region
 def showHelp():
-    print( "usage: lvt_client.py [option]" )
+    """Display usage instructions"""
+    print( "usage: lvt_client.py [options]" )
     print( "Options available:" )
-    print( "  -h | --help                    these notes" )
-    print( "  -d | --devices                 list audio devices to specify in configuration file" )
-    print( "  -q | --quiet                   hide sound level indicator" )
-    print( "  -l[=<file>] | --log[=<file>]   Overwrite log file location defined in config file " )
+    print( " -h | --help                    show these notes" )
+    print( " -d | --devices                 list audio devices to specify in configuration file" )
+    print( " -q | --quiet                   hide sound level indicator" )
+    print( " -l[=<file>] | --log[=<file>]   Overwrite log file location defined in config file " )
 
 def showDevices():
+    """List audio deivces to use in config"""
     print( "List of devices supported. Both device index or device name could be used" )
     audio = pyaudio.PyAudio()
     print( f' Index   Channels   Device name' )
@@ -44,10 +48,10 @@ def showDevices():
         #print(device)
     audio.terminate()
 
-def restartClient():
-    print('Restarting...')
-    os.execl(sys.executable, f'"{format(sys.executable)}"', *sys.argv)
+#endregion
 
+### printStatus() ######################################################################
+#region
 def printStatus():
     global quiet
     if quiet : return
@@ -73,9 +77,12 @@ def printStatus():
     face = f'x{face}x' if microphone.muted else f'({face})'
 
     sys.__stdout__.write( f'[{lastAnimation:^10}] {face} {rms:>5} [{graph}]  \r' )
+#endregion
 
+### play() #############################################################################
+#region
 def play( data, onPlayed = None ):
-    #Play wave from memory by with BytesIO via audioStream
+    # Asynchronously play wave from memory by with BytesIO via audioOutputStream
     try: 
         audio = pyaudio.PyAudio()
         with wave.open( io.BytesIO( data ), 'rb' ) as wav:
@@ -101,7 +108,10 @@ def play( data, onPlayed = None ):
         try: audio.terminate() 
         except:pass
         shared.messageProcessingPaused = False
+#endregion
 
+### processMessages() ##################################################################
+#region
 async def processMessages( connection ):
     global lastMessageReceived
     global pingAreadySent
@@ -171,8 +181,11 @@ async def processMessages( connection ):
         else:
             print(f'Unknown message received: "{m}"')
             pass
+#endregion
 
-async def WebsockClient():
+### websockClient() ####################################################################
+#region
+async def websockClient():
     global lastMessageReceived
     global pingAreadySent
     global lastAnimation
@@ -242,8 +255,12 @@ async def WebsockClient():
             except:pass
 
     print( "Finishing Client thread" )
+#endregion
 
+### onCtrlC(), restartClient ###########################################################
+#region
 def onCtrlC():
+    """ Gracefuly terminate program """
     global shared
     try:
         if not shared.isTerminated: 
@@ -255,9 +272,19 @@ def onCtrlC():
     try: loop.stop()
     except: pass
 
-######################################################################################
+def restartClient():
+    """  Make Python re-compile and re-run app """
+    print('Restarting...')
+    os.execl(sys.executable, f'"{format(sys.executable)}"', *sys.argv)
+#endregion
+
+### Main program #######################################################################
+#region
 if __name__ == '__main__':
-    print( "Lignt Voice Terminal Client" )
+    print()
+    print( f'Lignt Voice Terminal Client v{VERSION}' )
+
+    config = Config( os.path.splitext( os.path.basename( __file__ ) )[0] + '.cfg' )
 
     shared = multiprocessing.Manager().Namespace()
     shared.isTerminated = False
@@ -270,8 +297,8 @@ if __name__ == '__main__':
     logger = None
     quiet = False
 
-    for i in range(1,len(sys.argv)):
-        a = argv[i].strip().lower()
+    for arg in sys.argv[1:]:
+        a = arg.strip().lower()
         if ( a == '-h' ) or ( a == '--help' ) or ( a == '/?' ) :
             showHelp()
             exit(0)
@@ -281,15 +308,11 @@ if __name__ == '__main__':
         elif ( a == '-q' ) or ( a == '--quiet' ) :
             shared.quiet = True
         elif a.startswith("-l") or a.startswith("-log"):
-            b = argv[i].split('=',2)
-            logFileName = b[1] if len(b)==2 else "logs/client.log"
+            b = arg.split('=',2)
+            config.logFileName = b[1] if len(b)==2 else "logs/client.log"
 
         else:
             printError(f'Invalid command line argument: "{arg}"')
-
-    config = Config( os.path.splitext( os.path.basename( __file__ ) )[0] + '.cfg' )
-
-    if logFileName != None : config.logFileName = logFileName
 
     Logger.initialize( config )
     Microphone.initialize( config )
@@ -312,7 +335,7 @@ if __name__ == '__main__':
 
     try:
         loop = asyncio.get_event_loop()
-        loop.run_until_complete( WebsockClient() )
+        loop.run_until_complete( websockClient() )
 
     except Exception as e:
         if isinstance( e, websockets.exceptions.ConnectionClosedOK ) :
@@ -326,4 +349,4 @@ if __name__ == '__main__':
 
     if animator != None : del(animator)
     print( 'Finishing application' )
-
+#endregion

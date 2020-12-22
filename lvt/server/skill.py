@@ -4,8 +4,8 @@ from lvt.const import *
 from lvt.logger import *
 from lvt.server.grammar import *
 
-#Define base skill class
 class Skill:
+    """Base Skill class"""
     def __init__( this, terminal, moduleFileName: str, name: str ):
         this.terminal = terminal
         this.moduleFileName = moduleFileName
@@ -73,7 +73,8 @@ class Skill:
         # :)
         if ext == '.py': ext = '.py.dat'
         return os.path.splitext( moduleFileName )[0] + ext
-# Terminal wrappers
+
+### Terminal wrappers ##################################################################
 #region
     @property
     def config( this ): return this.terminal.config
@@ -113,7 +114,7 @@ class Skill:
     def logDebug( this, msg:str ): logDebug(f'[{terminal.name}:{skill.name}]: {msg}')
 #endregion
 
-# Манипуляции словами и цепочками слов - поиск, удаление, подмена...
+### Манипуляции словами и цепочками слов - поиск, удаление, подмена ####################
 #region
     def getNormalFormOf( this, word: str, tags=None ) -> str:
         """Возвращает нормальную форму слова с учетом морфологических признаков"""
@@ -205,7 +206,7 @@ class Skill:
 
 #endregion
 
-# Методы конфигурации скила и управления ходом разбора фразы
+### Методы конфигурации скила и управление ходом разбора фразы #########################
 #region
     def subscribe( this, topic:str ):
         """Привязать вызов process к состоянию"""
