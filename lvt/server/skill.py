@@ -5,17 +5,16 @@ from lvt.logger import *
 from lvt.server.grammar import *
 
 class Skill:
-    """Base Skill class"""
+    """Базовый класс скиллов.
+    Описания класса используются для автодокументирования возможностей ассистента.
+    """
     def __init__( this, terminal, moduleFileName: str, name: str ):
         this.terminal = terminal
         this.moduleFileName = moduleFileName
         this.name = name
-
         this.enable = True
         this.subscriptions = set()
-        # Список слов (через пробел), которые необходимо добавить в фильтр
-        # распозновалки для работы этого скила
-        this.vocabulary = ''
+        this.vocabulary = set()
         # Чем выше значение приоритета, тем ближе к началу в цепочке
         # распознавания ставится скил
         this.priority = 0
@@ -26,14 +25,18 @@ class Skill:
         """Вызывается при инициализации скилла. 
         Обазательная конфигурация:
           * Состояния, к которым необходимо прибиндить скил
-          * Ключевые слова, которые необходимо добавить в словарь фильтрации распознавалки
+          * Ключевые слова, которые необходимо добавить в словарь фильтрации распознавалки в режиме "со словарем"
         """
 
         # Состояния, в которых скилл должен вызываться в при распозновании
         # фразы
-        # subscribe( TOPIC_ALL )
-        # subscribe( TOPIC_DEFAULT )
-        # unsubscribe( TOPIC_DEFAULT )
+        # this.subscribe( TOPIC_ALL )
+        # this.subscribe( TOPIC_DEFAULT )
+        # this.unsubscribe( TOPIC_DEFAULT )
+
+        # this.extendVocabulary("список слов словаря", {'теги'})
+        #
+        #
         pass
 
     def onText( this ):
@@ -57,12 +60,10 @@ class Skill:
         """Вызывается при переходе синтаксического анализатора в состояние, на которое подписан скилл
         """
         pass
-
         
     def onTimer( this ):
         """Вызывается примерно 1 раз в секунду, в зависимости от """
         pass
-
 
     def getSkillFileName( this, ext: str ) -> str:
         """Generate skill-related file name by adding extension"""
@@ -78,8 +79,6 @@ class Skill:
 #region
     @property
     def config( this ): return this.terminal.config
-    @property
-    def morphy( this ): return this.terminal.morphy
     @property
     def assistantNames( this ): return this.terminal.assistantNames
     @property
@@ -98,27 +97,19 @@ class Skill:
     @property
     def topic( this ): return this.terminal.topic
 
-    @property
-    def usingVocabulary( this )->bool:  
-        return this.terminal.usingVocabulary
-
-    @usingVocabulary.setter
-    def usingVocabulary(this, b:bool):
-        this.terminal.usingVocabulary = b
-
     def animate( this, animation:str, force:bool=False ): this.terminal.animate(animation, force)
     def say( this, text ): this.terminal.say( text )
     def play( this, waveFileName ): this.terminal.play( waveFileName )
-    def log( this, msg:str ): log(f'[{terminal.name}:{skill.name}]: {msg}')
-    def logError( this, msg:str ): logError(f'[{terminal.name}:{skill.name}]: {msg}')
-    def logDebug( this, msg:str ): logDebug(f'[{terminal.name}:{skill.name}]: {msg}')
+    def log( this, msg:str ): log(f'[{this.terminal.name}:{this.name}]: {msg}')
+    def logError( this, msg:str ): logError(f'[{this.terminal.name}:{this.name}]: {msg}')
+    def logDebug( this, msg:str ): logDebug(f'[{this.terminal.name}:{this.name}]: {msg}')
 #endregion
 
 ### Манипуляции словами и цепочками слов - поиск, удаление, подмена ####################
 #region
     def getNormalFormOf( this, word: str, tags=None ) -> str:
         """Возвращает нормальную форму слова с учетом морфологических признаков"""
-        parses = this.morphy.parse( word )
+        parses = parseWord( word )
         for p in parses:
             if ( tags == None ) or tags in p.tag: 
                 return p.normal_form
@@ -153,7 +144,7 @@ class Skill:
             for p in this.terminal.words[index]:
                 if ( tags == None or tags in p.tag ) and p.normal_form == nf: 
                     return index
-        return None
+        return -1
 
     def findWordChain( this, chain: str, startIndex: int=0 ) -> int:
         """Поиск в фразе цепочки слов"""
@@ -163,7 +154,7 @@ class Skill:
         # цепочки)
         n = len( this.terminal.words ) - len( cWords ) - startIndex + 1
         # Проверить, достаточно ли слов в фразе
-        if n < 1 : return None
+        if n < 1 : return -1
 
         for index in range( startIndex, n ):
             found = True
@@ -173,7 +164,7 @@ class Skill:
                     break
             if found : return index
 
-        return None
+        return -1
 
     def deleteWord( this, index: int, wordsToDelete:int=1 ):
         """ Удаление одного или нескольких слов из фразы"""
@@ -186,7 +177,7 @@ class Skill:
         words = wordsToList( words )
 
         for i in range( len( words ) ):
-            p = this.terminal.morphy.parse( words[-i - 1] )
+            p = parseWord( words[-i - 1] )
             # ?  do something with tags
             this.terminal.words.insert( index, p )
 
@@ -195,7 +186,7 @@ class Skill:
         found = False
         while True:
             n = this.findWordChain( chain )
-            if n != None:
+            if n >= 0:
                 this.deleteWord( n, len( wordsToList( chain ) ) )
                 this.insertWords( n, replaceWithChain )
                 found = True
@@ -225,9 +216,12 @@ class Skill:
             if len( ab ) == 1 and ab[0] == topic : return True
             if len( ab ) > 1 and topic.startswith( ab[0] ) and topic.endswith( ab[-1] ): return True
 
-    def extendVocabulary( this, words ):
-        """Добавить список необходимых слов в словарь фильтрации распознавалки голоса"""
-        this.terminal.extendVocabulary( words )
+    def extendVocabulary( this, words, tags = None ):
+        """Расширить словарь словоформами, удовлетворяющим тегам
+        По умолчанию (tags = None) слова добавляется в том виде как они были переданы
+        Принимает списки слов как в виде строк так и в виде массивов (рекурсивно)
+        """
+        this.vocabulary.update( wordsToVocabulary(words, tags) )
 
     def changeTopic( this, newTopic ):
         """Изменить текущий топик. Выполняется ПОСЛЕ выхода из обработчика onText/onPartialText"""

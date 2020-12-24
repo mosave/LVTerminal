@@ -29,6 +29,8 @@ class Config:
         this.sampleRate = p.getIntValue( section, 'SampleRate',8000 )
         this.recognitionThreads = p.getIntValue( section, 'RecognitionThreads',os.cpu_count() )
         if( this.recognitionThreads < 1 ): this.recognitionThreads = 1
+        this.vocabularyMode = bool(p.getIntValue( section, 'VocabularyMode', 1 ))
+        if this.model=='' : this.vocabularyMode = False
 
         this.voiceSimilarity = p.getFloatValue( section, 'VoiceSimilarity', 0.6 )
         this.voiceSelectivity = p.getFloatValue( section, 'VoiceSelectivity', 0.2 )
@@ -44,12 +46,6 @@ class Config:
 
         this.language = p.getValue( section, 'Language','ru' )
         if this.language not in {'ru','uk','en' } : this.language = 'ru'
-
-        this.confirmationPhrases = p.getValue( section, 'ConfirmationPhrases','да, хорошо, согласен, да будет так' ) \
-            .lower().replace( '  ',' ' ).replace( ', ',',' )
-
-        this.cancellationPhrases = p.getValue( section, 'CancellationPhrases','нет, отмена, стоп, стой' ) \
-            .lower().replace( '  ',' ' ).replace( ', ',',' )
 
         # TTS Engine
         this.ttsEngine = p.getValue( section, 'TTSEngine', '' )

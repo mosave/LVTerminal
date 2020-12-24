@@ -107,6 +107,7 @@ config.printLevel = logging.DEBUG
 logs = list()
 Logger.initialize( config )
 Logger.setLogCapture(logs)
+Grammar.initialize( config )
 Terminal.initialize( config )
 Speaker.initialize( config )
 

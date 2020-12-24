@@ -1,0 +1,1988 @@
+2020-12-23 15:48:58,738 D [kitchen] Initializing terminal
+2020-12-23 15:48:58,738 D [kitchen] Loading skills
+2020-12-23 15:48:58,744 D [kitchen]  10000 AppealDetectorSkill
+2020-12-23 15:48:58,744 D [kitchen]   9950 AcronymaExpanderSkill
+2020-12-23 15:48:58,744 D [kitchen]   9930 DateTimeDetectorSkill
+2020-12-23 15:48:58,744 D [kitchen]   9900 LocationsDetectorSkill
+2020-12-23 15:48:58,744 D [kitchen]   9700 OneWordCommandSkill
+2020-12-23 15:48:58,745 D [kitchen]   5000 TellTheTimeSkill
+2020-12-23 15:48:58,745 D [kitchen]   5000 ClientUpdaterSkill
+2020-12-23 15:48:58,745 D [kitchen]   5000 YesNoSkill
+2020-12-23 15:48:58,745 D [kitchen]   5000 DebugSkill
+2020-12-23 15:48:58,745 D [kitchen]   1000 ParrotModeSkill
+2020-12-23 15:48:58,752 D [kitchen] Message: Animate None
+2020-12-23 15:48:58,752 D [test] Initializing terminal
+2020-12-23 15:48:58,752 D [test] Loading skills
+2020-12-23 15:48:58,753 D [test]  10000 AppealDetectorSkill
+2020-12-23 15:48:58,753 D [test]   9950 AcronymaExpanderSkill
+2020-12-23 15:48:58,754 D [test]   9930 DateTimeDetectorSkill
+2020-12-23 15:48:58,754 D [test]   9900 LocationsDetectorSkill
+2020-12-23 15:48:58,754 D [test]   9700 OneWordCommandSkill
+2020-12-23 15:48:58,754 D [test]   5000 TellTheTimeSkill
+2020-12-23 15:48:58,754 D [test]   5000 ClientUpdaterSkill
+2020-12-23 15:48:58,754 D [test]   5000 YesNoSkill
+2020-12-23 15:48:58,754 D [test]   5000 DebugSkill
+2020-12-23 15:48:58,754 D [test]   1000 ParrotModeSkill
+2020-12-23 15:48:58,760 D [test] Message: Animate None
+2020-12-23 15:48:58,761 D [respeaker4] Initializing terminal
+2020-12-23 15:48:58,761 D [respeaker4] Loading skills
+2020-12-23 15:48:58,762 D [respeaker4]  10000 AppealDetectorSkill
+2020-12-23 15:48:58,762 D [respeaker4]   9950 AcronymaExpanderSkill
+2020-12-23 15:48:58,762 D [respeaker4]   9930 DateTimeDetectorSkill
+2020-12-23 15:48:58,762 D [respeaker4]   9900 LocationsDetectorSkill
+2020-12-23 15:48:58,762 D [respeaker4]   9700 OneWordCommandSkill
+2020-12-23 15:48:58,762 D [respeaker4]   5000 TellTheTimeSkill
+2020-12-23 15:48:58,762 D [respeaker4]   5000 ClientUpdaterSkill
+2020-12-23 15:48:58,763 D [respeaker4]   5000 YesNoSkill
+2020-12-23 15:48:58,763 D [respeaker4]   5000 DebugSkill
+2020-12-23 15:48:58,763 D [respeaker4]   1000 ParrotModeSkill
+2020-12-23 15:48:58,769 D [respeaker4] Message: Animate None
+2020-12-23 15:48:58,775 I Listening port: 2700
+2020-12-23 15:48:58,775 I Connection: Secured
+2020-12-23 15:48:58,777 I Voice model: /usr/src/kaldi/model-small-ru
+2020-12-23 15:48:58,777 I Full voice model: /usr/src/kaldi/model-ru
+2020-12-23 15:48:58,777 I Speaker identification model: /usr/src/kaldi/speaker-model
+2020-12-23 15:49:12,275 I [respeaker4] Terminal connected, client version 0.0.4
+2020-12-23 15:49:12,276 E Terminal Респикер: unhandled exception 'set' object has no attribute 'split'
+2020-12-23 15:49:12,276 I [respeaker4] Terminal disconnected
+2020-12-23 15:49:12,717 I [respeaker4] Terminal connected, client version 0.0.4
+2020-12-23 15:49:12,718 E Terminal Респикер: unhandled exception 'set' object has no attribute 'split'
+2020-12-23 15:49:12,718 I [respeaker4] Terminal disconnected
+2020-12-23 15:49:13,067 I [respeaker4] Terminal connected, client version 0.0.4
+2020-12-23 15:49:13,067 E Terminal Респикер: unhandled exception 'set' object has no attribute 'split'
+2020-12-23 15:49:13,068 I [respeaker4] Terminal disconnected
+2020-12-23 15:49:13,517 I [respeaker4] Terminal connected, client version 0.0.4
+2020-12-23 15:49:13,518 E Terminal Респикер: unhandled exception 'set' object has no attribute 'split'
+2020-12-23 15:49:13,521 I [respeaker4] Terminal disconnected
+2020-12-23 15:49:13,960 I [respeaker4] Terminal connected, client version 0.0.4
+2020-12-23 15:49:13,961 E Terminal Респикер: unhandled exception 'set' object has no attribute 'split'
+2020-12-23 15:49:13,961 I [respeaker4] Terminal disconnected
+2020-12-23 15:49:14,409 I [respeaker4] Terminal connected, client version 0.0.4
+2020-12-23 15:49:14,410 E Terminal Респикер: unhandled exception 'set' object has no attribute 'split'
+2020-12-23 15:49:14,410 I [respeaker4] Terminal disconnected
+2020-12-23 15:49:14,861 I [respeaker4] Terminal connected, client version 0.0.4
+2020-12-23 15:49:14,862 E Terminal Респикер: unhandled exception 'set' object has no attribute 'split'
+2020-12-23 15:49:14,862 I [respeaker4] Terminal disconnected
+2020-12-23 15:49:15,322 I [respeaker4] Terminal connected, client version 0.0.4
+2020-12-23 15:49:15,323 E Terminal Респикер: unhandled exception 'set' object has no attribute 'split'
+2020-12-23 15:49:15,323 I [respeaker4] Terminal disconnected
+2020-12-23 15:49:15,779 I [respeaker4] Terminal connected, client version 0.0.4
+2020-12-23 15:49:15,780 E Terminal Респикер: unhandled exception 'set' object has no attribute 'split'
+2020-12-23 15:49:15,780 I [respeaker4] Terminal disconnected
+2020-12-23 15:49:16,233 I [respeaker4] Terminal connected, client version 0.0.4
+2020-12-23 15:49:16,234 E Terminal Респикер: unhandled exception 'set' object has no attribute 'split'
+2020-12-23 15:49:16,234 I [respeaker4] Terminal disconnected
+2020-12-23 15:49:16,683 I [respeaker4] Terminal connected, client version 0.0.4
+2020-12-23 15:49:16,684 E Terminal Респикер: unhandled exception 'set' object has no attribute 'split'
+2020-12-23 15:49:16,684 I [respeaker4] Terminal disconnected
+2020-12-23 15:49:17,140 I [respeaker4] Terminal connected, client version 0.0.4
+2020-12-23 15:49:17,141 E Terminal Респикер: unhandled exception 'set' object has no attribute 'split'
+2020-12-23 15:49:17,141 I [respeaker4] Terminal disconnected
+2020-12-23 15:49:17,583 I [respeaker4] Terminal connected, client version 0.0.4
+2020-12-23 15:49:17,583 E Terminal Респикер: unhandled exception 'set' object has no attribute 'split'
+2020-12-23 15:49:17,583 I [respeaker4] Terminal disconnected
+2020-12-23 15:49:17,654 I Terminating...
+2020-12-23 15:50:37,741 D [kitchen] Initializing terminal
+2020-12-23 15:50:37,742 D [kitchen] Loading skills
+2020-12-23 15:50:37,746 D [kitchen]  10000 AppealDetectorSkill
+2020-12-23 15:50:37,746 D [kitchen]   9950 AcronymaExpanderSkill
+2020-12-23 15:50:37,746 D [kitchen]   9930 DateTimeDetectorSkill
+2020-12-23 15:50:37,746 D [kitchen]   9900 LocationsDetectorSkill
+2020-12-23 15:50:37,746 D [kitchen]   9700 OneWordCommandSkill
+2020-12-23 15:50:37,746 D [kitchen]   5000 TellTheTimeSkill
+2020-12-23 15:50:37,746 D [kitchen]   5000 ClientUpdaterSkill
+2020-12-23 15:50:37,746 D [kitchen]   5000 YesNoSkill
+2020-12-23 15:50:37,746 D [kitchen]   5000 DebugSkill
+2020-12-23 15:50:37,746 D [kitchen]   1000 ParrotModeSkill
+2020-12-23 15:50:37,753 D [kitchen] Message: Animate None
+2020-12-23 15:50:37,754 D [test] Initializing terminal
+2020-12-23 15:50:37,754 D [test] Loading skills
+2020-12-23 15:50:37,755 D [test]  10000 AppealDetectorSkill
+2020-12-23 15:50:37,755 D [test]   9950 AcronymaExpanderSkill
+2020-12-23 15:50:37,755 D [test]   9930 DateTimeDetectorSkill
+2020-12-23 15:50:37,755 D [test]   9900 LocationsDetectorSkill
+2020-12-23 15:50:37,755 D [test]   9700 OneWordCommandSkill
+2020-12-23 15:50:37,756 D [test]   5000 TellTheTimeSkill
+2020-12-23 15:50:37,756 D [test]   5000 ClientUpdaterSkill
+2020-12-23 15:50:37,756 D [test]   5000 YesNoSkill
+2020-12-23 15:50:37,756 D [test]   5000 DebugSkill
+2020-12-23 15:50:37,756 D [test]   1000 ParrotModeSkill
+2020-12-23 15:50:37,762 D [test] Message: Animate None
+2020-12-23 15:50:37,763 D [respeaker4] Initializing terminal
+2020-12-23 15:50:37,763 D [respeaker4] Loading skills
+2020-12-23 15:50:37,764 D [respeaker4]  10000 AppealDetectorSkill
+2020-12-23 15:50:37,764 D [respeaker4]   9950 AcronymaExpanderSkill
+2020-12-23 15:50:37,764 D [respeaker4]   9930 DateTimeDetectorSkill
+2020-12-23 15:50:37,764 D [respeaker4]   9900 LocationsDetectorSkill
+2020-12-23 15:50:37,764 D [respeaker4]   9700 OneWordCommandSkill
+2020-12-23 15:50:37,765 D [respeaker4]   5000 TellTheTimeSkill
+2020-12-23 15:50:37,765 D [respeaker4]   5000 ClientUpdaterSkill
+2020-12-23 15:50:37,765 D [respeaker4]   5000 YesNoSkill
+2020-12-23 15:50:37,765 D [respeaker4]   5000 DebugSkill
+2020-12-23 15:50:37,765 D [respeaker4]   1000 ParrotModeSkill
+2020-12-23 15:50:37,771 D [respeaker4] Message: Animate None
+2020-12-23 15:50:37,777 I Listening port: 2700
+2020-12-23 15:50:37,777 I Connection: Secured
+2020-12-23 15:50:37,779 I Voice model: /usr/src/kaldi/model-small-ru
+2020-12-23 15:50:37,779 I Full voice model: /usr/src/kaldi/model-ru
+2020-12-23 15:50:37,779 I Speaker identification model: /usr/src/kaldi/speaker-model
+2020-12-23 15:50:50,667 I [respeaker4] Terminal connected, client version 0.0.4
+2020-12-23 15:51:19,973 E Terminal Респикер: unhandled exception Object of type set is not JSON serializable
+2020-12-23 15:51:19,974 I [respeaker4] Terminal disconnected
+2020-12-23 15:51:20,489 I [respeaker4] Terminal connected, client version 0.0.4
+2020-12-23 15:51:49,150 D [respeaker4] Человек: "семнадцать"
+2020-12-23 15:51:58,418 D [respeaker4] Message: Animate Awake
+2020-12-23 15:51:58,594 D [respeaker4] Человек: "алиша"
+2020-12-23 15:51:58,594 D [respeaker4] AppealDetectorSkill: changing topic to "WaitCommand"
+2020-12-23 15:51:58,594 D [respeaker4] Message: Text Playing "appeal_on.wav"
+2020-12-23 15:51:58,594 D [respeaker4] Анализ фразы прерван
+2020-12-23 15:52:04,052 D [respeaker4] Message: Animate None
+2020-12-23 15:52:04,052 D [respeaker4] AppealDetectorSkill.onTimer(): changing topic to 
+2020-12-23 15:52:04,053 D [respeaker4] Message: Text Playing "appeal_off.wav"
+2020-12-23 15:52:18,528 D [respeaker4] Message: Animate Awake
+2020-12-23 15:52:18,674 D [respeaker4] Человек: "алиса"
+2020-12-23 15:52:18,674 D [respeaker4] AppealDetectorSkill: changing topic to "WaitCommand"
+2020-12-23 15:52:18,674 D [respeaker4] Message: Text Playing "appeal_on.wav"
+2020-12-23 15:52:18,675 D [respeaker4] Анализ фразы прерван
+2020-12-23 15:52:24,006 D [respeaker4] Message: Animate None
+2020-12-23 15:52:24,006 D [respeaker4] AppealDetectorSkill.onTimer(): changing topic to 
+2020-12-23 15:52:24,007 D [respeaker4] Message: Text Playing "appeal_off.wav"
+2020-12-23 15:52:31,416 D [respeaker4] Message: Animate Awake
+2020-12-23 15:52:31,668 D [respeaker4] Человек: "алиса"
+2020-12-23 15:52:31,668 D [respeaker4] AppealDetectorSkill: changing topic to "WaitCommand"
+2020-12-23 15:52:31,668 D [respeaker4] Message: Text Playing "appeal_on.wav"
+2020-12-23 15:52:31,669 D [respeaker4] Анализ фразы прерван
+2020-12-23 15:52:37,035 D [respeaker4] Message: Animate None
+2020-12-23 15:52:37,035 D [respeaker4] AppealDetectorSkill.onTimer(): changing topic to 
+2020-12-23 15:52:37,036 D [respeaker4] Message: Text Playing "appeal_off.wav"
+2020-12-23 15:52:44,212 I Terminating...
+2020-12-23 16:30:29,976 D [kitchen] Initializing terminal
+2020-12-23 16:30:29,977 D [kitchen] Loading skills
+2020-12-23 16:30:29,981 D [kitchen]  10000 AppealDetectorSkill
+2020-12-23 16:30:29,981 D [kitchen]   9950 AcronymaExpanderSkill
+2020-12-23 16:30:29,981 D [kitchen]   9930 DateTimeDetectorSkill
+2020-12-23 16:30:29,981 D [kitchen]   9900 LocationsDetectorSkill
+2020-12-23 16:30:29,981 D [kitchen]   9700 OneWordCommandSkill
+2020-12-23 16:30:29,981 D [kitchen]   5000 TellTheTimeSkill
+2020-12-23 16:30:29,981 D [kitchen]   5000 ClientUpdaterSkill
+2020-12-23 16:30:29,981 D [kitchen]   5000 YesNoSkill
+2020-12-23 16:30:29,981 D [kitchen]   5000 DebugSkill
+2020-12-23 16:30:29,981 D [kitchen]   1000 ParrotModeSkill
+2020-12-23 16:30:29,988 D [kitchen] Message: Animate None
+2020-12-23 16:30:29,989 D [test] Initializing terminal
+2020-12-23 16:30:29,989 D [test] Loading skills
+2020-12-23 16:30:29,990 D [test]  10000 AppealDetectorSkill
+2020-12-23 16:30:29,990 D [test]   9950 AcronymaExpanderSkill
+2020-12-23 16:30:29,990 D [test]   9930 DateTimeDetectorSkill
+2020-12-23 16:30:29,990 D [test]   9900 LocationsDetectorSkill
+2020-12-23 16:30:29,991 D [test]   9700 OneWordCommandSkill
+2020-12-23 16:30:29,991 D [test]   5000 TellTheTimeSkill
+2020-12-23 16:30:29,991 D [test]   5000 ClientUpdaterSkill
+2020-12-23 16:30:29,991 D [test]   5000 YesNoSkill
+2020-12-23 16:30:29,991 D [test]   5000 DebugSkill
+2020-12-23 16:30:29,991 D [test]   1000 ParrotModeSkill
+2020-12-23 16:30:29,997 D [test] Message: Animate None
+2020-12-23 16:30:29,998 D [respeaker4] Initializing terminal
+2020-12-23 16:30:29,998 D [respeaker4] Loading skills
+2020-12-23 16:30:29,999 D [respeaker4]  10000 AppealDetectorSkill
+2020-12-23 16:30:29,999 D [respeaker4]   9950 AcronymaExpanderSkill
+2020-12-23 16:30:29,999 D [respeaker4]   9930 DateTimeDetectorSkill
+2020-12-23 16:30:30,000 D [respeaker4]   9900 LocationsDetectorSkill
+2020-12-23 16:30:30,000 D [respeaker4]   9700 OneWordCommandSkill
+2020-12-23 16:30:30,000 D [respeaker4]   5000 TellTheTimeSkill
+2020-12-23 16:30:30,000 D [respeaker4]   5000 ClientUpdaterSkill
+2020-12-23 16:30:30,000 D [respeaker4]   5000 YesNoSkill
+2020-12-23 16:30:30,000 D [respeaker4]   5000 DebugSkill
+2020-12-23 16:30:30,000 D [respeaker4]   1000 ParrotModeSkill
+2020-12-23 16:30:30,006 D [respeaker4] Message: Animate None
+2020-12-23 16:30:30,012 I Listening port: 2700
+2020-12-23 16:30:30,012 I Connection: Secured
+2020-12-23 16:30:30,014 I Voice model: /usr/src/kaldi/model-small-ru
+2020-12-23 16:30:30,014 I Full voice model: /usr/src/kaldi/model-ru
+2020-12-23 16:30:30,014 I Speaker identification model: /usr/src/kaldi/speaker-model
+2020-12-23 16:30:39,442 I [respeaker4] Terminal connected, client version 0.0.4
+2020-12-23 16:30:57,646 I Terminating...
+2020-12-23 16:32:33,464 D [kitchen] Initializing terminal
+2020-12-23 16:32:33,465 D [kitchen] Loading skills
+2020-12-23 16:32:33,469 D [kitchen]  10000 AppealDetectorSkill
+2020-12-23 16:32:33,469 D [kitchen]   9950 AcronymaExpanderSkill
+2020-12-23 16:32:33,469 D [kitchen]   9930 DateTimeDetectorSkill
+2020-12-23 16:32:33,469 D [kitchen]   9900 LocationsDetectorSkill
+2020-12-23 16:32:33,469 D [kitchen]   9700 OneWordCommandSkill
+2020-12-23 16:32:33,469 D [kitchen]   5000 TellTheTimeSkill
+2020-12-23 16:32:33,469 D [kitchen]   5000 ClientUpdaterSkill
+2020-12-23 16:32:33,469 D [kitchen]   5000 YesNoSkill
+2020-12-23 16:32:33,469 D [kitchen]   5000 DebugSkill
+2020-12-23 16:32:33,469 D [kitchen]   1000 ParrotModeSkill
+2020-12-23 16:32:33,476 D [kitchen] Message: Animate None
+2020-12-23 16:32:33,477 D [test] Initializing terminal
+2020-12-23 16:32:33,477 D [test] Loading skills
+2020-12-23 16:32:33,478 D [test]  10000 AppealDetectorSkill
+2020-12-23 16:32:33,478 D [test]   9950 AcronymaExpanderSkill
+2020-12-23 16:32:33,478 D [test]   9930 DateTimeDetectorSkill
+2020-12-23 16:32:33,478 D [test]   9900 LocationsDetectorSkill
+2020-12-23 16:32:33,478 D [test]   9700 OneWordCommandSkill
+2020-12-23 16:32:33,478 D [test]   5000 TellTheTimeSkill
+2020-12-23 16:32:33,478 D [test]   5000 ClientUpdaterSkill
+2020-12-23 16:32:33,478 D [test]   5000 YesNoSkill
+2020-12-23 16:32:33,479 D [test]   5000 DebugSkill
+2020-12-23 16:32:33,479 D [test]   1000 ParrotModeSkill
+2020-12-23 16:32:33,485 D [test] Message: Animate None
+2020-12-23 16:32:33,485 D [respeaker4] Initializing terminal
+2020-12-23 16:32:33,486 D [respeaker4] Loading skills
+2020-12-23 16:32:33,487 D [respeaker4]  10000 AppealDetectorSkill
+2020-12-23 16:32:33,487 D [respeaker4]   9950 AcronymaExpanderSkill
+2020-12-23 16:32:33,487 D [respeaker4]   9930 DateTimeDetectorSkill
+2020-12-23 16:32:33,487 D [respeaker4]   9900 LocationsDetectorSkill
+2020-12-23 16:32:33,487 D [respeaker4]   9700 OneWordCommandSkill
+2020-12-23 16:32:33,487 D [respeaker4]   5000 TellTheTimeSkill
+2020-12-23 16:32:33,487 D [respeaker4]   5000 ClientUpdaterSkill
+2020-12-23 16:32:33,487 D [respeaker4]   5000 YesNoSkill
+2020-12-23 16:32:33,487 D [respeaker4]   5000 DebugSkill
+2020-12-23 16:32:33,488 D [respeaker4]   1000 ParrotModeSkill
+2020-12-23 16:32:33,494 D [respeaker4] Message: Animate None
+2020-12-23 16:32:33,500 I Listening port: 2700
+2020-12-23 16:32:33,500 I Connection: Secured
+2020-12-23 16:32:33,502 I Voice model: /usr/src/kaldi/model-small-ru
+2020-12-23 16:32:33,502 I Full voice model: /usr/src/kaldi/model-ru
+2020-12-23 16:32:33,502 I Speaker identification model: /usr/src/kaldi/speaker-model
+2020-12-23 16:32:40,925 I [respeaker4] Terminal connected, client version 0.0.4
+2020-12-23 16:32:48,933 D [respeaker4] Message: Animate Awake
+2020-12-23 16:32:49,669 D [respeaker4] Человек: "алиса"
+2020-12-23 16:32:49,669 D [respeaker4] AppealDetectorSkill: changing topic to "WaitCommand"
+2020-12-23 16:32:49,670 D [respeaker4] Message: Text Playing "appeal_on.wav"
+2020-12-23 16:32:49,670 D [respeaker4] Анализ фразы прерван
+2020-12-23 16:32:55,139 D [respeaker4] Message: Animate None
+2020-12-23 16:32:55,140 D [respeaker4] AppealDetectorSkill.onTimer(): changing topic to 
+2020-12-23 16:32:55,140 D [respeaker4] Message: Text Playing "appeal_off.wav"
+2020-12-23 16:33:13,541 I Terminating...
+2020-12-23 16:33:52,030 D [kitchen] Initializing terminal
+2020-12-23 16:33:52,031 D [kitchen] Loading skills
+2020-12-23 16:33:52,034 D [kitchen]  10000 AppealDetectorSkill
+2020-12-23 16:33:52,035 D [kitchen]   9950 AcronymaExpanderSkill
+2020-12-23 16:33:52,035 D [kitchen]   9930 DateTimeDetectorSkill
+2020-12-23 16:33:52,035 D [kitchen]   9900 LocationsDetectorSkill
+2020-12-23 16:33:52,035 D [kitchen]   9700 OneWordCommandSkill
+2020-12-23 16:33:52,035 D [kitchen]   5000 TellTheTimeSkill
+2020-12-23 16:33:52,035 D [kitchen]   5000 ClientUpdaterSkill
+2020-12-23 16:33:52,035 D [kitchen]   5000 YesNoSkill
+2020-12-23 16:33:52,035 D [kitchen]   5000 DebugSkill
+2020-12-23 16:33:52,035 D [kitchen]   1000 ParrotModeSkill
+2020-12-23 16:33:52,042 D [kitchen] Message: Animate None
+2020-12-23 16:33:52,043 D [test] Initializing terminal
+2020-12-23 16:33:52,043 D [test] Loading skills
+2020-12-23 16:33:52,044 D [test]  10000 AppealDetectorSkill
+2020-12-23 16:33:52,044 D [test]   9950 AcronymaExpanderSkill
+2020-12-23 16:33:52,044 D [test]   9930 DateTimeDetectorSkill
+2020-12-23 16:33:52,044 D [test]   9900 LocationsDetectorSkill
+2020-12-23 16:33:52,044 D [test]   9700 OneWordCommandSkill
+2020-12-23 16:33:52,044 D [test]   5000 TellTheTimeSkill
+2020-12-23 16:33:52,044 D [test]   5000 ClientUpdaterSkill
+2020-12-23 16:33:52,045 D [test]   5000 YesNoSkill
+2020-12-23 16:33:52,045 D [test]   5000 DebugSkill
+2020-12-23 16:33:52,045 D [test]   1000 ParrotModeSkill
+2020-12-23 16:33:52,051 D [test] Message: Animate None
+2020-12-23 16:33:52,051 D [respeaker4] Initializing terminal
+2020-12-23 16:33:52,052 D [respeaker4] Loading skills
+2020-12-23 16:33:52,053 D [respeaker4]  10000 AppealDetectorSkill
+2020-12-23 16:33:52,053 D [respeaker4]   9950 AcronymaExpanderSkill
+2020-12-23 16:33:52,053 D [respeaker4]   9930 DateTimeDetectorSkill
+2020-12-23 16:33:52,053 D [respeaker4]   9900 LocationsDetectorSkill
+2020-12-23 16:33:52,053 D [respeaker4]   9700 OneWordCommandSkill
+2020-12-23 16:33:52,053 D [respeaker4]   5000 TellTheTimeSkill
+2020-12-23 16:33:52,053 D [respeaker4]   5000 ClientUpdaterSkill
+2020-12-23 16:33:52,054 D [respeaker4]   5000 YesNoSkill
+2020-12-23 16:33:52,054 D [respeaker4]   5000 DebugSkill
+2020-12-23 16:33:52,054 D [respeaker4]   1000 ParrotModeSkill
+2020-12-23 16:33:52,060 D [respeaker4] Message: Animate None
+2020-12-23 16:33:52,066 I Listening port: 2700
+2020-12-23 16:33:52,066 I Connection: Secured
+2020-12-23 16:33:52,068 I Voice model: /usr/src/kaldi/model-ru
+2020-12-23 16:33:52,068 I Full voice model: /usr/src/kaldi/model-ru
+2020-12-23 16:33:52,068 I Speaker identification model: /usr/src/kaldi/speaker-model
+2020-12-23 16:33:55,187 I [respeaker4] Terminal connected, client version 0.0.4
+2020-12-23 16:34:10,251 D [respeaker4] Человек: "алиша повторяй за жены"
+2020-12-23 16:34:25,036 I Terminating...
+2020-12-23 16:34:51,164 D [kitchen] Initializing terminal
+2020-12-23 16:34:51,165 D [kitchen] Loading skills
+2020-12-23 16:34:51,168 D [kitchen]  10000 AppealDetectorSkill
+2020-12-23 16:34:51,168 D [kitchen]   9950 AcronymaExpanderSkill
+2020-12-23 16:34:51,168 D [kitchen]   9930 DateTimeDetectorSkill
+2020-12-23 16:34:51,168 D [kitchen]   9900 LocationsDetectorSkill
+2020-12-23 16:34:51,169 D [kitchen]   9700 OneWordCommandSkill
+2020-12-23 16:34:51,169 D [kitchen]   5000 TellTheTimeSkill
+2020-12-23 16:34:51,169 D [kitchen]   5000 ClientUpdaterSkill
+2020-12-23 16:34:51,169 D [kitchen]   5000 YesNoSkill
+2020-12-23 16:34:51,169 D [kitchen]   5000 DebugSkill
+2020-12-23 16:34:51,169 D [kitchen]   1000 ParrotModeSkill
+2020-12-23 16:34:51,176 D [kitchen] Message: Animate None
+2020-12-23 16:34:51,176 D [test] Initializing terminal
+2020-12-23 16:34:51,177 D [test] Loading skills
+2020-12-23 16:34:51,178 D [test]  10000 AppealDetectorSkill
+2020-12-23 16:34:51,178 D [test]   9950 AcronymaExpanderSkill
+2020-12-23 16:34:51,178 D [test]   9930 DateTimeDetectorSkill
+2020-12-23 16:34:51,178 D [test]   9900 LocationsDetectorSkill
+2020-12-23 16:34:51,178 D [test]   9700 OneWordCommandSkill
+2020-12-23 16:34:51,178 D [test]   5000 TellTheTimeSkill
+2020-12-23 16:34:51,178 D [test]   5000 ClientUpdaterSkill
+2020-12-23 16:34:51,178 D [test]   5000 YesNoSkill
+2020-12-23 16:34:51,178 D [test]   5000 DebugSkill
+2020-12-23 16:34:51,178 D [test]   1000 ParrotModeSkill
+2020-12-23 16:34:51,185 D [test] Message: Animate None
+2020-12-23 16:34:51,185 D [respeaker4] Initializing terminal
+2020-12-23 16:34:51,185 D [respeaker4] Loading skills
+2020-12-23 16:34:51,186 D [respeaker4]  10000 AppealDetectorSkill
+2020-12-23 16:34:51,187 D [respeaker4]   9950 AcronymaExpanderSkill
+2020-12-23 16:34:51,187 D [respeaker4]   9930 DateTimeDetectorSkill
+2020-12-23 16:34:51,187 D [respeaker4]   9900 LocationsDetectorSkill
+2020-12-23 16:34:51,187 D [respeaker4]   9700 OneWordCommandSkill
+2020-12-23 16:34:51,187 D [respeaker4]   5000 TellTheTimeSkill
+2020-12-23 16:34:51,187 D [respeaker4]   5000 ClientUpdaterSkill
+2020-12-23 16:34:51,187 D [respeaker4]   5000 YesNoSkill
+2020-12-23 16:34:51,187 D [respeaker4]   5000 DebugSkill
+2020-12-23 16:34:51,187 D [respeaker4]   1000 ParrotModeSkill
+2020-12-23 16:34:51,193 D [respeaker4] Message: Animate None
+2020-12-23 16:34:51,199 I Listening port: 2700
+2020-12-23 16:34:51,199 I Connection: Secured
+2020-12-23 16:34:51,201 I Voice model: /usr/src/kaldi/model-ru
+2020-12-23 16:34:51,201 I Full voice model: /usr/src/kaldi/model-ru
+2020-12-23 16:34:51,201 I Speaker identification model: /usr/src/kaldi/speaker-model
+2020-12-23 16:34:56,744 I [respeaker4] Terminal connected, client version 0.0.4
+2020-12-23 16:34:56,746 I <vosk.vosk.KaldiRecognizer; proxy of <Swig Object of type 'KaldiRecognizer *' at 0x7f0416935510> >
+2020-12-23 16:35:16,853 E Terminal Респикер: unhandled exception Object of type set is not JSON serializable
+2020-12-23 16:35:16,853 I [respeaker4] Terminal disconnected
+2020-12-23 16:37:24,884 D [kitchen] Initializing terminal
+2020-12-23 16:37:24,885 D [kitchen] Loading skills
+2020-12-23 16:37:24,889 D [kitchen]  10000 AppealDetectorSkill
+2020-12-23 16:37:24,889 D [kitchen]   9950 AcronymaExpanderSkill
+2020-12-23 16:37:24,889 D [kitchen]   9930 DateTimeDetectorSkill
+2020-12-23 16:37:24,889 D [kitchen]   9900 LocationsDetectorSkill
+2020-12-23 16:37:24,889 D [kitchen]   9700 OneWordCommandSkill
+2020-12-23 16:37:24,889 D [kitchen]   5000 TellTheTimeSkill
+2020-12-23 16:37:24,889 D [kitchen]   5000 ClientUpdaterSkill
+2020-12-23 16:37:24,889 D [kitchen]   5000 YesNoSkill
+2020-12-23 16:37:24,889 D [kitchen]   5000 DebugSkill
+2020-12-23 16:37:24,889 D [kitchen]   1000 ParrotModeSkill
+2020-12-23 16:37:24,896 D [kitchen] Message: Animate None
+2020-12-23 16:37:24,896 D [test] Initializing terminal
+2020-12-23 16:37:24,897 D [test] Loading skills
+2020-12-23 16:37:24,898 D [test]  10000 AppealDetectorSkill
+2020-12-23 16:37:24,898 D [test]   9950 AcronymaExpanderSkill
+2020-12-23 16:37:24,898 D [test]   9930 DateTimeDetectorSkill
+2020-12-23 16:37:24,898 D [test]   9900 LocationsDetectorSkill
+2020-12-23 16:37:24,898 D [test]   9700 OneWordCommandSkill
+2020-12-23 16:37:24,898 D [test]   5000 TellTheTimeSkill
+2020-12-23 16:37:24,898 D [test]   5000 ClientUpdaterSkill
+2020-12-23 16:37:24,898 D [test]   5000 YesNoSkill
+2020-12-23 16:37:24,898 D [test]   5000 DebugSkill
+2020-12-23 16:37:24,898 D [test]   1000 ParrotModeSkill
+2020-12-23 16:37:24,905 D [test] Message: Animate None
+2020-12-23 16:37:24,905 D [respeaker4] Initializing terminal
+2020-12-23 16:37:24,906 D [respeaker4] Loading skills
+2020-12-23 16:37:24,907 D [respeaker4]  10000 AppealDetectorSkill
+2020-12-23 16:37:24,907 D [respeaker4]   9950 AcronymaExpanderSkill
+2020-12-23 16:37:24,907 D [respeaker4]   9930 DateTimeDetectorSkill
+2020-12-23 16:37:24,907 D [respeaker4]   9900 LocationsDetectorSkill
+2020-12-23 16:37:24,907 D [respeaker4]   9700 OneWordCommandSkill
+2020-12-23 16:37:24,907 D [respeaker4]   5000 TellTheTimeSkill
+2020-12-23 16:37:24,907 D [respeaker4]   5000 ClientUpdaterSkill
+2020-12-23 16:37:24,907 D [respeaker4]   5000 YesNoSkill
+2020-12-23 16:37:24,907 D [respeaker4]   5000 DebugSkill
+2020-12-23 16:37:24,907 D [respeaker4]   1000 ParrotModeSkill
+2020-12-23 16:37:24,913 D [respeaker4] Message: Animate None
+2020-12-23 16:37:24,919 I Listening port: 2700
+2020-12-23 16:37:24,919 I Connection: Secured
+2020-12-23 16:37:24,921 I Voice model: /usr/src/kaldi/model-ru
+2020-12-23 16:37:24,921 I Full voice model: /usr/src/kaldi/model-ru
+2020-12-23 16:37:24,921 I Speaker identification model: /usr/src/kaldi/speaker-model
+2020-12-23 16:37:31,355 I [respeaker4] Terminal connected, client version 0.0.4
+2020-12-23 16:37:31,357 I {'this': <Swig Object of type 'KaldiRecognizer *' at 0x7f51b6b1d540>}
+2020-12-23 16:37:50,734 D [respeaker4] Человек: "алиша"
+2020-12-23 16:38:10,930 E Terminal Респикер: unhandled exception Object of type set is not JSON serializable
+2020-12-23 16:38:10,930 I [respeaker4] Terminal disconnected
+2020-12-23 16:45:33,078 D [kitchen] Initializing terminal
+2020-12-23 16:45:33,078 D [kitchen] Loading skills
+2020-12-23 16:45:33,082 D [kitchen]  10000 AppealDetectorSkill
+2020-12-23 16:45:33,082 D [kitchen]   9950 AcronymaExpanderSkill
+2020-12-23 16:45:33,082 D [kitchen]   9930 DateTimeDetectorSkill
+2020-12-23 16:45:33,082 D [kitchen]   9900 LocationsDetectorSkill
+2020-12-23 16:45:33,082 D [kitchen]   9700 OneWordCommandSkill
+2020-12-23 16:45:33,082 D [kitchen]   5000 TellTheTimeSkill
+2020-12-23 16:45:33,082 D [kitchen]   5000 ClientUpdaterSkill
+2020-12-23 16:45:33,082 D [kitchen]   5000 YesNoSkill
+2020-12-23 16:45:33,082 D [kitchen]   5000 DebugSkill
+2020-12-23 16:45:33,082 D [kitchen]   1000 ParrotModeSkill
+2020-12-23 16:45:33,089 D [kitchen] Message: Animate None
+2020-12-23 16:45:33,090 D [test] Initializing terminal
+2020-12-23 16:45:33,090 D [test] Loading skills
+2020-12-23 16:45:33,091 D [test]  10000 AppealDetectorSkill
+2020-12-23 16:45:33,091 D [test]   9950 AcronymaExpanderSkill
+2020-12-23 16:45:33,091 D [test]   9930 DateTimeDetectorSkill
+2020-12-23 16:45:33,091 D [test]   9900 LocationsDetectorSkill
+2020-12-23 16:45:33,091 D [test]   9700 OneWordCommandSkill
+2020-12-23 16:45:33,091 D [test]   5000 TellTheTimeSkill
+2020-12-23 16:45:33,091 D [test]   5000 ClientUpdaterSkill
+2020-12-23 16:45:33,091 D [test]   5000 YesNoSkill
+2020-12-23 16:45:33,091 D [test]   5000 DebugSkill
+2020-12-23 16:45:33,091 D [test]   1000 ParrotModeSkill
+2020-12-23 16:45:33,098 D [test] Message: Animate None
+2020-12-23 16:45:33,098 D [respeaker4] Initializing terminal
+2020-12-23 16:45:33,099 D [respeaker4] Loading skills
+2020-12-23 16:45:33,100 D [respeaker4]  10000 AppealDetectorSkill
+2020-12-23 16:45:33,100 D [respeaker4]   9950 AcronymaExpanderSkill
+2020-12-23 16:45:33,100 D [respeaker4]   9930 DateTimeDetectorSkill
+2020-12-23 16:45:33,100 D [respeaker4]   9900 LocationsDetectorSkill
+2020-12-23 16:45:33,100 D [respeaker4]   9700 OneWordCommandSkill
+2020-12-23 16:45:33,100 D [respeaker4]   5000 TellTheTimeSkill
+2020-12-23 16:45:33,100 D [respeaker4]   5000 ClientUpdaterSkill
+2020-12-23 16:45:33,100 D [respeaker4]   5000 YesNoSkill
+2020-12-23 16:45:33,100 D [respeaker4]   5000 DebugSkill
+2020-12-23 16:45:33,100 D [respeaker4]   1000 ParrotModeSkill
+2020-12-23 16:45:33,106 D [respeaker4] Message: Animate None
+2020-12-23 16:45:33,112 I Listening port: 2700
+2020-12-23 16:45:33,112 I Connection: Secured
+2020-12-23 16:45:33,114 I Voice model: /usr/src/kaldi/model-small-ru
+2020-12-23 16:45:33,114 I Full voice model: /usr/src/kaldi/model-ru
+2020-12-23 16:45:33,114 I Speaker identification model: /usr/src/kaldi/speaker-model
+2020-12-23 16:45:45,214 I [respeaker4] Terminal connected, client version 0.0.4
+2020-12-23 16:45:50,148 D [respeaker4] Message: Animate Awake
+2020-12-23 16:45:50,378 D [respeaker4] Человек: "алиса"
+2020-12-23 16:45:50,378 D [respeaker4] AppealDetectorSkill: changing topic to "WaitCommand"
+2020-12-23 16:45:50,378 D [respeaker4] Message: Text Playing "appeal_on.wav"
+2020-12-23 16:45:50,378 D [respeaker4] Анализ фразы прерван
+2020-12-23 16:45:56,087 D [respeaker4] Message: Animate None
+2020-12-23 16:45:56,088 D [respeaker4] AppealDetectorSkill.onTimer(): changing topic to 
+2020-12-23 16:45:56,088 D [respeaker4] Message: Text Playing "appeal_off.wav"
+2020-12-23 16:46:00,213 I Terminating...
+2020-12-23 17:05:47,836 D [kitchen] Initializing terminal
+2020-12-23 17:05:47,837 D [kitchen] Loading skills
+2020-12-23 17:05:47,844 D [kitchen]  10000 AppealDetectorSkill
+2020-12-23 17:05:47,844 D [kitchen]   9950 AcronymaExpanderSkill
+2020-12-23 17:05:47,844 D [kitchen]   9930 DateTimeDetectorSkill
+2020-12-23 17:05:47,844 D [kitchen]   9900 LocationsDetectorSkill
+2020-12-23 17:05:47,844 D [kitchen]   9700 OneWordCommandSkill
+2020-12-23 17:05:47,844 D [kitchen]   5000 TellTheTimeSkill
+2020-12-23 17:05:47,844 D [kitchen]   5000 ClientUpdaterSkill
+2020-12-23 17:05:47,844 D [kitchen]   5000 YesNoSkill
+2020-12-23 17:05:47,844 D [kitchen]   5000 DebugSkill
+2020-12-23 17:05:47,844 D [kitchen]   1000 ParrotModeSkill
+2020-12-23 17:05:47,851 D [kitchen] Message: Animate None
+2020-12-23 17:05:47,852 D [test] Initializing terminal
+2020-12-23 17:05:47,852 D [test] Loading skills
+2020-12-23 17:05:47,855 D [test]  10000 AppealDetectorSkill
+2020-12-23 17:05:47,855 D [test]   9950 AcronymaExpanderSkill
+2020-12-23 17:05:47,855 D [test]   9930 DateTimeDetectorSkill
+2020-12-23 17:05:47,855 D [test]   9900 LocationsDetectorSkill
+2020-12-23 17:05:47,855 D [test]   9700 OneWordCommandSkill
+2020-12-23 17:05:47,855 D [test]   5000 TellTheTimeSkill
+2020-12-23 17:05:47,855 D [test]   5000 ClientUpdaterSkill
+2020-12-23 17:05:47,855 D [test]   5000 YesNoSkill
+2020-12-23 17:05:47,856 D [test]   5000 DebugSkill
+2020-12-23 17:05:47,856 D [test]   1000 ParrotModeSkill
+2020-12-23 17:05:47,862 D [test] Message: Animate None
+2020-12-23 17:05:47,862 D [respeaker4] Initializing terminal
+2020-12-23 17:05:47,863 D [respeaker4] Loading skills
+2020-12-23 17:05:47,866 D [respeaker4]  10000 AppealDetectorSkill
+2020-12-23 17:05:47,866 D [respeaker4]   9950 AcronymaExpanderSkill
+2020-12-23 17:05:47,866 D [respeaker4]   9930 DateTimeDetectorSkill
+2020-12-23 17:05:47,866 D [respeaker4]   9900 LocationsDetectorSkill
+2020-12-23 17:05:47,866 D [respeaker4]   9700 OneWordCommandSkill
+2020-12-23 17:05:47,866 D [respeaker4]   5000 TellTheTimeSkill
+2020-12-23 17:05:47,867 D [respeaker4]   5000 ClientUpdaterSkill
+2020-12-23 17:05:47,867 D [respeaker4]   5000 YesNoSkill
+2020-12-23 17:05:47,867 D [respeaker4]   5000 DebugSkill
+2020-12-23 17:05:47,867 D [respeaker4]   1000 ParrotModeSkill
+2020-12-23 17:05:47,873 D [respeaker4] Message: Animate None
+2020-12-23 17:05:47,879 I Listening port: 2700
+2020-12-23 17:05:47,879 I Connection: Secured
+2020-12-23 17:05:47,881 I Voice model: /usr/src/kaldi/model-small-ru
+2020-12-23 17:05:47,881 I Full voice model: /usr/src/kaldi/model-ru
+2020-12-23 17:05:47,881 I Speaker identification model: /usr/src/kaldi/speaker-model
+2020-12-23 17:06:01,377 I [respeaker4] Terminal connected, client version 0.0.4
+2020-12-23 17:06:03,538 D [respeaker4] Человек: "всём распознавание"
+2020-12-23 17:06:10,195 D [respeaker4] Message: Animate Awake
+2020-12-23 17:06:11,016 D [respeaker4] Человек: "мажордом повторяя"
+2020-12-23 17:06:11,018 D [respeaker4] Message: Animate None
+2020-12-23 17:06:19,285 D [respeaker4] Message: Animate Awake
+2020-12-23 17:06:19,988 D [respeaker4] Человек: "мажордом повторяю"
+2020-12-23 17:06:19,990 D [respeaker4] Message: Animate None
+2020-12-23 17:06:26,047 D [respeaker4] Человек: "за мной"
+2020-12-23 17:07:15,581 E Terminal Респикер: unhandled exception Object of type set is not JSON serializable
+2020-12-23 17:07:15,581 I [respeaker4] Terminal disconnected
+2020-12-23 17:07:16,239 I [respeaker4] Terminal connected, client version 0.0.4
+2020-12-23 17:07:51,559 E Terminal Респикер: unhandled exception Object of type set is not JSON serializable
+2020-12-23 17:07:51,559 I [respeaker4] Terminal disconnected
+2020-12-23 17:07:52,131 I [respeaker4] Terminal connected, client version 0.0.4
+2020-12-23 17:08:42,338 E Terminal Респикер: unhandled exception Object of type set is not JSON serializable
+2020-12-23 17:08:42,338 I [respeaker4] Terminal disconnected
+2020-12-23 17:08:42,830 I [respeaker4] Terminal connected, client version 0.0.4
+2020-12-23 17:09:02,968 E Terminal Респикер: unhandled exception Object of type set is not JSON serializable
+2020-12-23 17:09:02,968 I [respeaker4] Terminal disconnected
+2020-12-23 17:09:13,366 I [respeaker4] Terminal connected, client version 0.0.4
+2020-12-23 17:10:12,225 E Terminal Респикер: unhandled exception Object of type set is not JSON serializable
+2020-12-23 17:10:12,226 I [respeaker4] Terminal disconnected
+2020-12-23 17:10:12,717 I [respeaker4] Terminal connected, client version 0.0.4
+2020-12-23 17:10:52,632 E Terminal Респикер: unhandled exception Object of type set is not JSON serializable
+2020-12-23 17:10:52,632 I [respeaker4] Terminal disconnected
+2020-12-23 17:10:53,113 I [respeaker4] Terminal connected, client version 0.0.4
+2020-12-23 17:11:35,369 E Terminal Респикер: unhandled exception Object of type set is not JSON serializable
+2020-12-23 17:11:35,369 I [respeaker4] Terminal disconnected
+2020-12-23 17:11:35,739 I [respeaker4] Terminal connected, client version 0.0.4
+2020-12-23 17:12:01,545 E Terminal Респикер: unhandled exception Object of type set is not JSON serializable
+2020-12-23 17:12:01,545 I [respeaker4] Terminal disconnected
+2020-12-23 17:12:02,014 I [respeaker4] Terminal connected, client version 0.0.4
+2020-12-23 17:13:57,828 E Terminal Респикер: unhandled exception Object of type set is not JSON serializable
+2020-12-23 17:13:57,829 I [respeaker4] Terminal disconnected
+2020-12-23 17:13:58,408 I [respeaker4] Terminal connected, client version 0.0.4
+2020-12-23 17:14:57,727 E Terminal Респикер: unhandled exception Object of type set is not JSON serializable
+2020-12-23 17:14:57,727 I [respeaker4] Terminal disconnected
+2020-12-23 17:14:58,260 I [respeaker4] Terminal connected, client version 0.0.4
+2020-12-23 17:15:18,323 E Terminal Респикер: unhandled exception Object of type set is not JSON serializable
+2020-12-23 17:15:18,324 I [respeaker4] Terminal disconnected
+2020-12-23 17:15:28,902 I [respeaker4] Terminal connected, client version 0.0.4
+2020-12-23 17:16:16,707 E Terminal Респикер: unhandled exception Object of type set is not JSON serializable
+2020-12-23 17:16:16,707 I [respeaker4] Terminal disconnected
+2020-12-23 17:16:17,216 I [respeaker4] Terminal connected, client version 0.0.4
+2020-12-23 17:16:37,279 E Terminal Респикер: unhandled exception Object of type set is not JSON serializable
+2020-12-23 17:16:37,279 I [respeaker4] Terminal disconnected
+2020-12-23 17:16:47,643 I [respeaker4] Terminal connected, client version 0.0.4
+2020-12-23 17:17:13,340 E Terminal Респикер: unhandled exception Object of type set is not JSON serializable
+2020-12-23 17:17:13,341 I [respeaker4] Terminal disconnected
+2020-12-23 17:17:13,808 I [respeaker4] Terminal connected, client version 0.0.4
+2020-12-23 17:17:56,505 E Terminal Респикер: unhandled exception Object of type set is not JSON serializable
+2020-12-23 17:17:56,505 I [respeaker4] Terminal disconnected
+2020-12-23 17:17:56,996 I [respeaker4] Terminal connected, client version 0.0.4
+2020-12-23 17:18:17,063 E Terminal Респикер: unhandled exception Object of type set is not JSON serializable
+2020-12-23 17:18:17,063 I [respeaker4] Terminal disconnected
+2020-12-23 17:18:17,525 I [respeaker4] Terminal connected, client version 0.0.4
+2020-12-23 17:19:51,352 E Terminal Респикер: unhandled exception Object of type set is not JSON serializable
+2020-12-23 17:19:51,352 I [respeaker4] Terminal disconnected
+2020-12-23 17:19:52,222 I [respeaker4] Terminal connected, client version 0.0.4
+2020-12-23 17:19:56,517 D [respeaker4] Человек: "ночь"
+2020-12-23 17:20:20,464 E Terminal Респикер: unhandled exception Object of type set is not JSON serializable
+2020-12-23 17:20:20,464 I [respeaker4] Terminal disconnected
+2020-12-23 17:20:20,967 I [respeaker4] Terminal connected, client version 0.0.4
+2020-12-23 17:21:05,134 E Terminal Респикер: unhandled exception Object of type set is not JSON serializable
+2020-12-23 17:21:05,134 I [respeaker4] Terminal disconnected
+2020-12-23 17:21:05,748 I [respeaker4] Terminal connected, client version 0.0.4
+2020-12-23 17:21:53,577 E Terminal Респикер: unhandled exception Object of type set is not JSON serializable
+2020-12-23 17:21:53,577 I [respeaker4] Terminal disconnected
+2020-12-23 17:21:54,072 I [respeaker4] Terminal connected, client version 0.0.4
+2020-12-23 17:22:08,729 I Terminating...
+2020-12-23 17:23:30,755 D [kitchen] Initializing terminal
+2020-12-23 17:23:30,756 D [kitchen] Loading skills
+2020-12-23 17:23:30,762 D [kitchen]  10000 AppealDetectorSkill
+2020-12-23 17:23:30,762 D [kitchen]   9950 AcronymaExpanderSkill
+2020-12-23 17:23:30,762 D [kitchen]   9930 DateTimeDetectorSkill
+2020-12-23 17:23:30,762 D [kitchen]   9900 LocationsDetectorSkill
+2020-12-23 17:23:30,762 D [kitchen]   9700 OneWordCommandSkill
+2020-12-23 17:23:30,762 D [kitchen]   5000 TellTheTimeSkill
+2020-12-23 17:23:30,762 D [kitchen]   5000 ClientUpdaterSkill
+2020-12-23 17:23:30,762 D [kitchen]   5000 YesNoSkill
+2020-12-23 17:23:30,762 D [kitchen]   5000 DebugSkill
+2020-12-23 17:23:30,762 D [kitchen]   1000 ParrotModeSkill
+2020-12-23 17:23:30,769 D [kitchen] Message: Animate None
+2020-12-23 17:23:30,769 D [test] Initializing terminal
+2020-12-23 17:23:30,770 D [test] Loading skills
+2020-12-23 17:23:30,773 D [test]  10000 AppealDetectorSkill
+2020-12-23 17:23:30,773 D [test]   9950 AcronymaExpanderSkill
+2020-12-23 17:23:30,773 D [test]   9930 DateTimeDetectorSkill
+2020-12-23 17:23:30,773 D [test]   9900 LocationsDetectorSkill
+2020-12-23 17:23:30,773 D [test]   9700 OneWordCommandSkill
+2020-12-23 17:23:30,773 D [test]   5000 TellTheTimeSkill
+2020-12-23 17:23:30,773 D [test]   5000 ClientUpdaterSkill
+2020-12-23 17:23:30,773 D [test]   5000 YesNoSkill
+2020-12-23 17:23:30,774 D [test]   5000 DebugSkill
+2020-12-23 17:23:30,774 D [test]   1000 ParrotModeSkill
+2020-12-23 17:23:30,780 D [test] Message: Animate None
+2020-12-23 17:23:30,780 D [respeaker4] Initializing terminal
+2020-12-23 17:23:30,781 D [respeaker4] Loading skills
+2020-12-23 17:23:30,784 D [respeaker4]  10000 AppealDetectorSkill
+2020-12-23 17:23:30,784 D [respeaker4]   9950 AcronymaExpanderSkill
+2020-12-23 17:23:30,784 D [respeaker4]   9930 DateTimeDetectorSkill
+2020-12-23 17:23:30,784 D [respeaker4]   9900 LocationsDetectorSkill
+2020-12-23 17:23:30,784 D [respeaker4]   9700 OneWordCommandSkill
+2020-12-23 17:23:30,784 D [respeaker4]   5000 TellTheTimeSkill
+2020-12-23 17:23:30,784 D [respeaker4]   5000 ClientUpdaterSkill
+2020-12-23 17:23:30,784 D [respeaker4]   5000 YesNoSkill
+2020-12-23 17:23:30,784 D [respeaker4]   5000 DebugSkill
+2020-12-23 17:23:30,785 D [respeaker4]   1000 ParrotModeSkill
+2020-12-23 17:23:30,791 D [respeaker4] Message: Animate None
+2020-12-23 17:23:30,796 I Listening port: 2700
+2020-12-23 17:23:30,797 I Connection: Secured
+2020-12-23 17:23:30,798 I Voice model: /usr/src/kaldi/model-small-ru
+2020-12-23 17:23:30,799 I Full voice model: /usr/src/kaldi/model-ru
+2020-12-23 17:23:30,799 I Speaker identification model: /usr/src/kaldi/speaker-model
+2020-12-23 17:23:41,596 I [respeaker4] Terminal connected, client version 0.0.4
+2020-12-23 17:24:26,299 D [respeaker4] Человек: "за мной"
+2020-12-23 17:24:30,249 D [respeaker4] Человек: "повторяй"
+2020-12-23 17:24:33,765 D [respeaker4] Человек: "повторяй за мной"
+2020-12-23 17:24:37,273 D [respeaker4] Человек: "повторяй за мной"
+2020-12-23 17:24:41,120 D [respeaker4] Message: Animate Awake
+2020-12-23 17:24:42,197 D [respeaker4] Человек: "алиса повторяемое"
+2020-12-23 17:24:42,199 D [respeaker4] Message: Animate None
+2020-12-23 17:24:46,816 D [respeaker4] Message: Animate Awake
+2020-12-23 17:24:47,788 D [respeaker4] Человек: "алиса повторяя"
+2020-12-23 17:24:47,790 D [respeaker4] Message: Animate None
+2020-12-23 17:24:51,812 D [respeaker4] Message: Animate Awake
+2020-12-23 17:24:53,308 D [respeaker4] Человек: "алиса повторяй за мной"
+2020-12-23 17:24:53,312 D [respeaker4] ParrotModeSkill: changing topic to "ParrotMode"
+2020-12-23 17:24:53,312 D [respeaker4] Say "Окей, говорите и я буду повторять всё, что услышу!"
+2020-12-23 17:24:53,312 D [respeaker4] Message: Mute
+2020-12-23 17:24:53,572 D [respeaker4] Message: Unmute
+2020-12-23 17:24:53,573 D [respeaker4] Say "Вы так же можете попросить включить или выключить словарь."
+2020-12-23 17:24:53,573 D [respeaker4] Message: Mute
+2020-12-23 17:24:53,689 D [respeaker4] Message: Unmute
+2020-12-23 17:24:53,689 D [respeaker4] Say "Для завершения скажите: "перестань за мной повторять""
+2020-12-23 17:24:53,689 D [respeaker4] Message: Mute
+2020-12-23 17:24:53,803 D [respeaker4] Message: Unmute
+2020-12-23 17:24:53,803 D [respeaker4] Анализ фразы прерван
+2020-12-23 17:25:13,760 D [respeaker4] Человек: "стоящей"
+2020-12-23 17:25:13,761 E [respeaker4] ParrotModeSkill.onText() exception: '>' not supported between instances of 'NoneType' and 'int'
+2020-12-23 17:25:44,003 D [respeaker4] Say "Для возврата в нормальный режим скажите "выключить режим попугая" или "перестань за мной повторять"!"
+2020-12-23 17:25:44,003 D [respeaker4] Message: Mute
+2020-12-23 17:25:44,205 D [respeaker4] Message: Unmute
+2020-12-23 17:25:44,205 D [respeaker4] Message: Animate None
+2020-12-23 17:25:54,749 D [respeaker4] Человек: "включи распознавание словарём"
+2020-12-23 17:25:54,750 D [respeaker4] Say "режим распознавания со словарем уже включен"
+2020-12-23 17:25:54,750 D [respeaker4] Message: Mute
+2020-12-23 17:25:54,848 D [respeaker4] Message: Unmute
+2020-12-23 17:26:01,762 D [respeaker4] Человек: "выключен всё распознаванием словаря"
+2020-12-23 17:26:01,763 D [respeaker4] Вычищенный текст: "выключен распознаванием словаря"
+2020-12-23 17:26:01,763 E [respeaker4] ParrotModeSkill.onText() exception: '>' not supported between instances of 'NoneType' and 'int'
+2020-12-23 17:26:09,259 D [respeaker4] Человек: "выключи режим распознавания словарём"
+2020-12-23 17:26:09,260 E [respeaker4] ParrotModeSkill.onText() exception: '>' not supported between instances of 'NoneType' and 'int'
+2020-12-23 17:26:40,044 D [respeaker4] Say "Для возврата в нормальный режим скажите "выключить режим попугая" или "перестань за мной повторять"!"
+2020-12-23 17:26:40,045 D [respeaker4] Message: Mute
+2020-12-23 17:26:40,245 D [respeaker4] Message: Unmute
+2020-12-23 17:27:11,198 D [respeaker4] Say "Для возврата в нормальный режим скажите "выключить режим попугая" или "перестань за мной повторять"!"
+2020-12-23 17:27:11,198 D [respeaker4] Message: Mute
+2020-12-23 17:27:11,398 D [respeaker4] Message: Unmute
+2020-12-23 17:27:42,120 D [respeaker4] Say "Для возврата в нормальный режим скажите "выключить режим попугая" или "перестань за мной повторять"!"
+2020-12-23 17:27:42,121 D [respeaker4] Message: Mute
+2020-12-23 17:27:42,321 D [respeaker4] Message: Unmute
+2020-12-23 17:27:50,242 D [respeaker4] Человек: "перестанем попугая"
+2020-12-23 17:27:50,243 E [respeaker4] ParrotModeSkill.onText() exception: '>' not supported between instances of 'NoneType' and 'int'
+2020-12-23 17:27:55,716 D [respeaker4] Человек: "перестанем попугая"
+2020-12-23 17:27:55,716 E [respeaker4] ParrotModeSkill.onText() exception: '>' not supported between instances of 'NoneType' and 'int'
+2020-12-23 17:28:01,254 D [respeaker4] Человек: "перестанем попугай"
+2020-12-23 17:28:01,255 E [respeaker4] ParrotModeSkill.onText() exception: '>' not supported between instances of 'NoneType' and 'int'
+2020-12-23 17:28:17,318 I Terminating...
+2020-12-23 17:32:05,597 D [kitchen] Initializing terminal
+2020-12-23 17:32:05,598 D [kitchen] Loading skills
+2020-12-23 17:32:05,605 D [kitchen]  10000 AppealDetectorSkill
+2020-12-23 17:32:05,605 D [kitchen]   9950 AcronymaExpanderSkill
+2020-12-23 17:32:05,605 D [kitchen]   9930 DateTimeDetectorSkill
+2020-12-23 17:32:05,605 D [kitchen]   9900 LocationsDetectorSkill
+2020-12-23 17:32:05,605 D [kitchen]   9700 OneWordCommandSkill
+2020-12-23 17:32:05,605 D [kitchen]   5000 TellTheTimeSkill
+2020-12-23 17:32:05,605 D [kitchen]   5000 ClientUpdaterSkill
+2020-12-23 17:32:05,605 D [kitchen]   5000 YesNoSkill
+2020-12-23 17:32:05,605 D [kitchen]   5000 DebugSkill
+2020-12-23 17:32:05,606 D [kitchen]   1000 ParrotModeSkill
+2020-12-23 17:32:05,612 D [kitchen] Message: Animate None
+2020-12-23 17:32:05,613 D [test] Initializing terminal
+2020-12-23 17:32:05,613 D [test] Loading skills
+2020-12-23 17:32:05,616 D [test]  10000 AppealDetectorSkill
+2020-12-23 17:32:05,616 D [test]   9950 AcronymaExpanderSkill
+2020-12-23 17:32:05,616 D [test]   9930 DateTimeDetectorSkill
+2020-12-23 17:32:05,616 D [test]   9900 LocationsDetectorSkill
+2020-12-23 17:32:05,617 D [test]   9700 OneWordCommandSkill
+2020-12-23 17:32:05,617 D [test]   5000 TellTheTimeSkill
+2020-12-23 17:32:05,617 D [test]   5000 ClientUpdaterSkill
+2020-12-23 17:32:05,617 D [test]   5000 YesNoSkill
+2020-12-23 17:32:05,617 D [test]   5000 DebugSkill
+2020-12-23 17:32:05,617 D [test]   1000 ParrotModeSkill
+2020-12-23 17:32:05,624 D [test] Message: Animate None
+2020-12-23 17:32:05,624 D [respeaker4] Initializing terminal
+2020-12-23 17:32:05,625 D [respeaker4] Loading skills
+2020-12-23 17:32:05,628 D [respeaker4]  10000 AppealDetectorSkill
+2020-12-23 17:32:05,628 D [respeaker4]   9950 AcronymaExpanderSkill
+2020-12-23 17:32:05,628 D [respeaker4]   9930 DateTimeDetectorSkill
+2020-12-23 17:32:05,628 D [respeaker4]   9900 LocationsDetectorSkill
+2020-12-23 17:32:05,628 D [respeaker4]   9700 OneWordCommandSkill
+2020-12-23 17:32:05,628 D [respeaker4]   5000 TellTheTimeSkill
+2020-12-23 17:32:05,628 D [respeaker4]   5000 ClientUpdaterSkill
+2020-12-23 17:32:05,628 D [respeaker4]   5000 YesNoSkill
+2020-12-23 17:32:05,628 D [respeaker4]   5000 DebugSkill
+2020-12-23 17:32:05,628 D [respeaker4]   1000 ParrotModeSkill
+2020-12-23 17:32:05,635 D [respeaker4] Message: Animate None
+2020-12-23 17:32:05,640 I Listening port: 2700
+2020-12-23 17:32:05,641 I Connection: Secured
+2020-12-23 17:32:05,643 I Voice model: /usr/src/kaldi/model-small-ru
+2020-12-23 17:32:05,643 I Full voice model: /usr/src/kaldi/model-ru
+2020-12-23 17:32:05,643 I Speaker identification model: /usr/src/kaldi/speaker-model
+2020-12-23 17:32:14,060 I [respeaker4] Terminal connected, client version 0.0.4
+2020-12-23 17:32:20,996 E [respeaker4] AppealDetectorSkill.onText() exception: list index out of range
+2020-12-23 17:32:21,123 E [respeaker4] AppealDetectorSkill.onText() exception: list index out of range
+2020-12-23 17:32:21,285 D [respeaker4] Message: Animate Awake
+2020-12-23 17:32:22,796 D [respeaker4] Человек: "алиса включи большим попугая"
+2020-12-23 17:33:14,853 I [respeaker4] Terminal connected, client version 0.0.4
+2020-12-23 17:33:14,862 D [respeaker4] Message: Animate None
+2020-12-23 17:33:14,862 E [respeaker4] AcronymaExpanderSkill.onText() exception: list index out of range
+2020-12-23 17:33:14,862 E [respeaker4] LocationsDetectorSkill.onText() exception: pop from empty list
+2020-12-23 17:33:14,863 D [respeaker4] ParrotModeSkill: changing topic to "ParrotMode"
+2020-12-23 17:33:14,863 D [respeaker4] Say "Окей, говорите и я буду повторять всё, что услышу!"
+2020-12-23 17:33:14,863 D [respeaker4] Message: Mute
+2020-12-23 17:33:15,147 D [respeaker4] Message: Unmute
+2020-12-23 17:33:15,147 D [respeaker4] Say "Вы так же можете попросить включить или выключить словарь."
+2020-12-23 17:33:15,147 D [respeaker4] Message: Mute
+2020-12-23 17:33:15,264 D [respeaker4] Message: Unmute
+2020-12-23 17:33:15,264 D [respeaker4] Say "Для завершения скажите: "перестань за мной повторять""
+2020-12-23 17:33:15,264 D [respeaker4] Message: Mute
+2020-12-23 17:33:15,378 D [respeaker4] Message: Unmute
+2020-12-23 17:33:15,379 D [respeaker4] Анализ фразы прерван
+2020-12-23 17:33:24,344 E Terminal Респикер disconnected by error
+2020-12-23 17:33:24,345 I [respeaker4] Terminal disconnected
+2020-12-23 17:33:31,203 E [respeaker4] AppealDetectorSkill.onText() exception: list index out of range
+2020-12-23 17:33:31,490 D [respeaker4] Message: Animate Awake
+2020-12-23 17:33:32,441 D [respeaker4] Человек: "включи режим попугая"
+2020-12-23 17:34:25,500 I [respeaker4] Terminal connected, client version 0.0.4
+2020-12-23 17:34:25,509 D [respeaker4] Message: Animate None
+2020-12-23 17:34:25,510 E [respeaker4] AcronymaExpanderSkill.onText() exception: list index out of range
+2020-12-23 17:34:25,510 E [respeaker4] LocationsDetectorSkill.onText() exception: pop from empty list
+2020-12-23 17:34:25,510 D [respeaker4] ParrotModeSkill: changing topic to "ParrotMode"
+2020-12-23 17:34:25,510 D [respeaker4] Say "Окей, говорите и я буду повторять всё, что услышу!"
+2020-12-23 17:34:25,511 D [respeaker4] Message: Mute
+2020-12-23 17:34:25,640 D [respeaker4] Message: Unmute
+2020-12-23 17:34:25,640 D [respeaker4] Say "Вы так же можете попросить включить или выключить словарь."
+2020-12-23 17:34:25,640 D [respeaker4] Message: Mute
+2020-12-23 17:34:25,756 D [respeaker4] Message: Unmute
+2020-12-23 17:34:25,756 D [respeaker4] Say "Для завершения скажите: "перестань за мной повторять""
+2020-12-23 17:34:25,756 D [respeaker4] Message: Mute
+2020-12-23 17:34:25,870 D [respeaker4] Message: Unmute
+2020-12-23 17:34:25,871 D [respeaker4] Анализ фразы прерван
+2020-12-23 17:34:25,878 E Terminal Респикер disconnected by error
+2020-12-23 17:34:25,878 I [respeaker4] Terminal disconnected
+2020-12-23 17:34:36,337 I Terminating...
+2020-12-23 17:34:38,633 D [kitchen] Initializing terminal
+2020-12-23 17:34:38,634 D [kitchen] Loading skills
+2020-12-23 17:34:38,641 D [kitchen]  10000 AppealDetectorSkill
+2020-12-23 17:34:38,641 D [kitchen]   9950 AcronymaExpanderSkill
+2020-12-23 17:34:38,641 D [kitchen]   9930 DateTimeDetectorSkill
+2020-12-23 17:34:38,641 D [kitchen]   9900 LocationsDetectorSkill
+2020-12-23 17:34:38,641 D [kitchen]   9700 OneWordCommandSkill
+2020-12-23 17:34:38,641 D [kitchen]   5000 TellTheTimeSkill
+2020-12-23 17:34:38,641 D [kitchen]   5000 ClientUpdaterSkill
+2020-12-23 17:34:38,641 D [kitchen]   5000 YesNoSkill
+2020-12-23 17:34:38,641 D [kitchen]   5000 DebugSkill
+2020-12-23 17:34:38,641 D [kitchen]   1000 ParrotModeSkill
+2020-12-23 17:34:38,648 D [kitchen] Message: Animate None
+2020-12-23 17:34:38,648 D [test] Initializing terminal
+2020-12-23 17:34:38,649 D [test] Loading skills
+2020-12-23 17:34:38,652 D [test]  10000 AppealDetectorSkill
+2020-12-23 17:34:38,652 D [test]   9950 AcronymaExpanderSkill
+2020-12-23 17:34:38,652 D [test]   9930 DateTimeDetectorSkill
+2020-12-23 17:34:38,652 D [test]   9900 LocationsDetectorSkill
+2020-12-23 17:34:38,652 D [test]   9700 OneWordCommandSkill
+2020-12-23 17:34:38,652 D [test]   5000 TellTheTimeSkill
+2020-12-23 17:34:38,652 D [test]   5000 ClientUpdaterSkill
+2020-12-23 17:34:38,652 D [test]   5000 YesNoSkill
+2020-12-23 17:34:38,652 D [test]   5000 DebugSkill
+2020-12-23 17:34:38,652 D [test]   1000 ParrotModeSkill
+2020-12-23 17:34:38,659 D [test] Message: Animate None
+2020-12-23 17:34:38,659 D [respeaker4] Initializing terminal
+2020-12-23 17:34:38,660 D [respeaker4] Loading skills
+2020-12-23 17:34:38,663 D [respeaker4]  10000 AppealDetectorSkill
+2020-12-23 17:34:38,663 D [respeaker4]   9950 AcronymaExpanderSkill
+2020-12-23 17:34:38,663 D [respeaker4]   9930 DateTimeDetectorSkill
+2020-12-23 17:34:38,663 D [respeaker4]   9900 LocationsDetectorSkill
+2020-12-23 17:34:38,663 D [respeaker4]   9700 OneWordCommandSkill
+2020-12-23 17:34:38,663 D [respeaker4]   5000 TellTheTimeSkill
+2020-12-23 17:34:38,663 D [respeaker4]   5000 ClientUpdaterSkill
+2020-12-23 17:34:38,663 D [respeaker4]   5000 YesNoSkill
+2020-12-23 17:34:38,663 D [respeaker4]   5000 DebugSkill
+2020-12-23 17:34:38,663 D [respeaker4]   1000 ParrotModeSkill
+2020-12-23 17:34:38,670 D [respeaker4] Message: Animate None
+2020-12-23 17:34:38,675 I Listening port: 2700
+2020-12-23 17:34:38,675 I Connection: Secured
+2020-12-23 17:34:38,677 I Voice model: /usr/src/kaldi/model-small-ru
+2020-12-23 17:34:38,677 I Full voice model: /usr/src/kaldi/model-ru
+2020-12-23 17:34:38,677 I Speaker identification model: /usr/src/kaldi/speaker-model
+2020-12-23 17:34:46,945 I [respeaker4] Terminal connected, client version 0.0.4
+2020-12-23 17:34:57,433 D [respeaker4] Message: Animate Awake
+2020-12-23 17:34:59,201 D [respeaker4] Человек: "алиса включи режим попугая"
+2020-12-23 17:35:47,780 I [respeaker4] Terminal connected, client version 0.0.4
+2020-12-23 17:35:47,790 D [respeaker4] Message: Animate None
+2020-12-23 17:35:47,790 E [respeaker4] AcronymaExpanderSkill.onText() exception: list index out of range
+2020-12-23 17:35:47,790 E [respeaker4] LocationsDetectorSkill.onText() exception: pop from empty list
+2020-12-23 17:35:47,791 D [respeaker4] ParrotModeSkill: changing topic to "ParrotMode"
+2020-12-23 17:35:47,791 D [respeaker4] Say "Окей, говорите и я буду повторять всё, что услышу!"
+2020-12-23 17:35:47,791 D [respeaker4] Message: Mute
+2020-12-23 17:35:48,053 D [respeaker4] Message: Unmute
+2020-12-23 17:35:48,053 D [respeaker4] Say "Вы так же можете попросить включить или выключить словарь."
+2020-12-23 17:35:48,053 D [respeaker4] Message: Mute
+2020-12-23 17:35:48,169 D [respeaker4] Message: Unmute
+2020-12-23 17:35:48,169 D [respeaker4] Say "Для завершения скажите: "перестань за мной повторять""
+2020-12-23 17:35:48,169 D [respeaker4] Message: Mute
+2020-12-23 17:35:48,284 D [respeaker4] Message: Unmute
+2020-12-23 17:35:48,284 D [respeaker4] Анализ фразы прерван
+2020-12-23 17:35:57,170 E Terminal Респикер disconnected by error
+2020-12-23 17:35:57,170 I [respeaker4] Terminal disconnected
+2020-12-23 17:36:30,349 D [respeaker4] Человек: "включи режим попугая"
+2020-12-23 17:37:12,549 I Terminating...
+2020-12-23 17:37:14,736 I Error in atexit._run_exitfuncs:
+
+2020-12-23 17:37:14,742 I Traceback (most recent call last):
+
+2020-12-23 17:37:14,742 I   File "/usr/lib/python3.8/concurrent/futures/thread.py", line 40, in _python_exit
+
+2020-12-23 17:37:14,778 I t.join()
+2020-12-23 17:37:14,778 I   File "/usr/lib/python3.8/threading.py", line 1011, in join
+
+2020-12-23 17:37:14,829 I self._wait_for_tstate_lock()
+2020-12-23 17:37:14,840 I   File "/usr/lib/python3.8/threading.py", line 1027, in _wait_for_tstate_lock
+
+2020-12-23 17:37:14,907 I elif lock.acquire(block, timeout):
+2020-12-23 17:37:14,917 I KeyboardInterrupt
+2020-12-23 18:23:41,599 D [kitchen] Initializing terminal
+2020-12-23 18:23:41,600 D [kitchen] Loading skills
+2020-12-23 18:23:41,607 D [kitchen]  10000 AppealDetectorSkill
+2020-12-23 18:23:41,607 D [kitchen]   9950 AcronymaExpanderSkill
+2020-12-23 18:23:41,607 D [kitchen]   9930 DateTimeDetectorSkill
+2020-12-23 18:23:41,607 D [kitchen]   9900 LocationsDetectorSkill
+2020-12-23 18:23:41,608 D [kitchen]   9700 OneWordCommandSkill
+2020-12-23 18:23:41,608 D [kitchen]   5000 TellTheTimeSkill
+2020-12-23 18:23:41,608 D [kitchen]   5000 ClientUpdaterSkill
+2020-12-23 18:23:41,608 D [kitchen]   5000 YesNoSkill
+2020-12-23 18:23:41,608 D [kitchen]   5000 DebugSkill
+2020-12-23 18:23:41,608 D [kitchen]   1000 ParrotModeSkill
+2020-12-23 18:23:41,615 D [kitchen] Message: Animate None
+2020-12-23 18:23:41,615 D [test] Initializing terminal
+2020-12-23 18:23:41,615 D [test] Loading skills
+2020-12-23 18:23:41,618 D [test]  10000 AppealDetectorSkill
+2020-12-23 18:23:41,619 D [test]   9950 AcronymaExpanderSkill
+2020-12-23 18:23:41,619 D [test]   9930 DateTimeDetectorSkill
+2020-12-23 18:23:41,619 D [test]   9900 LocationsDetectorSkill
+2020-12-23 18:23:41,619 D [test]   9700 OneWordCommandSkill
+2020-12-23 18:23:41,619 D [test]   5000 TellTheTimeSkill
+2020-12-23 18:23:41,619 D [test]   5000 ClientUpdaterSkill
+2020-12-23 18:23:41,619 D [test]   5000 YesNoSkill
+2020-12-23 18:23:41,619 D [test]   5000 DebugSkill
+2020-12-23 18:23:41,619 D [test]   1000 ParrotModeSkill
+2020-12-23 18:23:41,625 D [test] Message: Animate None
+2020-12-23 18:23:41,626 D [respeaker4] Initializing terminal
+2020-12-23 18:23:41,626 D [respeaker4] Loading skills
+2020-12-23 18:23:41,629 D [respeaker4]  10000 AppealDetectorSkill
+2020-12-23 18:23:41,629 D [respeaker4]   9950 AcronymaExpanderSkill
+2020-12-23 18:23:41,629 D [respeaker4]   9930 DateTimeDetectorSkill
+2020-12-23 18:23:41,630 D [respeaker4]   9900 LocationsDetectorSkill
+2020-12-23 18:23:41,630 D [respeaker4]   9700 OneWordCommandSkill
+2020-12-23 18:23:41,630 D [respeaker4]   5000 TellTheTimeSkill
+2020-12-23 18:23:41,630 D [respeaker4]   5000 ClientUpdaterSkill
+2020-12-23 18:23:41,630 D [respeaker4]   5000 YesNoSkill
+2020-12-23 18:23:41,630 D [respeaker4]   5000 DebugSkill
+2020-12-23 18:23:41,630 D [respeaker4]   1000 ParrotModeSkill
+2020-12-23 18:23:41,636 D [respeaker4] Message: Animate None
+2020-12-23 18:23:41,642 I Listening port: 2700
+2020-12-23 18:23:41,642 I Connection: Secured
+2020-12-23 18:23:41,644 I Voice model: /usr/src/kaldi/model-small-ru
+2020-12-23 18:23:41,644 I Full voice model: /usr/src/kaldi/model-ru
+2020-12-23 18:23:41,644 I Speaker identification model: /usr/src/kaldi/speaker-model
+2020-12-23 18:23:50,822 I [respeaker4] Terminal connected, client version 0.0.4
+2020-12-23 18:24:00,547 D [respeaker4] Message: Animate Awake
+2020-12-23 18:24:02,540 D [respeaker4] Человек: "алиса включи режим попугая"
+2020-12-23 18:24:02,544 D [respeaker4] ParrotModeSkill: changing topic to "ParrotMode"
+2020-12-23 18:24:02,544 D [respeaker4] Say "Окей, говорите и я буду повторять всё, что услышу!"
+2020-12-23 18:24:02,544 D [respeaker4] Message: Mute
+2020-12-23 18:24:02,803 D [respeaker4] Message: Unmute
+2020-12-23 18:24:02,803 D [respeaker4] Say "Вы так же можете попросить включить или выключить словарь."
+2020-12-23 18:24:02,804 D [respeaker4] Message: Mute
+2020-12-23 18:24:02,920 D [respeaker4] Message: Unmute
+2020-12-23 18:24:02,920 D [respeaker4] Say "Для завершения скажите: "перестань за мной повторять""
+2020-12-23 18:24:02,920 D [respeaker4] Message: Mute
+2020-12-23 18:24:03,034 D [respeaker4] Message: Unmute
+2020-12-23 18:24:03,034 D [respeaker4] Анализ фразы прерван
+2020-12-23 18:24:18,465 D [respeaker4] Человек: "алиса включи распознаванию словарём"
+2020-12-23 18:24:18,466 D [respeaker4] Say "режим распознавания со словарем уже включен"
+2020-12-23 18:24:18,466 D [respeaker4] Message: Mute
+2020-12-23 18:24:18,564 D [respeaker4] Message: Unmute
+2020-12-23 18:24:27,474 D [respeaker4] Человек: "тридцать тридцать"
+2020-12-23 18:24:27,475 D [respeaker4] Say "тридцать тридцать"
+2020-12-23 18:24:27,475 D [respeaker4] Message: Mute
+2020-12-23 18:24:27,514 D [respeaker4] Message: Unmute
+2020-12-23 18:24:33,902 D [respeaker4] Человек: "тридцати"
+2020-12-23 18:24:33,903 D [respeaker4] Say "тридцати"
+2020-12-23 18:24:33,903 D [respeaker4] Message: Mute
+2020-12-23 18:24:33,927 D [respeaker4] Message: Unmute
+2020-12-23 18:24:44,959 D [respeaker4] Человек: "выключить режим распознаванию словарём"
+2020-12-23 18:24:44,960 D [respeaker4] Say "Выключаю режим распознавания со словарем"
+2020-12-23 18:24:44,960 D [respeaker4] Message: Mute
+2020-12-23 18:24:45,053 D [respeaker4] Message: Unmute
+2020-12-23 18:24:54,680 D [respeaker4] Человек: "раз два три четыре пять вышел зайчик погулять"
+2020-12-23 18:24:54,681 D [respeaker4] Say "раз два три четыре пять вышел зайчик погулять"
+2020-12-23 18:24:54,681 D [respeaker4] Message: Mute
+2020-12-23 18:24:54,781 D [respeaker4] Message: Unmute
+2020-12-23 18:25:06,128 D [respeaker4] Человек: "семьдесят восемь половинку просим"
+2020-12-23 18:25:06,129 D [respeaker4] Say "семьдесят восемь половинку просим"
+2020-12-23 18:25:06,129 D [respeaker4] Message: Mute
+2020-12-23 18:25:06,208 D [respeaker4] Message: Unmute
+2020-12-23 18:25:13,719 D [respeaker4] Человек: "ехал грека через реку видит грека в реке рак"
+2020-12-23 18:25:13,720 D [respeaker4] Say "ехал грека через реку видит грека в реке рак"
+2020-12-23 18:25:13,720 D [respeaker4] Message: Mute
+2020-12-23 18:25:13,817 D [respeaker4] Message: Unmute
+2020-12-23 18:25:21,660 D [respeaker4] Человек: "алиса включи режим распознавания со словарём"
+2020-12-23 18:25:21,662 D [respeaker4] Say "Включаю режим распознавания со словарем"
+2020-12-23 18:25:21,662 D [respeaker4] Message: Mute
+2020-12-23 18:25:21,753 D [respeaker4] Message: Unmute
+2020-12-23 18:25:29,473 D [respeaker4] Человек: "четыре пять"
+2020-12-23 18:25:29,474 D [respeaker4] Say "четыре пять"
+2020-12-23 18:25:29,474 D [respeaker4] Message: Mute
+2020-12-23 18:25:29,503 D [respeaker4] Message: Unmute
+2020-12-23 18:25:33,971 D [respeaker4] Человек: "один четыре пять"
+2020-12-23 18:25:33,971 D [respeaker4] Say "один четыре пять"
+2020-12-23 18:25:33,972 D [respeaker4] Message: Mute
+2020-12-23 18:25:34,013 D [respeaker4] Message: Unmute
+2020-12-23 18:25:39,079 D [respeaker4] Человек: "один два три четыре пять"
+2020-12-23 18:25:39,080 D [respeaker4] Say "один два три четыре пять"
+2020-12-23 18:25:39,080 D [respeaker4] Message: Mute
+2020-12-23 18:25:39,136 D [respeaker4] Message: Unmute
+2020-12-23 18:25:47,950 D [respeaker4] Человек: "алиса выключи режим распознавания словаря"
+2020-12-23 18:25:47,951 D [respeaker4] Say "Выключаю режим распознавания со словарем"
+2020-12-23 18:25:47,951 D [respeaker4] Message: Mute
+2020-12-23 18:25:48,044 D [respeaker4] Message: Unmute
+2020-12-23 18:25:54,182 D [respeaker4] Человек: "один два три четыре пять"
+2020-12-23 18:25:54,183 D [respeaker4] Say "один два три четыре пять"
+2020-12-23 18:25:54,184 D [respeaker4] Message: Mute
+2020-12-23 18:25:54,240 D [respeaker4] Message: Unmute
+2020-12-23 18:26:00,775 D [respeaker4] Человек: "ехал грека через реку видит грека в реке рак"
+2020-12-23 18:26:00,777 D [respeaker4] Say "ехал грека через реку видит грека в реке рак"
+2020-12-23 18:26:00,777 D [respeaker4] Message: Mute
+2020-12-23 18:26:00,873 D [respeaker4] Message: Unmute
+2020-12-23 18:26:08,687 D [respeaker4] Человек: "четыреста сорок пять на три пятьдесят четыре"
+2020-12-23 18:26:08,689 D [respeaker4] Say "четыреста сорок пять на три пятьдесят четыре"
+2020-12-23 18:26:08,689 D [respeaker4] Message: Mute
+2020-12-23 18:26:08,782 D [respeaker4] Message: Unmute
+2020-12-23 18:26:19,120 D [respeaker4] Человек: "алиса включи режим распознавания со словарём"
+2020-12-23 18:26:19,121 D [respeaker4] Say "Включаю режим распознавания со словарем"
+2020-12-23 18:26:19,121 D [respeaker4] Message: Mute
+2020-12-23 18:26:19,213 D [respeaker4] Message: Unmute
+2020-12-23 18:26:27,997 D [respeaker4] Человек: "один три четыре пять"
+2020-12-23 18:26:27,997 D [respeaker4] Say "один три четыре пять"
+2020-12-23 18:26:27,998 D [respeaker4] Message: Mute
+2020-12-23 18:26:28,046 D [respeaker4] Message: Unmute
+2020-12-23 18:26:38,480 D [respeaker4] Человек: "два"
+2020-12-23 18:26:38,480 D [respeaker4] Say "два"
+2020-12-23 18:26:38,481 D [respeaker4] Message: Mute
+2020-12-23 18:26:38,495 D [respeaker4] Message: Unmute
+2020-12-23 18:26:42,434 D [respeaker4] Человек: "да"
+2020-12-23 18:26:42,434 D [respeaker4] Вычищенный текст: ""
+2020-12-23 18:26:42,435 D [respeaker4] Say "да"
+2020-12-23 18:26:42,435 D [respeaker4] Message: Mute
+2020-12-23 18:26:42,447 D [respeaker4] Message: Unmute
+2020-12-23 18:27:10,514 D [respeaker4] Человек: "алиса меня слушаешь"
+2020-12-23 18:27:10,515 D [respeaker4] Say "алиса меня слушаешь"
+2020-12-23 18:27:10,515 D [respeaker4] Message: Mute
+2020-12-23 18:27:10,566 D [respeaker4] Message: Unmute
+2020-12-23 18:27:15,973 D [respeaker4] Человек: "алиса меня слушаешь"
+2020-12-23 18:27:15,974 D [respeaker4] Say "алиса меня слушаешь"
+2020-12-23 18:27:15,974 D [respeaker4] Message: Mute
+2020-12-23 18:27:16,025 D [respeaker4] Message: Unmute
+2020-12-23 18:27:21,543 D [respeaker4] Человек: "алиса ты меня слушаешь"
+2020-12-23 18:27:21,544 D [respeaker4] Say "алиса ты меня слушаешь"
+2020-12-23 18:27:21,550 D [respeaker4] Message: Mute
+2020-12-23 18:27:21,606 D [respeaker4] Message: Unmute
+2020-12-23 18:27:32,003 D [respeaker4] Человек: "алиса включи выключи день ночь вечер утро"
+2020-12-23 18:27:32,005 D [respeaker4] Say "алиса включи выключи день ночь вечер утро"
+2020-12-23 18:27:32,005 D [respeaker4] Message: Mute
+2020-12-23 18:27:32,096 D [respeaker4] Message: Unmute
+2020-12-23 18:27:45,217 D [respeaker4] Человек: "алиса"
+2020-12-23 18:27:45,217 D [respeaker4] AppealDetectorSkill: changing topic to "WaitCommand"
+2020-12-23 18:27:45,217 D [respeaker4] Message: Text Playing "appeal_on.wav"
+2020-12-23 18:27:45,217 D [respeaker4] Say "Режим попугая выключен"
+2020-12-23 18:27:45,217 D [respeaker4] Message: Mute
+2020-12-23 18:27:45,274 D [respeaker4] Message: Unmute
+2020-12-23 18:27:45,274 D [respeaker4] Анализ фразы прерван
+2020-12-23 18:27:51,213 D [respeaker4] Message: Animate None
+2020-12-23 18:27:51,213 D [respeaker4] AppealDetectorSkill.onTimer(): changing topic to ParrotMode
+2020-12-23 18:27:51,213 D [respeaker4] Message: Text Playing "appeal_off.wav"
+2020-12-23 18:27:51,213 D [respeaker4] Say "Окей, говорите и я буду повторять всё, что услышу!"
+2020-12-23 18:27:51,213 D [respeaker4] Message: Mute
+2020-12-23 18:27:51,331 D [respeaker4] Message: Unmute
+2020-12-23 18:27:51,331 D [respeaker4] Say "Вы так же можете попросить включить или выключить словарь."
+2020-12-23 18:27:51,331 D [respeaker4] Message: Mute
+2020-12-23 18:27:51,447 D [respeaker4] Message: Unmute
+2020-12-23 18:27:51,448 D [respeaker4] Say "Для завершения скажите: "перестань за мной повторять""
+2020-12-23 18:27:51,448 D [respeaker4] Message: Mute
+2020-12-23 18:27:51,562 D [respeaker4] Message: Unmute
+2020-12-23 18:28:03,720 D [respeaker4] Человек: "повторять"
+2020-12-23 18:28:03,720 D [respeaker4] Say "повторять"
+2020-12-23 18:28:03,720 D [respeaker4] Message: Mute
+2020-12-23 18:28:03,745 D [respeaker4] Message: Unmute
+2020-12-23 18:28:34,025 D [respeaker4] Say "Для возврата в нормальный режим скажите "выключить режим попугая" или "перестань за мной повторять"!"
+2020-12-23 18:28:34,025 D [respeaker4] Message: Mute
+2020-12-23 18:28:34,227 D [respeaker4] Message: Unmute
+2020-12-23 18:29:05,028 D [respeaker4] Say "Для возврата в нормальный режим скажите "выключить режим попугая" или "перестань за мной повторять"!"
+2020-12-23 18:29:05,029 D [respeaker4] Message: Mute
+2020-12-23 18:29:05,231 D [respeaker4] Message: Unmute
+2020-12-23 18:29:36,022 D [respeaker4] Say "Для возврата в нормальный режим скажите "выключить режим попугая" или "перестань за мной повторять"!"
+2020-12-23 18:29:36,022 D [respeaker4] Message: Mute
+2020-12-23 18:29:36,224 D [respeaker4] Message: Unmute
+2020-12-23 18:30:07,084 D [respeaker4] Say "Для возврата в нормальный режим скажите "выключить режим попугая" или "перестань за мной повторять"!"
+2020-12-23 18:30:07,085 D [respeaker4] Message: Mute
+2020-12-23 18:30:07,286 D [respeaker4] Message: Unmute
+2020-12-23 18:30:14,304 I Terminating...
+2020-12-23 18:30:17,621 D [kitchen] Initializing terminal
+2020-12-23 18:30:17,621 D [kitchen] Loading skills
+2020-12-23 18:30:17,627 D [kitchen]  10000 AppealDetectorSkill
+2020-12-23 18:30:17,627 D [kitchen]   9950 AcronymaExpanderSkill
+2020-12-23 18:30:17,627 D [kitchen]   9930 DateTimeDetectorSkill
+2020-12-23 18:30:17,628 D [kitchen]   9900 LocationsDetectorSkill
+2020-12-23 18:30:17,628 D [kitchen]   9700 OneWordCommandSkill
+2020-12-23 18:30:17,628 D [kitchen]   5000 TellTheTimeSkill
+2020-12-23 18:30:17,628 D [kitchen]   5000 ClientUpdaterSkill
+2020-12-23 18:30:17,628 D [kitchen]   5000 YesNoSkill
+2020-12-23 18:30:17,628 D [kitchen]   5000 DebugSkill
+2020-12-23 18:30:17,628 D [kitchen]   1000 ParrotModeSkill
+2020-12-23 18:30:17,635 D [kitchen] Message: Animate None
+2020-12-23 18:30:17,635 D [test] Initializing terminal
+2020-12-23 18:30:17,635 D [test] Loading skills
+2020-12-23 18:30:17,639 D [test]  10000 AppealDetectorSkill
+2020-12-23 18:30:17,639 D [test]   9950 AcronymaExpanderSkill
+2020-12-23 18:30:17,639 D [test]   9930 DateTimeDetectorSkill
+2020-12-23 18:30:17,639 D [test]   9900 LocationsDetectorSkill
+2020-12-23 18:30:17,639 D [test]   9700 OneWordCommandSkill
+2020-12-23 18:30:17,639 D [test]   5000 TellTheTimeSkill
+2020-12-23 18:30:17,639 D [test]   5000 ClientUpdaterSkill
+2020-12-23 18:30:17,639 D [test]   5000 YesNoSkill
+2020-12-23 18:30:17,639 D [test]   5000 DebugSkill
+2020-12-23 18:30:17,639 D [test]   1000 ParrotModeSkill
+2020-12-23 18:30:17,646 D [test] Message: Animate None
+2020-12-23 18:30:17,646 D [respeaker4] Initializing terminal
+2020-12-23 18:30:17,647 D [respeaker4] Loading skills
+2020-12-23 18:30:17,650 D [respeaker4]  10000 AppealDetectorSkill
+2020-12-23 18:30:17,650 D [respeaker4]   9950 AcronymaExpanderSkill
+2020-12-23 18:30:17,650 D [respeaker4]   9930 DateTimeDetectorSkill
+2020-12-23 18:30:17,650 D [respeaker4]   9900 LocationsDetectorSkill
+2020-12-23 18:30:17,650 D [respeaker4]   9700 OneWordCommandSkill
+2020-12-23 18:30:17,650 D [respeaker4]   5000 TellTheTimeSkill
+2020-12-23 18:30:17,650 D [respeaker4]   5000 ClientUpdaterSkill
+2020-12-23 18:30:17,650 D [respeaker4]   5000 YesNoSkill
+2020-12-23 18:30:17,650 D [respeaker4]   5000 DebugSkill
+2020-12-23 18:30:17,650 D [respeaker4]   1000 ParrotModeSkill
+2020-12-23 18:30:17,657 D [respeaker4] Message: Animate None
+2020-12-23 18:30:17,662 I Listening port: 2700
+2020-12-23 18:30:17,662 I Connection: Secured
+2020-12-23 18:30:17,664 I Voice model: /usr/src/kaldi/model-small-ru
+2020-12-23 18:30:17,664 I Full voice model: /usr/src/kaldi/model-ru
+2020-12-23 18:30:17,664 I Speaker identification model: /usr/src/kaldi/speaker-model
+2020-12-23 18:30:25,256 I [respeaker4] Terminal connected, client version 0.0.4
+2020-12-23 18:31:07,691 D [respeaker4] Message: Animate Awake
+2020-12-23 18:31:08,988 D [respeaker4] Человек: "алиса включи режим попугая"
+2020-12-23 18:31:08,992 D [respeaker4] ParrotModeSkill: changing topic to "ParrotMode"
+2020-12-23 18:31:08,992 D [respeaker4] Say "Окей, говорите и я буду повторять всё, что услышу!"
+2020-12-23 18:31:08,992 D [respeaker4] Message: Mute
+2020-12-23 18:31:09,252 D [respeaker4] Datagram: 135.537109375kB
+2020-12-23 18:31:09,253 D [respeaker4] Message: Unmute
+2020-12-23 18:31:09,253 D [respeaker4] Say "Вы так же можете попросить включить или выключить словарь."
+2020-12-23 18:31:09,253 D [respeaker4] Message: Mute
+2020-12-23 18:31:09,369 D [respeaker4] Datagram: 131.185546875kB
+2020-12-23 18:31:09,369 D [respeaker4] Message: Unmute
+2020-12-23 18:31:09,369 D [respeaker4] Say "Для завершения скажите: "перестань за мной повторять""
+2020-12-23 18:31:09,369 D [respeaker4] Message: Mute
+2020-12-23 18:31:09,484 D [respeaker4] Datagram: 128.265625kB
+2020-12-23 18:31:09,484 D [respeaker4] Message: Unmute
+2020-12-23 18:31:09,484 D [respeaker4] Анализ фразы прерван
+2020-12-23 18:31:24,849 D [respeaker4] Человек: "алиса включи режим словарём"
+2020-12-23 18:31:24,850 D [respeaker4] Say "режим распознавания со словарем уже включен"
+2020-12-23 18:31:24,850 D [respeaker4] Message: Mute
+2020-12-23 18:31:24,948 D [respeaker4] Datagram: 108.2890625kB
+2020-12-23 18:31:24,949 D [respeaker4] Message: Unmute
+2020-12-23 18:31:31,371 D [respeaker4] Человек: "включи режим распознавании"
+2020-12-23 18:31:31,371 D [respeaker4] Say "включи режим распознавании"
+2020-12-23 18:31:31,372 D [respeaker4] Message: Mute
+2020-12-23 18:31:31,435 D [respeaker4] Datagram: 71.203125kB
+2020-12-23 18:31:31,436 D [respeaker4] Message: Unmute
+2020-12-23 18:31:42,866 D [respeaker4] Человек: "включи режим распознаванием словаря"
+2020-12-23 18:31:42,867 D [respeaker4] Say "режим распознавания со словарем уже включен"
+2020-12-23 18:31:42,867 D [respeaker4] Message: Mute
+2020-12-23 18:31:42,965 D [respeaker4] Datagram: 108.2890625kB
+2020-12-23 18:31:42,965 D [respeaker4] Message: Unmute
+2020-12-23 18:32:13,113 D [respeaker4] Say "Для возврата в нормальный режим скажите "выключить режим попугая" или "перестань за мной повторять"!"
+2020-12-23 18:32:13,113 D [respeaker4] Message: Mute
+2020-12-23 18:32:13,312 D [respeaker4] Datagram: 218.208984375kB
+2020-12-23 18:32:13,312 D [respeaker4] Message: Unmute
+2020-12-23 18:32:13,312 D [respeaker4] Message: Animate None
+2020-12-23 18:32:23,879 D [respeaker4] Человек: "распознаванием словаря"
+2020-12-23 18:32:23,879 D [respeaker4] Say "распознаванием словаря"
+2020-12-23 18:32:23,879 D [respeaker4] Message: Mute
+2020-12-23 18:32:23,933 D [respeaker4] Datagram: 58.845703125kB
+2020-12-23 18:32:23,934 D [respeaker4] Message: Unmute
+2020-12-23 18:32:29,431 D [respeaker4] Человек: "словаря"
+2020-12-23 18:32:29,431 D [respeaker4] Say "словаря"
+2020-12-23 18:32:29,437 D [respeaker4] Message: Mute
+2020-12-23 18:32:29,460 D [respeaker4] Datagram: 24.970703125kB
+2020-12-23 18:32:29,460 D [respeaker4] Message: Unmute
+2020-12-23 18:33:00,176 D [respeaker4] Say "Для возврата в нормальный режим скажите "выключить режим попугая" или "перестань за мной повторять"!"
+2020-12-23 18:33:00,177 D [respeaker4] Message: Mute
+2020-12-23 18:33:00,379 D [respeaker4] Datagram: 218.208984375kB
+2020-12-23 18:33:00,379 D [respeaker4] Message: Unmute
+2020-12-23 18:33:18,968 D [respeaker4] Человек: "режим распознавание словарями"
+2020-12-23 18:33:18,969 D [respeaker4] Say "режим распознавание словарями"
+2020-12-23 18:33:18,969 D [respeaker4] Message: Mute
+2020-12-23 18:33:19,039 D [respeaker4] Datagram: 76.19140625kB
+2020-12-23 18:33:19,039 D [respeaker4] Message: Unmute
+2020-12-23 18:33:38,419 D [respeaker4] Человек: "словаря"
+2020-12-23 18:33:38,419 D [respeaker4] Say "словаря"
+2020-12-23 18:33:38,419 D [respeaker4] Message: Mute
+2020-12-23 18:33:38,442 D [respeaker4] Datagram: 24.970703125kB
+2020-12-23 18:33:38,442 D [respeaker4] Message: Unmute
+2020-12-23 18:33:50,187 D [respeaker4] Человек: "словаря"
+2020-12-23 18:33:50,188 D [respeaker4] Say "словаря"
+2020-12-23 18:33:50,188 D [respeaker4] Message: Mute
+2020-12-23 18:33:50,210 D [respeaker4] Datagram: 24.970703125kB
+2020-12-23 18:33:50,211 D [respeaker4] Message: Unmute
+2020-12-23 18:34:21,138 D [respeaker4] Say "Для возврата в нормальный режим скажите "выключить режим попугая" или "перестань за мной повторять"!"
+2020-12-23 18:34:21,138 D [respeaker4] Message: Mute
+2020-12-23 18:34:21,347 D [respeaker4] Datagram: 218.208984375kB
+2020-12-23 18:34:21,347 D [respeaker4] Message: Unmute
+2020-12-23 18:34:36,365 D [respeaker4] Человек: "выключи режим распознаванию словарём"
+2020-12-23 18:34:36,366 D [respeaker4] Say "Выключаю режим распознавания со словарем"
+2020-12-23 18:34:36,366 D [respeaker4] Message: Mute
+2020-12-23 18:34:36,458 D [respeaker4] Datagram: 102.71875kB
+2020-12-23 18:34:36,458 D [respeaker4] Message: Unmute
+2020-12-23 18:34:45,140 D [respeaker4] Человек: "вытащи режим распознавания со словарём"
+2020-12-23 18:34:45,141 D [respeaker4] Say "вытащи режим распознавания со словарём"
+2020-12-23 18:34:45,141 D [respeaker4] Message: Mute
+2020-12-23 18:34:45,228 D [respeaker4] Datagram: 96.134765625kB
+2020-12-23 18:34:45,229 D [respeaker4] Message: Unmute
+2020-12-23 18:34:52,621 D [respeaker4] Человек: "выключи режим распознавания со словарём"
+2020-12-23 18:34:52,622 D [respeaker4] Say "режим распознавания со словарем уже выключен"
+2020-12-23 18:34:52,622 D [respeaker4] Message: Mute
+2020-12-23 18:34:52,722 D [respeaker4] Datagram: 109.880859375kB
+2020-12-23 18:34:52,722 D [respeaker4] Message: Unmute
+2020-12-23 18:35:00,086 D [respeaker4] Человек: "выключить режим распознавания со словарём"
+2020-12-23 18:35:00,087 D [respeaker4] Say "режим распознавания со словарем уже выключен"
+2020-12-23 18:35:00,087 D [respeaker4] Message: Mute
+2020-12-23 18:35:00,187 D [respeaker4] Datagram: 109.880859375kB
+2020-12-23 18:35:00,187 D [respeaker4] Message: Unmute
+2020-12-23 18:35:27,892 D [respeaker4] Message: Animate Awake
+2020-12-23 18:35:30,195 D [respeaker4] Человек: "алиса сколько будет дважды два"
+2020-12-23 18:35:30,195 D [respeaker4] Вычищенный текст: "алиса будет два"
+2020-12-23 18:35:30,196 D [respeaker4] Say "алиса сколько будет дважды два"
+2020-12-23 18:35:30,196 D [respeaker4] Message: Mute
+2020-12-23 18:35:30,265 D [respeaker4] Datagram: 76.474609375kB
+2020-12-23 18:35:30,265 D [respeaker4] Message: Unmute
+2020-12-23 18:35:40,190 D [respeaker4] Человек: "ты пересечь середину один восемьсот пятьдесят восемь пирса тридцать четыре"
+2020-12-23 18:35:40,192 D [respeaker4] Say "ты пересечь середину один восемьсот пятьдесят восемь пирса тридцать четыре"
+2020-12-23 18:35:40,192 D [respeaker4] Message: Mute
+2020-12-23 18:35:40,344 D [respeaker4] Datagram: 172.34375kB
+2020-12-23 18:35:40,344 D [respeaker4] Message: Unmute
+2020-12-23 18:35:50,312 D [respeaker4] Человек: "пятьдесят"
+2020-12-23 18:35:50,313 D [respeaker4] Say "пятьдесят"
+2020-12-23 18:35:50,313 D [respeaker4] Message: Mute
+2020-12-23 18:35:50,340 D [respeaker4] Datagram: 31.140625kB
+2020-12-23 18:35:50,340 D [respeaker4] Message: Unmute
+2020-12-23 18:35:55,120 D [respeaker4] Человек: "числе четыреста сорок пять"
+2020-12-23 18:35:55,121 D [respeaker4] Say "числе четыреста сорок пять"
+2020-12-23 18:35:55,121 D [respeaker4] Message: Mute
+2020-12-23 18:35:55,183 D [respeaker4] Datagram: 72.791015625kB
+2020-12-23 18:35:55,183 D [respeaker4] Message: Unmute
+2020-12-23 18:36:01,280 D [respeaker4] Человек: "четыреста сорок пять"
+2020-12-23 18:36:01,281 D [respeaker4] Say "четыреста сорок пять"
+2020-12-23 18:36:01,281 D [respeaker4] Message: Mute
+2020-12-23 18:36:01,330 D [respeaker4] Datagram: 56.986328125kB
+2020-12-23 18:36:01,330 D [respeaker4] Message: Unmute
+2020-12-23 18:36:32,172 D [respeaker4] Say "Для возврата в нормальный режим скажите "выключить режим попугая" или "перестань за мной повторять"!"
+2020-12-23 18:36:32,172 D [respeaker4] Message: Mute
+2020-12-23 18:36:32,373 D [respeaker4] Datagram: 218.208984375kB
+2020-12-23 18:36:32,373 D [respeaker4] Message: Unmute
+2020-12-23 18:36:32,373 D [respeaker4] Message: Animate None
+2020-12-23 18:36:32,787 D [respeaker4] Человек: "четыреста сорок пять"
+2020-12-23 18:36:32,788 D [respeaker4] Say "четыреста сорок пять"
+2020-12-23 18:36:32,788 D [respeaker4] Message: Mute
+2020-12-23 18:36:32,837 D [respeaker4] Datagram: 56.986328125kB
+2020-12-23 18:36:32,837 D [respeaker4] Message: Unmute
+2020-12-23 18:36:45,688 D [respeaker4] Message: Animate Awake
+2020-12-23 18:36:46,596 D [respeaker4] Человек: "алиша"
+2020-12-23 18:36:46,596 D [respeaker4] Say "алиша"
+2020-12-23 18:36:46,596 D [respeaker4] Message: Mute
+2020-12-23 18:36:46,618 D [respeaker4] Datagram: 23.4921875kB
+2020-12-23 18:36:46,618 D [respeaker4] Message: Unmute
+2020-12-23 18:37:02,152 D [respeaker4] Человек: "марш"
+2020-12-23 18:37:02,152 D [respeaker4] Вычищенный текст: ""
+2020-12-23 18:37:02,153 D [respeaker4] Say "марш"
+2020-12-23 18:37:02,153 D [respeaker4] Message: Mute
+2020-12-23 18:37:02,171 D [respeaker4] Datagram: 21.17578125kB
+2020-12-23 18:37:02,171 D [respeaker4] Message: Unmute
+2020-12-23 18:37:21,092 D [respeaker4] Человек: "я грека через реку видит грека в реке рак"
+2020-12-23 18:37:21,093 D [respeaker4] Say "я грека через реку видит грека в реке рак"
+2020-12-23 18:37:21,093 D [respeaker4] Message: Mute
+2020-12-23 18:37:21,182 D [respeaker4] Datagram: 99.326171875kB
+2020-12-23 18:37:21,182 D [respeaker4] Message: Unmute
+2020-12-23 18:37:29,591 D [respeaker4] Человек: "ехал грека через реку видит грека в реке рак"
+2020-12-23 18:37:29,593 D [respeaker4] Say "ехал грека через реку видит грека в реке рак"
+2020-12-23 18:37:29,593 D [respeaker4] Message: Mute
+2020-12-23 18:37:29,689 D [respeaker4] Datagram: 107.044921875kB
+2020-12-23 18:37:29,689 D [respeaker4] Message: Unmute
+2020-12-23 18:37:38,572 D [respeaker4] Человек: "марш"
+2020-12-23 18:37:38,573 D [respeaker4] Вычищенный текст: ""
+2020-12-23 18:37:38,573 D [respeaker4] Say "марш"
+2020-12-23 18:37:38,573 D [respeaker4] Message: Mute
+2020-12-23 18:37:38,591 D [respeaker4] Datagram: 21.17578125kB
+2020-12-23 18:37:38,592 D [respeaker4] Message: Unmute
+2020-12-23 18:37:43,156 D [respeaker4] Человек: "мажордом"
+2020-12-23 18:37:43,157 D [respeaker4] AppealDetectorSkill: changing topic to "WaitCommand"
+2020-12-23 18:37:43,157 D [respeaker4] Message: Text Playing "appeal_on.wav"
+2020-12-23 18:37:43,157 D [respeaker4] Datagram: 61.21875kB
+2020-12-23 18:37:43,157 D [respeaker4] Say "Режим попугая выключен"
+2020-12-23 18:37:43,157 D [respeaker4] Message: Mute
+2020-12-23 18:37:43,214 D [respeaker4] Datagram: 62.666015625kB
+2020-12-23 18:37:43,214 D [respeaker4] Message: Unmute
+2020-12-23 18:37:43,214 D [respeaker4] Анализ фразы прерван
+2020-12-23 18:37:49,129 D [respeaker4] Message: Animate None
+2020-12-23 18:37:49,129 D [respeaker4] AppealDetectorSkill.onTimer(): changing topic to ParrotMode
+2020-12-23 18:37:49,129 D [respeaker4] Message: Text Playing "appeal_off.wav"
+2020-12-23 18:37:49,130 D [respeaker4] Datagram: 61.21875kB
+2020-12-23 18:37:49,130 D [respeaker4] Say "Окей, говорите и я буду повторять всё, что услышу!"
+2020-12-23 18:37:49,130 D [respeaker4] Message: Mute
+2020-12-23 18:37:49,252 D [respeaker4] Datagram: 135.537109375kB
+2020-12-23 18:37:49,252 D [respeaker4] Message: Unmute
+2020-12-23 18:37:49,252 D [respeaker4] Say "Вы так же можете попросить включить или выключить словарь."
+2020-12-23 18:37:49,252 D [respeaker4] Message: Mute
+2020-12-23 18:37:49,368 D [respeaker4] Datagram: 131.185546875kB
+2020-12-23 18:37:49,369 D [respeaker4] Message: Unmute
+2020-12-23 18:37:49,369 D [respeaker4] Say "Для завершения скажите: "перестань за мной повторять""
+2020-12-23 18:37:49,369 D [respeaker4] Message: Mute
+2020-12-23 18:37:49,483 D [respeaker4] Datagram: 128.265625kB
+2020-12-23 18:37:49,483 D [respeaker4] Message: Unmute
+2020-12-23 18:38:06,831 D [respeaker4] Человек: "выглядишь"
+2020-12-23 18:38:06,831 D [respeaker4] Say "выглядишь"
+2020-12-23 18:38:06,831 D [respeaker4] Message: Mute
+2020-12-23 18:38:06,860 D [respeaker4] Datagram: 31.505859375kB
+2020-12-23 18:38:06,860 D [respeaker4] Message: Unmute
+2020-12-23 18:38:21,545 D [respeaker4] Человек: "вы же распознования со словарём"
+2020-12-23 18:38:21,545 D [respeaker4] Вычищенный текст: "вы распознования со словарём"
+2020-12-23 18:38:21,546 D [respeaker4] Say "вы же распознования со словарём"
+2020-12-23 18:38:21,546 D [respeaker4] Message: Mute
+2020-12-23 18:38:21,616 D [respeaker4] Datagram: 77.28515625kB
+2020-12-23 18:38:21,616 D [respeaker4] Message: Unmute
+2020-12-23 18:38:31,307 D [respeaker4] Человек: "включить режим распознавания со слоем"
+2020-12-23 18:38:31,308 D [respeaker4] Say "включить режим распознавания со слоем"
+2020-12-23 18:38:31,309 D [respeaker4] Message: Mute
+2020-12-23 18:38:31,396 D [respeaker4] Datagram: 98.20703125kB
+2020-12-23 18:38:31,396 D [respeaker4] Message: Unmute
+2020-12-23 18:38:39,417 D [respeaker4] Человек: "вытащи же распознавание"
+2020-12-23 18:38:39,417 D [respeaker4] Вычищенный текст: "вытащи распознавание"
+2020-12-23 18:38:39,417 D [respeaker4] Say "вытащи же распознавание"
+2020-12-23 18:38:39,418 D [respeaker4] Message: Mute
+2020-12-23 18:38:39,476 D [respeaker4] Datagram: 64.134765625kB
+2020-12-23 18:38:39,476 D [respeaker4] Message: Unmute
+2020-12-23 18:39:04,654 D [respeaker4] Человек: "ехал грека через реку видит грека в лидерах"
+2020-12-23 18:39:04,655 D [respeaker4] Say "ехал грека через реку видит грека в лидерах"
+2020-12-23 18:39:04,655 D [respeaker4] Message: Mute
+2020-12-23 18:39:04,753 D [respeaker4] Datagram: 108.06640625kB
+2020-12-23 18:39:04,753 D [respeaker4] Message: Unmute
+2020-12-23 18:39:12,410 D [respeaker4] Человек: "выезжай"
+2020-12-23 18:39:12,410 D [respeaker4] Say "выезжай"
+2020-12-23 18:39:12,410 D [respeaker4] Message: Mute
+2020-12-23 18:39:12,437 D [respeaker4] Datagram: 29.0078125kB
+2020-12-23 18:39:12,437 D [respeaker4] Message: Unmute
+2020-12-23 18:39:17,070 D [respeaker4] Человек: "в реке прах"
+2020-12-23 18:39:17,071 D [respeaker4] Say "в реке прах"
+2020-12-23 18:39:17,071 D [respeaker4] Message: Mute
+2020-12-23 18:39:17,104 D [respeaker4] Datagram: 37.544921875kB
+2020-12-23 18:39:17,104 D [respeaker4] Message: Unmute
+2020-12-23 18:39:23,111 D [respeaker4] Человек: "ехал грека через реку видит грека в лидерах"
+2020-12-23 18:39:23,113 D [respeaker4] Say "ехал грека через реку видит грека в лидерах"
+2020-12-23 18:39:23,113 D [respeaker4] Message: Mute
+2020-12-23 18:39:23,210 D [respeaker4] Datagram: 108.06640625kB
+2020-12-23 18:39:23,210 D [respeaker4] Message: Unmute
+2020-12-23 18:39:30,613 D [respeaker4] Человек: "я"
+2020-12-23 18:39:30,613 D [respeaker4] Say "я"
+2020-12-23 18:39:30,613 D [respeaker4] Message: Mute
+2020-12-23 18:39:30,626 D [respeaker4] Datagram: 14.2421875kB
+2020-12-23 18:39:30,627 D [respeaker4] Message: Unmute
+2020-12-23 18:39:34,659 D [respeaker4] Человек: "я"
+2020-12-23 18:39:34,660 D [respeaker4] Say "я"
+2020-12-23 18:39:34,660 D [respeaker4] Message: Mute
+2020-12-23 18:39:34,673 D [respeaker4] Datagram: 14.2421875kB
+2020-12-23 18:39:34,673 D [respeaker4] Message: Unmute
+2020-12-23 18:39:38,088 D [respeaker4] Человек: "я"
+2020-12-23 18:39:38,089 D [respeaker4] Say "я"
+2020-12-23 18:39:38,089 D [respeaker4] Message: Mute
+2020-12-23 18:39:38,102 D [respeaker4] Datagram: 14.2421875kB
+2020-12-23 18:39:38,102 D [respeaker4] Message: Unmute
+2020-12-23 18:39:43,237 D [respeaker4] Человек: "я ярок"
+2020-12-23 18:39:43,238 D [respeaker4] Say "я ярок"
+2020-12-23 18:39:43,244 D [respeaker4] Message: Mute
+2020-12-23 18:39:43,272 D [respeaker4] Datagram: 30.939453125kB
+2020-12-23 18:39:43,272 D [respeaker4] Message: Unmute
+2020-12-23 18:39:50,158 D [respeaker4] Человек: "я ехал"
+2020-12-23 18:39:50,159 D [respeaker4] Say "я ехал"
+2020-12-23 18:39:50,159 D [respeaker4] Message: Mute
+2020-12-23 18:39:50,187 D [respeaker4] Datagram: 31.755859375kB
+2020-12-23 18:39:50,188 D [respeaker4] Message: Unmute
+2020-12-23 18:39:55,630 D [respeaker4] Человек: "я ехал"
+2020-12-23 18:39:55,631 D [respeaker4] Say "я ехал"
+2020-12-23 18:39:55,637 D [respeaker4] Message: Mute
+2020-12-23 18:39:55,666 D [respeaker4] Datagram: 31.755859375kB
+2020-12-23 18:39:55,666 D [respeaker4] Message: Unmute
+2020-12-23 18:40:00,125 D [respeaker4] Человек: "я ехал"
+2020-12-23 18:40:00,126 D [respeaker4] Say "я ехал"
+2020-12-23 18:40:00,126 D [respeaker4] Message: Mute
+2020-12-23 18:40:00,155 D [respeaker4] Datagram: 31.755859375kB
+2020-12-23 18:40:00,155 D [respeaker4] Message: Unmute
+2020-12-23 18:40:05,620 D [respeaker4] Человек: "ехал грека через реку"
+2020-12-23 18:40:05,621 D [respeaker4] Say "ехал грека через реку"
+2020-12-23 18:40:05,621 D [respeaker4] Message: Mute
+2020-12-23 18:40:05,675 D [respeaker4] Datagram: 60.564453125kB
+2020-12-23 18:40:05,675 D [respeaker4] Message: Unmute
+2020-12-23 18:40:13,177 D [respeaker4] Человек: "рыба"
+2020-12-23 18:40:13,177 D [respeaker4] Say "рыба"
+2020-12-23 18:40:13,177 D [respeaker4] Message: Mute
+2020-12-23 18:40:13,194 D [respeaker4] Datagram: 17.90625kB
+2020-12-23 18:40:13,194 D [respeaker4] Message: Unmute
+2020-12-23 18:40:18,899 D [respeaker4] Человек: "сколько будет дважды два"
+2020-12-23 18:40:18,899 D [respeaker4] Вычищенный текст: "будет два"
+2020-12-23 18:40:18,900 D [respeaker4] Say "сколько будет дважды два"
+2020-12-23 18:40:18,900 D [respeaker4] Message: Mute
+2020-12-23 18:40:18,958 D [respeaker4] Datagram: 64.16015625kB
+2020-12-23 18:40:18,958 D [respeaker4] Message: Unmute
+2020-12-23 18:40:49,158 D [respeaker4] Say "Для возврата в нормальный режим скажите "выключить режим попугая" или "перестань за мной повторять"!"
+2020-12-23 18:40:49,158 D [respeaker4] Message: Mute
+2020-12-23 18:40:49,356 D [respeaker4] Datagram: 218.208984375kB
+2020-12-23 18:40:49,356 D [respeaker4] Message: Unmute
+2020-12-23 18:40:58,814 D [respeaker4] Человек: "сознавайся"
+2020-12-23 18:40:58,815 D [respeaker4] Say "сознавайся"
+2020-12-23 18:40:58,815 D [respeaker4] Message: Mute
+2020-12-23 18:40:58,848 D [respeaker4] Datagram: 37.0234375kB
+2020-12-23 18:40:58,848 D [respeaker4] Message: Unmute
+2020-12-23 18:41:25,650 D [respeaker4] Человек: "перестань повторять"
+2020-12-23 18:41:25,651 D [respeaker4] ParrotModeSkill: changing topic to ""
+2020-12-23 18:41:25,657 D [respeaker4] Say "Режим попугая выключен"
+2020-12-23 18:41:25,657 D [respeaker4] Message: Mute
+2020-12-23 18:41:25,714 D [respeaker4] Datagram: 62.666015625kB
+2020-12-23 18:41:25,714 D [respeaker4] Message: Unmute
+2020-12-23 18:41:25,714 D [respeaker4] Анализ фразы прерван
+2020-12-23 18:41:36,622 D [respeaker4] Человек: "а что"
+2020-12-23 18:41:48,423 D [respeaker4] Message: Animate Awake
+2020-12-23 18:41:49,743 D [respeaker4] Человек: "мажордом"
+2020-12-23 18:41:49,744 D [respeaker4] AppealDetectorSkill: changing topic to "WaitCommand"
+2020-12-23 18:41:49,744 D [respeaker4] Message: Text Playing "appeal_on.wav"
+2020-12-23 18:41:49,744 D [respeaker4] Datagram: 61.21875kB
+2020-12-23 18:41:49,744 D [respeaker4] Анализ фразы прерван
+2020-12-23 18:41:53,068 D [respeaker4] Человек: "а"
+2020-12-23 18:41:53,069 D [respeaker4] AppealDetectorSkill: changing text to "слушай мажордом а"
+2020-12-23 18:41:53,069 D [respeaker4] AppealDetectorSkill: changing topic to ""
+2020-12-23 18:41:53,069 D [respeaker4] Message: Text Playing "appeal_off.wav"
+2020-12-23 18:41:53,069 D [respeaker4] Datagram: 61.21875kB
+2020-12-23 18:41:53,069 D [respeaker4] Перезапуск анализа фразы
+2020-12-23 18:41:53,069 D [respeaker4] AppealDetectorSkill: changing text to "мажордом а"
+2020-12-23 18:41:53,071 D [respeaker4] Message: Animate None
+2020-12-23 18:42:14,049 D [respeaker4] Человек: "через"
+2020-12-23 18:42:19,084 D [respeaker4] Человек: "жену включи режим"
+2020-12-23 18:42:32,907 D [respeaker4] Message: Animate Awake
+2020-12-23 18:42:34,614 D [respeaker4] Человек: "мажордом включи режим попугая"
+2020-12-23 18:42:34,618 D [respeaker4] ParrotModeSkill: changing topic to "ParrotMode"
+2020-12-23 18:42:34,618 D [respeaker4] Say "Окей, говорите и я буду повторять всё, что услышу!"
+2020-12-23 18:42:34,618 D [respeaker4] Message: Mute
+2020-12-23 18:42:34,736 D [respeaker4] Datagram: 135.537109375kB
+2020-12-23 18:42:34,736 D [respeaker4] Message: Unmute
+2020-12-23 18:42:34,736 D [respeaker4] Say "Вы так же можете попросить включить или выключить словарь."
+2020-12-23 18:42:34,736 D [respeaker4] Message: Mute
+2020-12-23 18:42:34,853 D [respeaker4] Datagram: 131.185546875kB
+2020-12-23 18:42:34,853 D [respeaker4] Message: Unmute
+2020-12-23 18:42:34,853 D [respeaker4] Say "Для завершения скажите: "перестань за мной повторять""
+2020-12-23 18:42:34,853 D [respeaker4] Message: Mute
+2020-12-23 18:42:34,967 D [respeaker4] Datagram: 128.265625kB
+2020-12-23 18:42:34,967 D [respeaker4] Message: Unmute
+2020-12-23 18:42:34,967 D [respeaker4] Анализ фразы прерван
+2020-12-23 18:42:50,159 D [respeaker4] Человек: "ехал грека через реку видит грека в реке рак"
+2020-12-23 18:42:50,160 D [respeaker4] Say "ехал грека через реку видит грека в реке рак"
+2020-12-23 18:42:50,160 D [respeaker4] Message: Mute
+2020-12-23 18:42:50,256 D [respeaker4] Datagram: 107.044921875kB
+2020-12-23 18:42:50,257 D [respeaker4] Message: Unmute
+2020-12-23 18:43:13,347 D [respeaker4] Человек: "я человек с этим факультета"
+2020-12-23 18:43:13,348 D [respeaker4] Say "я человек с этим факультета"
+2020-12-23 18:43:13,348 D [respeaker4] Message: Mute
+2020-12-23 18:43:13,414 D [respeaker4] Datagram: 75.564453125kB
+2020-12-23 18:43:13,414 D [respeaker4] Message: Unmute
+2020-12-23 18:43:20,041 D [respeaker4] Человек: "запись культе одежды"
+2020-12-23 18:43:20,042 D [respeaker4] Say "запись культе одежды"
+2020-12-23 18:43:20,042 D [respeaker4] Message: Mute
+2020-12-23 18:43:20,092 D [respeaker4] Datagram: 56.4375kB
+2020-12-23 18:43:20,092 D [respeaker4] Message: Unmute
+2020-12-23 18:43:27,606 D [respeaker4] Человек: "включи режим распознавания со словарём"
+2020-12-23 18:43:27,607 D [respeaker4] Say "Включаю режим распознавания со словарем"
+2020-12-23 18:43:27,607 D [respeaker4] Message: Mute
+2020-12-23 18:43:27,698 D [respeaker4] Datagram: 100.974609375kB
+2020-12-23 18:43:27,698 D [respeaker4] Message: Unmute
+2020-12-23 18:43:35,903 D [respeaker4] Человек: "один"
+2020-12-23 18:43:35,903 D [respeaker4] Say "один"
+2020-12-23 18:43:35,904 D [respeaker4] Message: Mute
+2020-12-23 18:43:35,919 D [respeaker4] Datagram: 16.330078125kB
+2020-12-23 18:43:35,919 D [respeaker4] Message: Unmute
+2020-12-23 18:43:43,923 D [respeaker4] Человек: "два два"
+2020-12-23 18:43:43,924 D [respeaker4] Say "два два"
+2020-12-23 18:43:43,924 D [respeaker4] Message: Mute
+2020-12-23 18:43:43,947 D [respeaker4] Datagram: 24.93359375kB
+2020-12-23 18:43:43,947 D [respeaker4] Message: Unmute
+2020-12-23 18:43:47,893 D [respeaker4] Человек: "два"
+2020-12-23 18:43:47,894 D [respeaker4] Say "два"
+2020-12-23 18:43:47,894 D [respeaker4] Message: Mute
+2020-12-23 18:43:47,909 D [respeaker4] Datagram: 15.66796875kB
+2020-12-23 18:43:47,909 D [respeaker4] Message: Unmute
+2020-12-23 18:44:18,156 D [respeaker4] Say "Для возврата в нормальный режим скажите "выключить режим попугая" или "перестань за мной повторять"!"
+2020-12-23 18:44:18,157 D [respeaker4] Message: Mute
+2020-12-23 18:44:18,359 D [respeaker4] Datagram: 218.208984375kB
+2020-12-23 18:44:18,359 D [respeaker4] Message: Unmute
+2020-12-23 18:44:18,359 D [respeaker4] Message: Animate None
+2020-12-23 18:44:26,429 D [respeaker4] Человек: "режим попугая"
+2020-12-23 18:44:26,430 D [respeaker4] Say "режим попугая"
+2020-12-23 18:44:26,430 D [respeaker4] Message: Mute
+2020-12-23 18:44:26,469 D [respeaker4] Datagram: 41.982421875kB
+2020-12-23 18:44:26,469 D [respeaker4] Message: Unmute
+2020-12-23 18:44:31,984 D [respeaker4] Человек: "выключить режим попугая"
+2020-12-23 18:44:31,985 D [respeaker4] ParrotModeSkill: changing topic to ""
+2020-12-23 18:44:31,985 D [respeaker4] Say "Режим попугая выключен"
+2020-12-23 18:44:31,985 D [respeaker4] Message: Mute
+2020-12-23 18:44:32,042 D [respeaker4] Datagram: 62.666015625kB
+2020-12-23 18:44:32,042 D [respeaker4] Message: Unmute
+2020-12-23 18:44:32,042 D [respeaker4] Анализ фразы прерван
+2020-12-23 18:44:39,470 D [respeaker4] Человек: "выключить режим попугая"
+2020-12-23 18:45:45,485 D [respeaker4] Message: Animate Awake
+2020-12-23 18:45:46,959 D [respeaker4] Человек: "алиса включили попугая"
+2020-12-23 18:45:46,962 D [respeaker4] Message: Animate None
+2020-12-23 18:45:54,134 D [respeaker4] Message: Animate Awake
+2020-12-23 18:45:54,494 D [respeaker4] Человек: "алиса"
+2020-12-23 18:45:54,494 D [respeaker4] AppealDetectorSkill: changing topic to "WaitCommand"
+2020-12-23 18:45:54,494 D [respeaker4] Message: Text Playing "appeal_on.wav"
+2020-12-23 18:45:54,494 D [respeaker4] Datagram: 61.21875kB
+2020-12-23 18:45:54,494 D [respeaker4] Анализ фразы прерван
+2020-12-23 18:46:00,101 D [respeaker4] Message: Animate None
+2020-12-23 18:46:00,101 D [respeaker4] AppealDetectorSkill.onTimer(): changing topic to 
+2020-12-23 18:46:00,102 D [respeaker4] Message: Text Playing "appeal_off.wav"
+2020-12-23 18:46:00,102 D [respeaker4] Datagram: 61.21875kB
+2020-12-23 18:46:43,831 E Terminal Респикер disconnected by error
+2020-12-23 18:46:43,831 I [respeaker4] Terminal disconnected
+2020-12-23 18:46:50,378 I [respeaker4] Terminal connected, client version 0.0.4
+2020-12-23 18:46:57,977 D [respeaker4] Message: Animate Awake
+2020-12-23 18:46:59,479 D [respeaker4] Человек: "алиса включи режим попугая"
+2020-12-23 18:46:59,483 D [respeaker4] ParrotModeSkill: changing topic to "ParrotMode"
+2020-12-23 18:46:59,483 D [respeaker4] Say "Окей, говорите и я буду повторять всё, что услышу!"
+2020-12-23 18:46:59,483 D [respeaker4] Message: Mute
+2020-12-23 18:46:59,601 D [respeaker4] Datagram: 135.537109375kB
+2020-12-23 18:46:59,601 D [respeaker4] Message: Unmute
+2020-12-23 18:46:59,601 D [respeaker4] Say "Вы так же можете попросить включить или выключить словарь."
+2020-12-23 18:46:59,601 D [respeaker4] Message: Mute
+2020-12-23 18:46:59,716 D [respeaker4] Datagram: 131.185546875kB
+2020-12-23 18:46:59,717 D [respeaker4] Message: Unmute
+2020-12-23 18:46:59,717 D [respeaker4] Say "Для завершения скажите: "перестань за мной повторять""
+2020-12-23 18:46:59,717 D [respeaker4] Message: Mute
+2020-12-23 18:46:59,830 D [respeaker4] Datagram: 128.265625kB
+2020-12-23 18:46:59,830 D [respeaker4] Message: Unmute
+2020-12-23 18:46:59,830 D [respeaker4] Анализ фразы прерван
+2020-12-23 18:47:14,611 D [respeaker4] Человек: "алиса включи распознавание"
+2020-12-23 18:47:14,612 D [respeaker4] Say "алиса включи распознавание"
+2020-12-23 18:47:14,612 D [respeaker4] Message: Mute
+2020-12-23 18:47:14,677 D [respeaker4] Datagram: 73.59765625kB
+2020-12-23 18:47:14,678 D [respeaker4] Message: Unmute
+2020-12-23 18:47:20,426 D [respeaker4] Человек: "алиса распознавание"
+2020-12-23 18:47:20,427 D [respeaker4] Say "алиса распознавание"
+2020-12-23 18:47:20,427 D [respeaker4] Message: Mute
+2020-12-23 18:47:20,478 D [respeaker4] Datagram: 55.650390625kB
+2020-12-23 18:47:20,478 D [respeaker4] Message: Unmute
+2020-12-23 18:47:25,455 D [respeaker4] Человек: "распознавание словарём"
+2020-12-23 18:47:25,455 D [respeaker4] Say "распознавание словарём"
+2020-12-23 18:47:25,456 D [respeaker4] Message: Mute
+2020-12-23 18:47:25,510 D [respeaker4] Datagram: 59.453125kB
+2020-12-23 18:47:25,510 D [respeaker4] Message: Unmute
+2020-12-23 18:47:32,429 D [respeaker4] Человек: "алиса включим распознавание словарём"
+2020-12-23 18:47:32,430 D [respeaker4] Say "режим распознавания со словарем уже включен"
+2020-12-23 18:47:32,430 D [respeaker4] Message: Mute
+2020-12-23 18:47:32,529 D [respeaker4] Datagram: 108.2890625kB
+2020-12-23 18:47:32,529 D [respeaker4] Message: Unmute
+2020-12-23 18:47:40,418 D [respeaker4] Человек: "алиса тысячей режим распознавании словарём"
+2020-12-23 18:47:40,419 D [respeaker4] Say "алиса тысячей режим распознавании словарём"
+2020-12-23 18:47:40,419 D [respeaker4] Message: Mute
+2020-12-23 18:47:40,516 D [respeaker4] Datagram: 107.615234375kB
+2020-12-23 18:47:40,516 D [respeaker4] Message: Unmute
+2020-12-23 18:47:48,411 D [respeaker4] Человек: "алиса выключи режим распознавания словарём"
+2020-12-23 18:47:48,412 D [respeaker4] Say "Выключаю режим распознавания со словарем"
+2020-12-23 18:47:48,412 D [respeaker4] Message: Mute
+2020-12-23 18:47:48,504 D [respeaker4] Datagram: 102.71875kB
+2020-12-23 18:47:48,504 D [respeaker4] Message: Unmute
+2020-12-23 18:47:57,238 D [respeaker4] Человек: "ариша как ты распознаешь без словаря"
+2020-12-23 18:47:57,239 D [respeaker4] Say "ариша как ты распознаешь без словаря"
+2020-12-23 18:47:57,240 D [respeaker4] Message: Mute
+2020-12-23 18:47:57,319 D [respeaker4] Datagram: 88.822265625kB
+2020-12-23 18:47:57,319 D [respeaker4] Message: Unmute
+2020-12-23 18:48:04,266 D [respeaker4] Человек: "алиса как ты распознаешь без словаря"
+2020-12-23 18:48:04,268 D [respeaker4] Say "алиса как ты распознаешь без словаря"
+2020-12-23 18:48:04,268 D [respeaker4] Message: Mute
+2020-12-23 18:48:04,348 D [respeaker4] Datagram: 89.310546875kB
+2020-12-23 18:48:04,348 D [respeaker4] Message: Unmute
+2020-12-23 18:48:11,248 D [respeaker4] Человек: "алиса переключи режим распознавания со словарём"
+2020-12-23 18:48:11,249 D [respeaker4] Say "алиса переключи режим распознавания со словарём"
+2020-12-23 18:48:11,249 D [respeaker4] Message: Mute
+2020-12-23 18:48:11,355 D [respeaker4] Datagram: 116.990234375kB
+2020-12-23 18:48:11,355 D [respeaker4] Message: Unmute
+2020-12-23 18:48:42,093 D [respeaker4] Say "Для возврата в нормальный режим скажите "выключить режим попугая" или "перестань за мной повторять"!"
+2020-12-23 18:48:42,093 D [respeaker4] Message: Mute
+2020-12-23 18:48:42,296 D [respeaker4] Datagram: 218.208984375kB
+2020-12-23 18:48:42,296 D [respeaker4] Message: Unmute
+2020-12-23 18:48:42,296 D [respeaker4] Message: Animate None
+2020-12-23 18:48:51,301 D [respeaker4] Человек: "выключи режим попугая"
+2020-12-23 18:48:51,302 D [respeaker4] ParrotModeSkill: changing topic to ""
+2020-12-23 18:48:51,302 D [respeaker4] Say "Режим попугая выключен"
+2020-12-23 18:48:51,302 D [respeaker4] Message: Mute
+2020-12-23 18:48:51,358 D [respeaker4] Datagram: 62.666015625kB
+2020-12-23 18:48:51,359 D [respeaker4] Message: Unmute
+2020-12-23 18:48:51,359 D [respeaker4] Анализ фразы прерван
+2020-12-23 18:50:26,741 D [respeaker4] Человек: "четыреста сорок пять ноль три пятьдесят четыре"
+2020-12-23 18:50:40,648 D [respeaker4] Человек: "четыреста сорок пять ноль три пятьдесят четыре"
+2020-12-23 18:50:47,218 D [respeaker4] Человек: "ехал грека через реку видит грека в реке рак"
+2020-12-23 18:50:53,129 D [respeaker4] Человек: "а почему ты мне не распознаешь"
+2020-12-23 18:50:53,129 D [respeaker4] Вычищенный текст: "а ты мне распознаешь"
+2020-12-23 18:51:02,178 D [respeaker4] Человек: "ехал грека через реку видит грека в реке рак"
+2020-12-23 18:51:08,179 D [respeaker4] Человек: "ехал грека через реку видит грека в реке рак"
+2020-12-23 18:51:33,730 D [respeaker4] Человек: "олеся включи распознавание со словарём"
+2020-12-23 18:51:42,179 D [respeaker4] Человек: "новейшая выключи распознавания со словарём"
+2020-12-23 18:51:49,744 D [respeaker4] Message: Animate Awake
+2020-12-23 18:51:52,679 D [respeaker4] Человек: "алиса включи режим распознавания без словаря"
+2020-12-23 18:51:52,685 D [respeaker4] Message: Animate None
+2020-12-23 18:54:13,212 D [respeaker4] Человек: "слушай а сколько будет дважды два"
+2020-12-23 18:54:13,212 D [respeaker4] Вычищенный текст: "слушай а будет два"
+2020-12-23 18:54:23,136 D [respeaker4] Message: Animate Awake
+2020-12-23 18:54:24,647 D [respeaker4] Человек: "слушай алиса сколько будет дважды два"
+2020-12-23 18:54:24,647 D [respeaker4] Вычищенный текст: "слушай алиса будет два"
+2020-12-23 18:54:24,647 D [respeaker4] AppealDetectorSkill: changing text to "алиса будет два"
+2020-12-23 18:54:24,650 D [respeaker4] Message: Animate None
+2020-12-23 18:54:29,510 D [respeaker4] Message: Animate Awake
+2020-12-23 18:54:31,213 D [respeaker4] Человек: "слушай алиса сколько будет дважды два"
+2020-12-23 18:54:31,214 D [respeaker4] Вычищенный текст: "слушай алиса будет два"
+2020-12-23 18:54:31,214 D [respeaker4] AppealDetectorSkill: changing text to "алиса будет два"
+2020-12-23 18:54:31,216 D [respeaker4] Message: Animate None
+2020-12-23 18:54:47,213 D [respeaker4] Человек: "алиса"
+2020-12-23 18:54:47,213 D [respeaker4] Message: Animate Awake
+2020-12-23 18:54:47,213 D [respeaker4] AppealDetectorSkill: changing topic to "WaitCommand"
+2020-12-23 18:54:47,213 D [respeaker4] Message: Text Playing "appeal_on.wav"
+2020-12-23 18:54:47,213 D [respeaker4] Datagram: 61.21875kB
+2020-12-23 18:54:47,213 D [respeaker4] Анализ фразы прерван
+2020-12-23 18:54:53,023 D [respeaker4] Message: Animate None
+2020-12-23 18:54:53,024 D [respeaker4] AppealDetectorSkill.onTimer(): changing topic to 
+2020-12-23 18:54:53,024 D [respeaker4] Message: Text Playing "appeal_off.wav"
+2020-12-23 18:54:53,025 D [respeaker4] Datagram: 61.21875kB
+2020-12-23 18:54:54,482 D [respeaker4] Человек: "а"
+2020-12-23 18:54:56,002 D [respeaker4] Message: Animate Awake
+2020-12-23 18:54:57,636 D [respeaker4] Человек: "алиса свет"
+2020-12-23 18:54:57,637 D [respeaker4] OneWordCommandSkill: changing text to "алиса включи свет"
+2020-12-23 18:54:57,637 D [respeaker4] Перезапуск анализа фразы
+2020-12-23 18:54:57,640 D [respeaker4] Message: Animate None
+2020-12-23 18:55:05,199 D [respeaker4] Message: Animate Awake
+2020-12-23 18:55:06,222 D [respeaker4] Человек: "алиса цвет"
+2020-12-23 18:55:06,224 D [respeaker4] Message: Animate None
+2020-12-23 18:55:21,270 D [respeaker4] Message: Animate Awake
+2020-12-23 18:55:22,610 D [respeaker4] Человек: "алиса свет"
+2020-12-23 18:55:22,612 D [respeaker4] OneWordCommandSkill: changing text to "алиса включи свет"
+2020-12-23 18:55:22,612 D [respeaker4] Перезапуск анализа фразы
+2020-12-23 18:55:22,614 D [respeaker4] Message: Animate None
+2020-12-23 18:55:45,262 D [respeaker4] Message: Animate Awake
+2020-12-23 18:55:46,810 D [respeaker4] Человек: "алиса включи свет"
+2020-12-23 18:55:46,813 D [respeaker4] Message: Animate None
+2020-12-23 18:55:52,229 D [respeaker4] Человек: "они сейчас пойдут есть дважды два"
+2020-12-23 18:55:52,229 D [respeaker4] Вычищенный текст: "они пойдут есть два"
+2020-12-23 18:55:58,230 D [respeaker4] Человек: "алиша сколько будет дважды два"
+2020-12-23 18:55:58,230 D [respeaker4] Вычищенный текст: "алиша будет два"
+2020-12-23 18:56:22,023 D [respeaker4] Message: Animate Awake
+2020-12-23 18:56:23,653 D [respeaker4] Человек: "алиса повторяй за мной"
+2020-12-23 18:56:23,657 D [respeaker4] ParrotModeSkill: changing topic to "ParrotMode"
+2020-12-23 18:56:23,657 D [respeaker4] Say "Окей, говорите и я буду повторять всё, что услышу!"
+2020-12-23 18:56:23,657 D [respeaker4] Message: Mute
+2020-12-23 18:56:23,775 D [respeaker4] Datagram: 135.537109375kB
+2020-12-23 18:56:23,775 D [respeaker4] Message: Unmute
+2020-12-23 18:56:23,775 D [respeaker4] Say "Вы так же можете попросить включить или выключить словарь."
+2020-12-23 18:56:23,775 D [respeaker4] Message: Mute
+2020-12-23 18:56:23,891 D [respeaker4] Datagram: 131.185546875kB
+2020-12-23 18:56:23,891 D [respeaker4] Message: Unmute
+2020-12-23 18:56:23,891 D [respeaker4] Say "Для завершения скажите: "перестань за мной повторять""
+2020-12-23 18:56:23,892 D [respeaker4] Message: Mute
+2020-12-23 18:56:24,005 D [respeaker4] Datagram: 128.265625kB
+2020-12-23 18:56:24,006 D [respeaker4] Message: Unmute
+2020-12-23 18:56:24,006 D [respeaker4] Анализ фразы прерван
+2020-12-23 18:56:39,236 D [respeaker4] Человек: "вытащи распознаванием со словарём"
+2020-12-23 18:56:39,237 D [respeaker4] Say "вытащи распознаванием со словарём"
+2020-12-23 18:56:39,237 D [respeaker4] Message: Mute
+2020-12-23 18:56:39,314 D [respeaker4] Datagram: 85.794921875kB
+2020-12-23 18:56:39,315 D [respeaker4] Message: Unmute
+2020-12-23 18:56:46,202 D [respeaker4] Человек: "выключаем распознавание по словарю"
+2020-12-23 18:56:46,203 D [respeaker4] Say "выключаем распознавание по словарю"
+2020-12-23 18:56:46,203 D [respeaker4] Message: Mute
+2020-12-23 18:56:46,282 D [respeaker4] Datagram: 87.70703125kB
+2020-12-23 18:56:46,282 D [respeaker4] Message: Unmute
+2020-12-23 18:56:54,946 D [respeaker4] Человек: "выключи распознавания прошла рим"
+2020-12-23 18:56:54,947 D [respeaker4] Say "выключи распознавания прошла рим"
+2020-12-23 18:56:54,947 D [respeaker4] Message: Mute
+2020-12-23 18:56:55,022 D [respeaker4] Datagram: 83.560546875kB
+2020-12-23 18:56:55,022 D [respeaker4] Message: Unmute
+2020-12-23 18:57:02,738 D [respeaker4] Человек: "выигравшие распознавание по словарю"
+2020-12-23 18:57:02,739 D [respeaker4] Say "выигравшие распознавание по словарю"
+2020-12-23 18:57:02,739 D [respeaker4] Message: Mute
+2020-12-23 18:57:02,819 D [respeaker4] Datagram: 87.5625kB
+2020-12-23 18:57:02,819 D [respeaker4] Message: Unmute
+2020-12-23 18:57:09,833 D [respeaker4] Человек: "вытащи распознавания со словарём"
+2020-12-23 18:57:09,834 D [respeaker4] Say "вытащи распознавания со словарём"
+2020-12-23 18:57:09,834 D [respeaker4] Message: Mute
+2020-12-23 18:57:09,909 D [respeaker4] Datagram: 83.583984375kB
+2020-12-23 18:57:09,910 D [respeaker4] Message: Unmute
+2020-12-23 18:57:19,619 D [respeaker4] Человек: "выключи распознавания со словарём"
+2020-12-23 18:57:19,620 D [respeaker4] Say "режим распознавания со словарем уже выключен"
+2020-12-23 18:57:19,620 D [respeaker4] Message: Mute
+2020-12-23 18:57:19,720 D [respeaker4] Datagram: 109.880859375kB
+2020-12-23 18:57:19,721 D [respeaker4] Message: Unmute
+2020-12-23 18:57:46,686 D [respeaker4] Человек: "вытащи режим распознавания со словаря"
+2020-12-23 18:57:46,687 D [respeaker4] Say "вытащи режим распознавания со словаря"
+2020-12-23 18:57:46,687 D [respeaker4] Message: Mute
+2020-12-23 18:57:46,771 D [respeaker4] Datagram: 93.123046875kB
+2020-12-23 18:57:46,772 D [respeaker4] Message: Unmute
+2020-12-23 18:57:53,771 D [respeaker4] Человек: "выключить режим распознавания словаря"
+2020-12-23 18:57:53,772 D [respeaker4] Say "режим распознавания со словарем уже выключен"
+2020-12-23 18:57:53,772 D [respeaker4] Message: Mute
+2020-12-23 18:57:53,872 D [respeaker4] Datagram: 109.880859375kB
+2020-12-23 18:57:53,873 D [respeaker4] Message: Unmute
+2020-12-23 18:58:01,766 D [respeaker4] Человек: "чем"
+2020-12-23 18:58:01,767 D [respeaker4] Say "чем"
+2020-12-23 18:58:01,767 D [respeaker4] Message: Mute
+2020-12-23 18:58:01,783 D [respeaker4] Datagram: 18.578125kB
+2020-12-23 18:58:01,783 D [respeaker4] Message: Unmute
+2020-12-23 18:58:32,151 D [respeaker4] Say "Для возврата в нормальный режим скажите "выключить режим попугая" или "перестань за мной повторять"!"
+2020-12-23 18:58:32,151 D [respeaker4] Message: Mute
+2020-12-23 18:58:32,349 D [respeaker4] Datagram: 218.208984375kB
+2020-12-23 18:58:32,349 D [respeaker4] Message: Unmute
+2020-12-23 18:58:32,349 D [respeaker4] Message: Animate None
+2020-12-23 18:59:03,023 D [respeaker4] Say "Для возврата в нормальный режим скажите "выключить режим попугая" или "перестань за мной повторять"!"
+2020-12-23 18:59:03,023 D [respeaker4] Message: Mute
+2020-12-23 18:59:03,220 D [respeaker4] Datagram: 218.208984375kB
+2020-12-23 18:59:03,220 D [respeaker4] Message: Unmute
+2020-12-23 18:59:09,621 D [respeaker4] Человек: "да"
+2020-12-23 18:59:09,621 D [respeaker4] Вычищенный текст: ""
+2020-12-23 18:59:09,622 D [respeaker4] Say "да"
+2020-12-23 18:59:09,622 D [respeaker4] Message: Mute
+2020-12-23 18:59:09,634 D [respeaker4] Datagram: 12.923828125kB
+2020-12-23 18:59:09,634 D [respeaker4] Message: Unmute
+2020-12-23 18:59:17,162 D [respeaker4] Человек: "выключи распознавание по словарю"
+2020-12-23 18:59:17,162 D [respeaker4] Say "режим распознавания со словарем уже выключен"
+2020-12-23 18:59:17,163 D [respeaker4] Message: Mute
+2020-12-23 18:59:17,263 D [respeaker4] Datagram: 109.880859375kB
+2020-12-23 18:59:17,263 D [respeaker4] Message: Unmute
+2020-12-23 18:59:25,216 D [respeaker4] Человек: "выключи режим распознавания со словарём"
+2020-12-23 18:59:25,217 D [respeaker4] Say "режим распознавания со словарем уже выключен"
+2020-12-23 18:59:25,217 D [respeaker4] Message: Mute
+2020-12-23 18:59:25,318 D [respeaker4] Datagram: 109.880859375kB
+2020-12-23 18:59:25,318 D [respeaker4] Message: Unmute
+2020-12-23 18:59:32,202 D [respeaker4] Человек: "выключи режим распознавания со словарём"
+2020-12-23 18:59:32,203 D [respeaker4] Say "режим распознавания со словарем уже выключен"
+2020-12-23 18:59:32,203 D [respeaker4] Message: Mute
+2020-12-23 18:59:32,303 D [respeaker4] Datagram: 109.880859375kB
+2020-12-23 18:59:32,303 D [respeaker4] Message: Unmute
+2020-12-23 18:59:39,137 D [respeaker4] Человек: "выключи режим распознавания со словарём"
+2020-12-23 18:59:39,138 D [respeaker4] Say "режим распознавания со словарем уже выключен"
+2020-12-23 18:59:39,138 D [respeaker4] Message: Mute
+2020-12-23 18:59:39,238 D [respeaker4] Datagram: 109.880859375kB
+2020-12-23 18:59:39,238 D [respeaker4] Message: Unmute
+2020-12-23 18:59:46,104 D [respeaker4] Человек: "ехал грека через реку"
+2020-12-23 18:59:46,105 D [respeaker4] Say "ехал грека через реку"
+2020-12-23 18:59:46,105 D [respeaker4] Message: Mute
+2020-12-23 18:59:46,159 D [respeaker4] Datagram: 60.564453125kB
+2020-12-23 18:59:46,159 D [respeaker4] Message: Unmute
+2020-12-23 18:59:51,273 D [respeaker4] Человек: "эту армию"
+2020-12-23 18:59:51,274 D [respeaker4] Say "эту армию"
+2020-12-23 18:59:51,280 D [respeaker4] Message: Mute
+2020-12-23 18:59:51,309 D [respeaker4] Datagram: 30.935546875kB
+2020-12-23 18:59:51,309 D [respeaker4] Message: Unmute
+2020-12-23 18:59:57,153 D [respeaker4] Человек: "виртуальный"
+2020-12-23 18:59:57,154 D [respeaker4] Say "виртуальный"
+2020-12-23 18:59:57,154 D [respeaker4] Message: Mute
+2020-12-23 18:59:57,182 D [respeaker4] Datagram: 31.1484375kB
+2020-12-23 18:59:57,183 D [respeaker4] Message: Unmute
+2020-12-23 19:00:02,440 D [respeaker4] Message: Animate Awake
+2020-12-23 19:00:04,302 D [respeaker4] Человек: "алиса включи свет"
+2020-12-23 19:00:04,302 D [respeaker4] Say "алиса включи свет"
+2020-12-23 19:00:04,303 D [respeaker4] Message: Mute
+2020-12-23 19:00:04,350 D [respeaker4] Datagram: 54.423828125kB
+2020-12-23 19:00:04,350 D [respeaker4] Message: Unmute
+2020-12-23 19:00:35,010 D [respeaker4] Say "Для возврата в нормальный режим скажите "выключить режим попугая" или "перестань за мной повторять"!"
+2020-12-23 19:00:35,011 D [respeaker4] Message: Mute
+2020-12-23 19:00:35,213 D [respeaker4] Datagram: 218.208984375kB
+2020-12-23 19:00:35,213 D [respeaker4] Message: Unmute
+2020-12-23 19:00:35,213 D [respeaker4] Message: Animate None
+2020-12-23 19:00:42,476 D [respeaker4] Message: Animate Awake
+2020-12-23 19:00:44,694 D [respeaker4] Человек: "алиса вытащи попугай"
+2020-12-23 19:00:44,695 D [respeaker4] Say "алиса вытащи попугай"
+2020-12-23 19:00:44,695 D [respeaker4] Message: Mute
+2020-12-23 19:00:44,747 D [respeaker4] Datagram: 58.3359375kB
+2020-12-23 19:00:44,747 D [respeaker4] Message: Unmute
+2020-12-23 19:00:51,363 D [respeaker4] Человек: "через попугая"
+2020-12-23 19:00:51,363 D [respeaker4] Say "через попугая"
+2020-12-23 19:00:51,364 D [respeaker4] Message: Mute
+2020-12-23 19:00:51,399 D [respeaker4] Datagram: 40.298828125kB
+2020-12-23 19:00:51,399 D [respeaker4] Message: Unmute
+2020-12-23 19:00:55,784 D [respeaker4] Человек: "выключить режим попугая"
+2020-12-23 19:00:55,784 D [respeaker4] ParrotModeSkill: changing topic to ""
+2020-12-23 19:00:55,785 D [respeaker4] Say "Режим попугая выключен"
+2020-12-23 19:00:55,785 D [respeaker4] Message: Mute
+2020-12-23 19:00:55,842 D [respeaker4] Datagram: 62.666015625kB
+2020-12-23 19:00:55,842 D [respeaker4] Message: Unmute
+2020-12-23 19:00:55,842 D [respeaker4] Анализ фразы прерван
+2020-12-23 19:00:55,842 D [respeaker4] Message: Animate None
+2020-12-23 19:01:46,394 I Terminating...
+2020-12-23 23:39:50,017 D [kitchen] Initializing terminal
+2020-12-23 23:39:50,017 D [kitchen] Loading skills
+2020-12-23 23:39:50,024 D [kitchen]  10000 AppealDetectorSkill
+2020-12-23 23:39:50,024 D [kitchen]   9950 AcronymaExpanderSkill
+2020-12-23 23:39:50,024 D [kitchen]   9930 DateTimeDetectorSkill
+2020-12-23 23:39:50,024 D [kitchen]   9900 LocationsDetectorSkill
+2020-12-23 23:39:50,024 D [kitchen]   9700 OneWordCommandSkill
+2020-12-23 23:39:50,025 D [kitchen]   5000 TellTheTimeSkill
+2020-12-23 23:39:50,025 D [kitchen]   5000 ClientUpdaterSkill
+2020-12-23 23:39:50,025 D [kitchen]   5000 YesNoSkill
+2020-12-23 23:39:50,025 D [kitchen]   5000 DebugSkill
+2020-12-23 23:39:50,025 D [kitchen]   1000 ParrotModeSkill
+2020-12-23 23:39:50,026 I Exception loading  "kitchen.cfg" : name 'extendVocabulary' is not defined
+2020-12-23 23:39:50,026 D [test] Initializing terminal
+2020-12-23 23:39:50,026 D [test] Loading skills
+2020-12-23 23:39:50,027 D [test]  10000 AppealDetectorSkill
+2020-12-23 23:39:50,027 D [test]   9950 AcronymaExpanderSkill
+2020-12-23 23:39:50,027 D [test]   9930 DateTimeDetectorSkill
+2020-12-23 23:39:50,028 D [test]   9900 LocationsDetectorSkill
+2020-12-23 23:39:50,028 D [test]   9700 OneWordCommandSkill
+2020-12-23 23:39:50,028 D [test]   5000 TellTheTimeSkill
+2020-12-23 23:39:50,028 D [test]   5000 ClientUpdaterSkill
+2020-12-23 23:39:50,028 D [test]   5000 YesNoSkill
+2020-12-23 23:39:50,028 D [test]   5000 DebugSkill
+2020-12-23 23:39:50,028 D [test]   1000 ParrotModeSkill
+2020-12-23 23:39:50,029 I Exception loading  "test.cfg" : name 'extendVocabulary' is not defined
+2020-12-23 23:39:50,029 D [respeaker4] Initializing terminal
+2020-12-23 23:39:50,029 D [respeaker4] Loading skills
+2020-12-23 23:39:50,030 D [respeaker4]  10000 AppealDetectorSkill
+2020-12-23 23:39:50,030 D [respeaker4]   9950 AcronymaExpanderSkill
+2020-12-23 23:39:50,030 D [respeaker4]   9930 DateTimeDetectorSkill
+2020-12-23 23:39:50,030 D [respeaker4]   9900 LocationsDetectorSkill
+2020-12-23 23:39:50,031 D [respeaker4]   9700 OneWordCommandSkill
+2020-12-23 23:39:50,031 D [respeaker4]   5000 TellTheTimeSkill
+2020-12-23 23:39:50,031 D [respeaker4]   5000 ClientUpdaterSkill
+2020-12-23 23:39:50,031 D [respeaker4]   5000 YesNoSkill
+2020-12-23 23:39:50,031 D [respeaker4]   5000 DebugSkill
+2020-12-23 23:39:50,031 D [respeaker4]   1000 ParrotModeSkill
+2020-12-23 23:39:50,032 I Exception loading  "respeaker4.cfg" : name 'extendVocabulary' is not defined
+2020-12-23 23:39:50,037 I Listening port: 2700
+2020-12-23 23:39:50,037 I Connection: Secured
+2020-12-23 23:39:50,039 I Voice model: /usr/src/kaldi/model-small-ru
+2020-12-23 23:39:50,039 I Full voice model: /usr/src/kaldi/model-ru
+2020-12-23 23:39:50,039 I Speaker identification model: /usr/src/kaldi/speaker-model
+2020-12-23 23:39:58,344 I Not authorized. Disconnecting
+2020-12-23 23:39:58,690 I Not authorized. Disconnecting
+2020-12-23 23:39:59,132 I Not authorized. Disconnecting
+2020-12-23 23:39:59,456 I Not authorized. Disconnecting
+2020-12-23 23:39:59,790 I Not authorized. Disconnecting
+2020-12-23 23:40:00,113 I Not authorized. Disconnecting
+2020-12-23 23:40:00,455 I Not authorized. Disconnecting
+2020-12-23 23:40:00,777 I Not authorized. Disconnecting
+2020-12-23 23:40:01,115 I Not authorized. Disconnecting
+2020-12-23 23:40:01,444 I Not authorized. Disconnecting
+2020-12-23 23:40:01,785 I Not authorized. Disconnecting
+2020-12-23 23:40:02,116 I Not authorized. Disconnecting
+2020-12-23 23:40:02,605 I Not authorized. Disconnecting
+2020-12-23 23:40:03,089 I Not authorized. Disconnecting
+2020-12-23 23:40:03,421 I Not authorized. Disconnecting
+2020-12-23 23:40:03,749 I Not authorized. Disconnecting
+2020-12-23 23:40:04,488 I Not authorized. Disconnecting
+2020-12-23 23:40:04,974 I Not authorized. Disconnecting
+2020-12-23 23:40:06,744 I Not authorized. Disconnecting
+2020-12-23 23:40:07,652 I Not authorized. Disconnecting
+2020-12-23 23:40:08,466 I Terminating...
+2020-12-23 23:43:53,217 D [kitchen] Initializing terminal
+2020-12-23 23:43:53,218 D [kitchen] Loading skills
+2020-12-23 23:43:53,221 D [kitchen]  10000 AppealDetectorSkill
+2020-12-23 23:43:53,221 D [kitchen]   9950 AcronymaExpanderSkill
+2020-12-23 23:43:53,221 D [kitchen]   9930 DateTimeDetectorSkill
+2020-12-23 23:43:53,221 D [kitchen]   9900 LocationsDetectorSkill
+2020-12-23 23:43:53,221 D [kitchen]   9700 OneWordCommandSkill
+2020-12-23 23:43:53,222 D [kitchen]   5000 TellTheTimeSkill
+2020-12-23 23:43:53,222 D [kitchen]   5000 ClientUpdaterSkill
+2020-12-23 23:43:53,222 D [kitchen]   5000 YesNoSkill
+2020-12-23 23:43:53,222 D [kitchen]   5000 DebugSkill
+2020-12-23 23:43:53,222 D [kitchen]   1000 ParrotModeSkill
+2020-12-23 23:43:53,223 D [kitchen] Message: Animate None
+2020-12-23 23:43:53,224 D [test] Initializing terminal
+2020-12-23 23:43:53,224 D [test] Loading skills
+2020-12-23 23:43:53,225 D [test]  10000 AppealDetectorSkill
+2020-12-23 23:43:53,225 D [test]   9950 AcronymaExpanderSkill
+2020-12-23 23:43:53,225 D [test]   9930 DateTimeDetectorSkill
+2020-12-23 23:43:53,225 D [test]   9900 LocationsDetectorSkill
+2020-12-23 23:43:53,225 D [test]   9700 OneWordCommandSkill
+2020-12-23 23:43:53,225 D [test]   5000 TellTheTimeSkill
+2020-12-23 23:43:53,225 D [test]   5000 ClientUpdaterSkill
+2020-12-23 23:43:53,225 D [test]   5000 YesNoSkill
+2020-12-23 23:43:53,225 D [test]   5000 DebugSkill
+2020-12-23 23:43:53,226 D [test]   1000 ParrotModeSkill
+2020-12-23 23:43:53,227 D [test] Message: Animate None
+2020-12-23 23:43:53,227 D [respeaker4] Initializing terminal
+2020-12-23 23:43:53,227 D [respeaker4] Loading skills
+2020-12-23 23:43:53,229 D [respeaker4]  10000 AppealDetectorSkill
+2020-12-23 23:43:53,229 D [respeaker4]   9950 AcronymaExpanderSkill
+2020-12-23 23:43:53,229 D [respeaker4]   9930 DateTimeDetectorSkill
+2020-12-23 23:43:53,229 D [respeaker4]   9900 LocationsDetectorSkill
+2020-12-23 23:43:53,229 D [respeaker4]   9700 OneWordCommandSkill
+2020-12-23 23:43:53,229 D [respeaker4]   5000 TellTheTimeSkill
+2020-12-23 23:43:53,229 D [respeaker4]   5000 ClientUpdaterSkill
+2020-12-23 23:43:53,229 D [respeaker4]   5000 YesNoSkill
+2020-12-23 23:43:53,229 D [respeaker4]   5000 DebugSkill
+2020-12-23 23:43:53,229 D [respeaker4]   1000 ParrotModeSkill
+2020-12-23 23:43:53,231 D [respeaker4] Message: Animate None
+2020-12-23 23:43:53,236 I Listening port: 2700
+2020-12-23 23:43:53,236 I Connection: Secured
+2020-12-23 23:43:53,238 I Voice model: /usr/src/kaldi/model-small-ru
+2020-12-23 23:43:53,238 I Full voice model: /usr/src/kaldi/model-ru
+2020-12-23 23:43:53,238 I Speaker identification model: /usr/src/kaldi/speaker-model
+2020-12-23 23:44:05,305 I [respeaker4] Terminal connected, client version 0.0.4
+2020-12-23 23:44:23,330 D [respeaker4] Message: Animate Awake
+2020-12-23 23:44:25,012 D [respeaker4] Человек: "мажордом включи режим распознавание"
+2020-12-23 23:44:25,016 D [respeaker4] Message: Animate None
+2020-12-23 23:44:33,564 D [respeaker4] Message: Animate Awake
+2020-12-23 23:44:34,442 D [respeaker4] Человек: "мажордом повторяй"
+2020-12-23 23:44:34,444 D [respeaker4] Message: Animate None
+2020-12-23 23:44:38,527 D [respeaker4] Message: Animate Awake
+2020-12-23 23:44:40,015 D [respeaker4] Человек: "мажордом повторяй мной"
+2020-12-23 23:44:40,018 D [respeaker4] Message: Animate None
+2020-12-23 23:44:46,944 D [respeaker4] Человек: "за"
+2020-12-23 23:44:50,091 D [respeaker4] Message: Animate Awake
+2020-12-23 23:44:51,897 D [respeaker4] Человек: "мажордом повторяй за мной"
+2020-12-23 23:44:51,901 D [respeaker4] ParrotModeSkill: changing topic to "ParrotMode"
+2020-12-23 23:44:51,901 D [respeaker4] Say "Окей, говорите и я буду повторять всё, что услышу!"
+2020-12-23 23:44:51,901 D [respeaker4] Message: Mute
+2020-12-23 23:44:52,162 D [respeaker4] Datagram: 135kB
+2020-12-23 23:44:52,162 D [respeaker4] Message: Unmute
+2020-12-23 23:44:52,169 D [respeaker4] Say "Вы так же можете попросить включить или выключить словарь."
+2020-12-23 23:44:52,169 D [respeaker4] Message: Mute
+2020-12-23 23:44:52,285 D [respeaker4] Datagram: 131kB
+2020-12-23 23:44:52,285 D [respeaker4] Message: Unmute
+2020-12-23 23:44:52,285 D [respeaker4] Say "Для завершения скажите: "перестань за мной повторять""
+2020-12-23 23:44:52,285 D [respeaker4] Message: Mute
+2020-12-23 23:44:52,399 D [respeaker4] Datagram: 128kB
+2020-12-23 23:44:52,400 D [respeaker4] Message: Unmute
+2020-12-23 23:44:52,400 D [respeaker4] Анализ фразы прерван
+2020-12-23 23:45:08,076 D [respeaker4] Человек: "включи словаря"
+2020-12-23 23:45:08,077 D [respeaker4] Say "режим распознавания со словарем уже включен"
+2020-12-23 23:45:08,077 D [respeaker4] Message: Mute
+2020-12-23 23:45:08,175 D [respeaker4] Datagram: 108kB
+2020-12-23 23:45:08,175 D [respeaker4] Message: Unmute
+2020-12-23 23:45:15,975 D [respeaker4] Человек: "включи режим без словаря"
+2020-12-23 23:45:15,976 D [respeaker4] Say "Выключаю режим распознавания со словарем"
+2020-12-23 23:45:15,976 D [respeaker4] Message: Mute
+2020-12-23 23:45:16,069 D [respeaker4] Datagram: 102kB
+2020-12-23 23:45:16,069 D [respeaker4] Message: Unmute
+2020-12-23 23:45:23,696 D [respeaker4] Человек: "включи режим со словарём"
+2020-12-23 23:45:23,697 D [respeaker4] Say "Включаю режим распознавания со словарем"
+2020-12-23 23:45:23,698 D [respeaker4] Message: Mute
+2020-12-23 23:45:23,789 D [respeaker4] Datagram: 100kB
+2020-12-23 23:45:23,789 D [respeaker4] Message: Unmute
+2020-12-23 23:45:36,422 D [respeaker4] Человек: "перестань попугая"
+2020-12-23 23:45:36,423 D [respeaker4] Say "перестань попугая"
+2020-12-23 23:45:36,423 D [respeaker4] Message: Mute
+2020-12-23 23:45:36,466 D [respeaker4] Datagram: 47kB
+2020-12-23 23:45:36,466 D [respeaker4] Message: Unmute
+2020-12-23 23:45:53,958 D [respeaker4] Человек: "режим распознавание без словаря"
+2020-12-23 23:45:53,959 D [respeaker4] Say "режим распознавание без словаря"
+2020-12-23 23:45:53,959 D [respeaker4] Message: Mute
+2020-12-23 23:45:54,031 D [respeaker4] Datagram: 78kB
+2020-12-23 23:45:54,031 D [respeaker4] Message: Unmute
+2020-12-23 23:46:01,428 D [respeaker4] Человек: "включи распознавание"
+2020-12-23 23:46:01,429 D [respeaker4] Say "включи распознавание"
+2020-12-23 23:46:01,429 D [respeaker4] Message: Mute
+2020-12-23 23:46:01,482 D [respeaker4] Datagram: 59kB
+2020-12-23 23:46:01,482 D [respeaker4] Message: Unmute
+2020-12-23 23:46:07,918 D [respeaker4] Человек: "включи распознавание без словаря"
+2020-12-23 23:46:07,919 D [respeaker4] Say "Выключаю режим распознавания со словарем"
+2020-12-23 23:46:07,919 D [respeaker4] Message: Mute
+2020-12-23 23:46:08,012 D [respeaker4] Datagram: 102kB
+2020-12-23 23:46:08,012 D [respeaker4] Message: Unmute
+2020-12-23 23:46:17,632 D [respeaker4] Человек: "включи распознавание со словарём"
+2020-12-23 23:46:17,633 D [respeaker4] Say "Включаю режим распознавания со словарем"
+2020-12-23 23:46:17,633 D [respeaker4] Message: Mute
+2020-12-23 23:46:17,724 D [respeaker4] Datagram: 100kB
+2020-12-23 23:46:17,724 D [respeaker4] Message: Unmute
+2020-12-23 23:46:27,546 D [respeaker4] Человек: "через"
+2020-12-23 23:46:27,547 D [respeaker4] Say "через"
+2020-12-23 23:46:27,547 D [respeaker4] Message: Mute
+2020-12-23 23:46:27,569 D [respeaker4] Datagram: 26kB
+2020-12-23 23:46:27,569 D [respeaker4] Message: Unmute
+2020-12-23 23:46:34,398 D [respeaker4] Человек: "четыре пять"
+2020-12-23 23:46:34,398 D [respeaker4] Say "четыре пять"
+2020-12-23 23:46:34,398 D [respeaker4] Message: Mute
+2020-12-23 23:46:34,428 D [respeaker4] Datagram: 34kB
+2020-12-23 23:46:34,428 D [respeaker4] Message: Unmute
+2020-12-23 23:46:39,940 D [respeaker4] Человек: "один два три четыре"
+2020-12-23 23:46:39,941 D [respeaker4] Say "один два три четыре"
+2020-12-23 23:46:39,941 D [respeaker4] Message: Mute
+2020-12-23 23:46:39,987 D [respeaker4] Datagram: 52kB
+2020-12-23 23:46:39,988 D [respeaker4] Message: Unmute
+2020-12-23 23:47:10,156 D [respeaker4] Say "Для возврата в нормальный режим скажите "выключить режим попугая" или "перестань за мной повторять"!"
+2020-12-23 23:47:10,156 D [respeaker4] Message: Mute
+2020-12-23 23:47:10,360 D [respeaker4] Datagram: 218kB
+2020-12-23 23:47:10,360 D [respeaker4] Message: Unmute
+2020-12-23 23:47:10,360 D [respeaker4] Message: Animate None
+2020-12-23 23:47:23,438 D [respeaker4] Человек: "выключи режим попугая"
+2020-12-23 23:47:23,439 D [respeaker4] ParrotModeSkill: changing topic to ""
+2020-12-23 23:47:23,445 D [respeaker4] Say "Режим попугая выключен"
+2020-12-23 23:47:23,446 D [respeaker4] Message: Mute
+2020-12-23 23:47:23,502 D [respeaker4] Datagram: 62kB
+2020-12-23 23:47:23,502 D [respeaker4] Message: Unmute
+2020-12-23 23:47:23,503 D [respeaker4] Анализ фразы прерван
+2020-12-23 23:47:29,949 D [respeaker4] Message: Animate Awake
+2020-12-23 23:47:30,460 D [respeaker4] Человек: "слушай алиса"
+2020-12-23 23:47:30,461 D [respeaker4] AppealDetectorSkill: changing text to "алиса"
+2020-12-23 23:47:30,461 D [respeaker4] AppealDetectorSkill: changing topic to "WaitCommand"
+2020-12-23 23:47:30,461 D [respeaker4] Message: Text Playing "appeal_on.wav"
+2020-12-23 23:47:30,461 D [respeaker4] Datagram: 61kB
+2020-12-23 23:47:30,461 D [respeaker4] Анализ фразы прерван
+2020-12-23 23:47:33,962 D [respeaker4] Человек: "включи режим попугая"
+2020-12-23 23:47:33,962 D [respeaker4] AppealDetectorSkill: changing text to "слушай алиса включи режим попугая"
+2020-12-23 23:47:33,962 D [respeaker4] AppealDetectorSkill: changing topic to ""
+2020-12-23 23:47:33,962 D [respeaker4] Message: Text Playing "appeal_off.wav"
+2020-12-23 23:47:33,963 D [respeaker4] Datagram: 61kB
+2020-12-23 23:47:33,963 D [respeaker4] Перезапуск анализа фразы
+2020-12-23 23:47:33,963 D [respeaker4] AppealDetectorSkill: changing text to "алиса включи режим попугая"
+2020-12-23 23:47:33,967 D [respeaker4] ParrotModeSkill: changing topic to "ParrotMode"
+2020-12-23 23:47:33,967 D [respeaker4] Say "Окей, говорите и я буду повторять всё, что услышу!"
+2020-12-23 23:47:33,967 D [respeaker4] Message: Mute
+2020-12-23 23:47:34,084 D [respeaker4] Datagram: 135kB
+2020-12-23 23:47:34,085 D [respeaker4] Message: Unmute
+2020-12-23 23:47:34,085 D [respeaker4] Say "Вы так же можете попросить включить или выключить словарь."
+2020-12-23 23:47:34,085 D [respeaker4] Message: Mute
+2020-12-23 23:47:34,201 D [respeaker4] Datagram: 131kB
+2020-12-23 23:47:34,201 D [respeaker4] Message: Unmute
+2020-12-23 23:47:34,201 D [respeaker4] Say "Для завершения скажите: "перестань за мной повторять""
+2020-12-23 23:47:34,201 D [respeaker4] Message: Mute
+2020-12-23 23:47:34,315 D [respeaker4] Datagram: 128kB
+2020-12-23 23:47:34,315 D [respeaker4] Message: Unmute
+2020-12-23 23:47:34,315 D [respeaker4] Анализ фразы прерван
+2020-12-23 23:48:05,091 D [respeaker4] Say "Для возврата в нормальный режим скажите "выключить режим попугая" или "перестань за мной повторять"!"
+2020-12-23 23:48:05,092 D [respeaker4] Message: Mute
+2020-12-23 23:48:05,292 D [respeaker4] Datagram: 218kB
+2020-12-23 23:48:05,293 D [respeaker4] Message: Unmute
+2020-12-23 23:48:05,293 D [respeaker4] Message: Animate None
+2020-12-23 23:48:36,078 D [respeaker4] Say "Для возврата в нормальный режим скажите "выключить режим попугая" или "перестань за мной повторять"!"
+2020-12-23 23:48:36,079 D [respeaker4] Message: Mute
+2020-12-23 23:48:36,303 D [respeaker4] Datagram: 218kB
+2020-12-23 23:48:36,303 D [respeaker4] Message: Unmute
+2020-12-23 23:49:07,090 D [respeaker4] Say "Для возврата в нормальный режим скажите "выключить режим попугая" или "перестань за мной повторять"!"
+2020-12-23 23:49:07,091 D [respeaker4] Message: Mute
+2020-12-23 23:49:07,290 D [respeaker4] Datagram: 218kB
+2020-12-23 23:49:07,290 D [respeaker4] Message: Unmute
+2020-12-23 23:49:38,007 D [respeaker4] Say "Для возврата в нормальный режим скажите "выключить режим попугая" или "перестань за мной повторять"!"
+2020-12-23 23:49:38,007 D [respeaker4] Message: Mute
+2020-12-23 23:49:38,207 D [respeaker4] Datagram: 218kB
+2020-12-23 23:49:38,207 D [respeaker4] Message: Unmute
+2020-12-23 23:50:09,141 D [respeaker4] Say "Для возврата в нормальный режим скажите "выключить режим попугая" или "перестань за мной повторять"!"
+2020-12-23 23:50:09,141 D [respeaker4] Message: Mute
+2020-12-23 23:50:09,340 D [respeaker4] Datagram: 218kB
+2020-12-23 23:50:09,340 D [respeaker4] Message: Unmute
+2020-12-23 23:50:18,986 D [respeaker4] Человек: "выключи режим попугая"
+2020-12-23 23:50:18,987 D [respeaker4] ParrotModeSkill: changing topic to ""
+2020-12-23 23:50:18,987 D [respeaker4] Say "Режим попугая выключен"
+2020-12-23 23:50:18,987 D [respeaker4] Message: Mute
+2020-12-23 23:50:19,044 D [respeaker4] Datagram: 62kB
+2020-12-23 23:50:19,044 D [respeaker4] Message: Unmute
+2020-12-23 23:50:19,044 D [respeaker4] Анализ фразы прерван

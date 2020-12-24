@@ -11,6 +11,7 @@ import logging
 import time
 from vosk import Model, SpkModel, KaldiRecognizer, SetLogLevel
 from lvt.const import *
+from lvt.server.grammar import *
 from lvt.protocol import *
 from lvt.logger import *
 from lvt.server.config import Config 
@@ -113,7 +114,9 @@ async def websockServer( connection, path ):
                 if recognizer == None or vocabulary != v :
                     vocabulary = v
                     if ( len( vocabulary ) > 0 ) and model != None: # Фильтрация по словарю:
-                        recognizer = KaldiRecognizer( model, config.sampleRate, json.dumps( vocabulary.split( ' ' ), ensure_ascii=False ) )
+                        #SetLogLevel( -10 )
+                        recognizer = KaldiRecognizer( model, config.sampleRate, json.dumps( list(vocabulary), ensure_ascii=False ) )
+                        SetLogLevel( -1 )
                         if( spkModel != None ): 
                             spkRecognizer = KaldiRecognizer( model, spkModel, config.sampleRate )
                     else: # Распознование без использования словаря
@@ -249,6 +252,7 @@ for arg in sys.argv[1:]:
 
 
 Logger.initialize( config )
+Grammar.initialize( config )
 Terminal.initialize( config )
 Speaker.initialize( config )
 

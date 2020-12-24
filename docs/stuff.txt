@@ -1,5 +1,6 @@
 
-PyMorphy:
+Py
+:
 https://pymorphy2.readthedocs.io/
 
 Kaldi:

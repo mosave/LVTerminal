@@ -29,7 +29,8 @@ class AppealDetectorSkill(Skill):
         # Не в режиме ожидания:
         # Проверяем, есть ли в фразе обращение:
         if this.detectAppeals():
-            this.terminal.animate(ANIMATION_AWAKE)
+            if this.topic == TOPIC_DEFAULT :
+                this.terminal.animate(ANIMATION_AWAKE)
             # В случае если фраза содержит только обращение - переходим в ожидание команды
             if len(this.words)==1 :
                 this.savedTopic = this.topic
@@ -43,7 +44,8 @@ class AppealDetectorSkill(Skill):
             this.waitUntil = time.time() + WAIT_COMMAND_TIMEOUT
         else: # Распознаем наличие обращения
             if this.detectAppeals():
-                this.terminal.animate(ANIMATION_AWAKE)
+                if this.topic==TOPIC_DEFAULT:
+                    this.terminal.animate(ANIMATION_AWAKE)
 
 
     def detectAppeals( this ):
@@ -52,14 +54,14 @@ class AppealDetectorSkill(Skill):
         aNames = wordsToList(this.config.assistantName)
         for aName in aNames: # Встречается ли в фразе имя ассистента?
             aPos = this.findWord( aName, {'NOUN','nomn','sing'} )
-            if aPos != None : 
+            if aPos>=0 : 
                 # Сохраняем на будущее как обратились к ассистенту
                 this.terminal.appeal = this.getNormalForm( aPos, {'NOUN','nomn','sing'})
                 break
 
         this.terminal.appealPos = aPos
 
-        if aPos == None : return False
+        if aPos<0 : return False
 
         # Обращение вида "Эй, ассистент" 
         if aPos > 0 : 
@@ -89,13 +91,12 @@ class AppealDetectorSkill(Skill):
             this.play('appeal_on.wav')
         elif topic == TOPIC_WAIT_COMMAND :
             # Играем отбой
-            this.play('appeal_off.wav')
             this.waitUntil = 0
        
     def onTimer( this ):
         if( this.topic == TOPIC_WAIT_COMMAND ):
             if time.time() > this.waitUntil:
+                this.play('appeal_off.wav')
                 this.changeTopic(this.savedTopic)
-                this.animate( ANIMATION_NONE )
 
 

@@ -2,7 +2,6 @@ import sys
 import time
 import datetime
 import json
-import pymorphy2
 from lvt.const import *
 from lvt.logger import *
 from lvt.protocol import *
@@ -15,7 +14,6 @@ config = None
 terminals = list()
 rhvoiceTTS = None
 
-########################################################################################
 class Terminal():
     """Terminal class
     Properties
@@ -24,6 +22,8 @@ class Terminal():
       * name: terminal name, speech-friendly Id
       * speaker: Speaker object containing last speaking person details if available
     """
+### Terminal initialization ############################################################
+#region
     def __init__( this, terminalId: str, configParser: ConfigParser ):
         this.id = terminalId
         this.logDebug(f'Initializing terminal')
@@ -33,12 +33,17 @@ class Terminal():
             this.raiseException( f'Termininal configuration error: Password is not defined' )
 
         this.clientVersion = ""
-        this.usingVocabulary = False
-        this.vocabulary = ""
+        # Использовать "словарный" режим 
+        this.vocabularyMode = config.vocabularyMode
+        this.usingVocabulary = config.vocabularyMode
+        this.vocabulary = set()
 
         this.name = configParser.getValue( '','Name',this.id )
         this.defaultLocation = configParser.getValue( '','Location', '' ).lower()
         this.autoUpdate = (configParser.getIntValue( '', 'AutoUpdate', 1 ) != 0)
+
+        this.extendVocabulary( this.name )
+        this.extendVocabulary( config.assistantName, {'NOUN', 'nomn', 'sing'} )
 
         this.parsedLocations = []
 
@@ -53,7 +58,6 @@ class Terminal():
         # on disconnection
         this.messageQueue = None
 
-        this.morphy = pymorphy2.MorphAnalyzer( lang=config.language )
         # Speaker() class instance for last recognized speaker (if any)
         this.speaker = None
 
@@ -68,15 +72,16 @@ class Terminal():
         for skill in this.skills:
             this.logDebug( f'{skill.priority:6} {skill.name}' )
             this.allTopics = this.allTopics.union( skill.subscriptions )
+            this.vocabulary.update(skill.vocabulary)
 
+        this.basicVocabulary = this.loadEntities( 'vocabulary' )
+        this.extendVocabulary(this.basicVocabulary)
         this.acronyms = this.loadEntities( 'acronyms' )
+        this.extendVocabulary(this.acronyms)
         this.knownLocations = this.loadEntities( 'locations' )
+        this.extendVocabulary(this.knownLocations)
 
         this.lastAnimation = ''
-
-        #if config.ttsEngine == TTS_RHVOICE :
-        #    import rhvoice_wrapper # https://pypi.org/project/rhvoice-wrapper/
-
 
         this.reset()
 
@@ -86,12 +91,14 @@ class Terminal():
         this.appealPos = -1
         this.words = list()
         this.animate( ANIMATION_NONE )
-
+#endregion
+### Say / Play #########################################################################
+#region
     def say( this, text ):
         """Проговорить сообщение на терминал. 
           Текст сообщения так же дублируется командой "Text"
         """
-        #this.sendMessage( MSG_TEXT, f'Say {text}' )
+        this.sendMessage( MSG_TEXT, text )
         this.logDebug(f'Say "{text}"')
         if( config.ttsEngine == TTS_RHVOICE ):
             this.sendMessage(MSG_MUTE)
@@ -106,17 +113,18 @@ class Terminal():
 
     def play( this, waveFileName: str ):
         """Проиграть wave файл на терминале. Максимальный размер файла 500к """
-        this.sendMessage( MSG_TEXT, f'Playing "{waveFileName}"' )
         if os.path.dirname( waveFileName ) == '' :
            waveFileName = os.path.join( ROOT_DIR,'lvt','sounds',waveFileName )
         with open( waveFileName, 'rb' ) as wave:
             this.sendDatagram( wave.read( 500 * 1024 ) )
+#endregion
+### Properties #########################################################################
+#region
     @property
     def config( this ):
         """Возвращает Config"""
         global config
         return config
-
     @property
     def isActive( this ) -> bool:
         """Терминал способен передавать команды (в онлайне) """
@@ -145,11 +153,13 @@ class Terminal():
         this.words = list()
         wds = wordsToList( newText )
         for w in wds: 
-            parses = this.morphy.parse( w )
+            parses = parseWord( w )
             #Проигнорировать предикативы, наречия, междометия и частицы
             if {'PRED'} not in parses[0].tag and {'ADVB'} not in parses[0].tag and {'INTJ'} not in parses[0].tag and {'PRCL'} not in parses[0].tag :
                 this.words.append( parses )
-
+#endregion
+### onConnect() / onDisconnect() #######################################################
+#region
     def onConnect( this, messageQueue:list() ):
         """Метод вызывается при подключении терминального клиента
           messageQueue is synchronous message output queue
@@ -170,7 +180,9 @@ class Terminal():
         this.log( 'Terminal disconnected' )
         this.disconnectedOn = time.time()
         this.messageQueue = None
-
+#endregion
+### onText() ###########################################################################
+#region
     def onText( this, text:str, final:bool ):
         """Основная точка входа для обработки распознанного фрагмента """
         text = normalizeWords( text )
@@ -217,7 +229,11 @@ class Terminal():
                             if s.isSubscribed( this.topic ) or s.isSubscribed( this.newTopic ):
                                 s.onTopicChange( this.topic, this.newTopic )
                         this.topic = this.newTopic
+                        if this.topic == TOPIC_DEFAULT :
+                            this.usingVocabulary = this.vocabularyMode
+
                         this.newTopic = None
+                        
 
                     # If current skill requested to abort further processing
                     if this.parsingRestart: 
@@ -235,7 +251,9 @@ class Terminal():
                 this.animate( ANIMATION_NONE )
         else:
             pass
-
+#endregion
+### onTimer() ##########################################################################
+#region
     def onTimer( this ):
         for skill in this.skills: 
             try:
@@ -253,13 +271,15 @@ class Terminal():
 
             except Exception as e:
                 this.logError( f'{skill.name}.onTimer() exception: {e}' )
-
-    def extendVocabulary(this, words ) :
-        """Расширить словарь. Принимает списки слов как в виде строк так и в виде массивов (рекурсивно)"""
-        if isinstance( words, list) :
-            for word in words : this.extendVocabulary( word )
-        elif isinstance( words, str ):
-            this.vocabulary = joinWords( this.vocabulary, words )
+#endregion
+### Vocabulary manipulations ###########################################################
+#region
+    def extendVocabulary(this, words, tags = None ) :
+        """Расширить словарь словоформами, удовлетворяющим тегам
+        По умолчанию (tags = None) слова добавляется в том виде как они были переданы
+        Принимает списки слов как в виде строк так и в виде массивов (рекурсивно)
+        """
+        this.vocabulary.update( wordsToVocabulary(words, tags) )
 
     def getVocabulary( this ) -> str:
         """Возвращает полный текущий список слов для фильтрации распознавания речи 
@@ -276,8 +296,8 @@ class Terminal():
                 entity.append( v[i] )
             entities.append( entity )
         return entities
-
-# UpdateClient
+#endregion
+### Updating client ####################################################################
 #region
     def updateClient(this):
         def packageFile( fileName ):
@@ -296,7 +316,7 @@ class Terminal():
         this.sendMessage( MSG_UPDATE, json.dumps( package, ensure_ascii=False ))
 
 #endregion
-# Logging
+### Log wrappers #######################################################################
 #region
     def logError( this, message:str ):
         logError( f'[{this.id}] {message}' )
@@ -311,8 +331,7 @@ class Terminal():
         this.logError( message )
         raise Exception( message )
 #endregion
-
-# Messages
+### Messages ###########################################################################
 #region
     def getStatus( this ):
         """JSON строка с описанием текущего состояния терминала на стороне сервера
@@ -323,8 +342,8 @@ class Terminal():
         js += f'"Terminal":"{this.id}",'
         js += f'"Name":"{this.name}",'
         js += f'"UsingVocabulary":"{this.usingVocabulary}",'
-        if this.usingVocabulary :
-            js += f'"Vocabulary":' + json.dumps( this.vocabulary, ensure_ascii=False ) + ', '
+        #if this.usingVocabulary :
+        #    js += f'"Vocabulary":' + json.dumps( list(this.vocabulary), ensure_ascii=False ) + ', '
         js += f'"Active":"{this.isActive}" '
         js += '}'
         return js
@@ -345,13 +364,13 @@ class Terminal():
             this.messages.append( message )
 
     def sendDatagram( this, data ):
+        this.logDebug( f'Datagram: {int(len(data)/1024)}kB' )
         if this.messageQueue != None:
             this.messageQueue.append( data )
         else:
             this.messages.append( data )
 #endregion
-
-# Static methods
+### Static methods #####################################################################
 #region
     def loadTerminals():
         """Кеширует в память список сконфигурированных терминалов"""
@@ -390,6 +409,7 @@ class Terminal():
         global config
         global terminals
         global rhvoiceTTS
+        
         config = gConfig
         if config.ttsEngine == TTS_RHVOICE :
             import rhvoice_wrapper as rhvoiceWrapper # https://pypi.org/project/rhvoice-wrapper/
@@ -406,6 +426,7 @@ class Terminal():
             pass
 
         Terminal.loadTerminals()
+
     def dispose():
         if config.ttsEngine == TTS_RHVOICE :
             try: rhvoiceTTS.join()

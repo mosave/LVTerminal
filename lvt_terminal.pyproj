@@ -46,6 +46,7 @@
     <Compile Include="lvt\server\skills\debug.py" />
     <Compile Include="lvt\server\skills\location_detector.py" />
     <Compile Include="lvt\server\skills\one_word_commands.py" />
+    <Compile Include="lvt\server\skills\server_config.py" />
     <Compile Include="lvt\server\skills\time_teller.py" />
     <Compile Include="lvt\server\skills\yes_no.py" />
     <Compile Include="lvt\server\skill_factory.py" />
@@ -81,6 +82,7 @@
     <Content Include="lvt\entities\actions" />
     <Content Include="lvt\entities\devices" />
     <Content Include="lvt\entities\locations" />
+    <Content Include="lvt\entities\vocabulary" />
     <Content Include="lvt\sounds\appeal_off.wav" />
     <Content Include="lvt\sounds\appeal_on.wav" />
     <Content Include="todo.txt" />

@@ -21,10 +21,10 @@ class LocationsDetectorSkill(Skill):
                 location = locations[il]
                 n = 1
                 index = this.findWordChain('в '+location)
-                if index == None : index = this.findWordChain('на '+location)
-                if index == None : index = this.findWordChain('около '+location)
+                if index<0 : index = this.findWordChain('на '+location)
+                if index<0 : index = this.findWordChain('около '+location)
 
-                if index != None:
+                if index >=0:
                     if index>0 and this.isWord( index-1, None, {'CONJ'} ) :# Союз
                         index -= 1
                         this.deleteWord(index)
@@ -38,4 +38,4 @@ class LocationsDetectorSkill(Skill):
         if len(this.terminal.parsedLocations)>0 :
             s = ', '.join(this.terminal.parsedLocations)
             this.logDebug(f'Локация: [{s}]')
-                
+
