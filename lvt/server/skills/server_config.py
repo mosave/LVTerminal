@@ -27,25 +27,21 @@ class ServerConfigSkill(Skill):
             if (iDict>=0 and iNoDict<0) and iOn>=0 and iOn<iDict or \
                 iNoDict>=0 and iOff>=0 and iOff<iNoDict :
                 if this.terminal.vocabularyMode:
-                    this.terminal.animate( ANIMATION_CANCEL )
+                    this.stopParsing( ANIMATION_CANCEL )
                     this.say("режим распознавания со словарем уже включен")
                 else:
                     this.terminal.vocabularyMode = True
                     this.terminal.usingVocabulary = True
-                    this.terminal.animate( ANIMATION_ACCEPT )
+                    this.stopParsing( ANIMATION_ACCEPT )
                     this.say("Включаю режим распознавания со словарем")
-                this.terminal.animate( ANIMATION_AWAKE )
-                this.stopParsing( )
             elif (iDict>=0 and iNoDict<0) and iOff>=0 and  iOff<iDict or \
                 iNoDict>=0 and iOn>=0 and iOn<iNoDict :
                 if this.terminal.vocabularyMode:
                     this.terminal.vocabularyMode = False
                     this.terminal.usingVocabulary = False
-                    this.terminal.animate( ANIMATION_ACCEPT )
+                    this.stopParsing( ANIMATION_ACCEPT )
                     this.say("Выключаю режим распознавания со словарем")
                 else:
-                    this.terminal.animate( ANIMATION_CANCEL )
+                    this.stopParsing( ANIMATION_CANCEL )
                     this.say("режим распознавания со словарем уже выключен")
-                this.terminal.animate( ANIMATION_AWAKE )
-                this.stopParsing( )
 

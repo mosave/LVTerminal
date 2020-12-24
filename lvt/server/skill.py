@@ -227,8 +227,11 @@ class Skill:
         """Изменить текущий топик. Выполняется ПОСЛЕ выхода из обработчика onText/onPartialText"""
         this.terminal.newTopic = str( newTopic )
 
-    def stopParsing( this ):
+    def stopParsing( this, animation: str = None ):
         """Прервать исполнение цепочки скиллов после выхода из обработчика onText/onPartialText"""
+        if animation != None : 
+            this.terminal.animate(ANIMATION_NONE);
+            this.terminal.animate(animation);
         this.terminal.parsingStopped = True
 
     def restartParsing( this ):

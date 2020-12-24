@@ -348,10 +348,10 @@ class Terminal():
         js += '}'
         return js
 
-    def animate( this, animation:str, force:bool=False ):
+    def animate( this, animation:str ):
         """Передать слиенту запрос на анимацию"""
-        if force or animation != this.lastAnimation:
-            this.lastAnimation = animation
+        if animation != this.lastAnimation:
+            if animation in ANIMATION_STICKY : this.lastAnimation = animation
             this.sendMessage( MSG_ANIMATE, animation )
 
     def sendMessage( this, msg:str, p1:str=None, p2:str=None ):

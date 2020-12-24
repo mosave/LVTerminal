@@ -14,7 +14,7 @@ DIR=/home/pi/LVTerminal
 DAEMON=$DIR/lvt_client.py
 DAEMON_NAME=lvt_client
 
-# -l=lvt/client.log
+# -l=logs/client.log
 DAEMON_OPTS="-q" 
 DAEMON_USER=pi
 PIDFILE=/var/run/$DAEMON_NAME.pid

@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>f7c765a6-ab0d-40c3-82fb-cd372cb281a9</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>tests\test1.py</StartupFile>
+    <StartupFile>tests\test_animator.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -28,6 +28,7 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="lvt\alsa_supressor.py" />
     <Compile Include="lvt\client\animator_apa102.py" />
     <Compile Include="lvt\client\animator.py" />
     <Compile Include="lvt\client\apa102.py" />

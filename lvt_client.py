@@ -26,7 +26,8 @@ shared = None
 microphone = None
 animator = None
 
-### showHelp(), showDevices() ##########################################################
+### showHelp(), showDevices()
+### ##########################################################
 #region
 def showHelp():
     """Display usage instructions"""
@@ -50,7 +51,8 @@ def showDevices():
 
 #endregion
 
-### printStatus() ######################################################################
+### printStatus()
+### ######################################################################
 #region
 def printStatus():
     global quiet
@@ -61,17 +63,17 @@ def printStatus():
     rms = microphone.rms
     if rms > scale : rms = scale
     graph = ''
-    for i in range( 0,int( rms * width / scale )+1 ): graph += '='
+    for i in range( 0,int( rms * width / scale ) + 1 ): graph += '='
     graph = f'{graph:50}'
 
-    pL = int(  microphone.noiseLevel * width / scale )
-    pL = 1 if pL<1 else width if pL>width else pL
+    pL = int( microphone.noiseLevel * width / scale )
+    pL = 1 if pL < 1 else width if pL > width else pL
 
-    pR = int(  microphone.triggerLevel * width / scale )
-    pR = 1 if pR<1 else width if pR>width else pR
-    if pL>=pR : pR = pL+1
+    pR = int( microphone.triggerLevel * width / scale )
+    pR = 1 if pR < 1 else width if pR > width else pR
+    if pL >= pR : pR = pL + 1
 
-    graph = graph[:pL] + '|' + graph[pL:pR] + '|' + graph[pR+1:]
+    graph = graph[:pL] + '|' + graph[pL:pR] + '|' + graph[pR + 1:]
 
     face = 'O_O' if microphone.active else '-_-'
     face = f'x{face}x' if microphone.muted else f'({face})'
@@ -79,15 +81,17 @@ def printStatus():
     sys.__stdout__.write( f'[{lastAnimation:^10}] {face} {rms:>5} [{graph}]  \r' )
 #endregion
 
-### play() #############################################################################
+### play()
+### #############################################################################
 #region
-def play( data, onPlayed = None ):
-    # Asynchronously play wave from memory by with BytesIO via audioOutputStream
+def play( data, onPlayed=None ):
+    # Asynchronously play wave from memory by with BytesIO via
+    # audioOutputStream
     try: 
         audio = pyaudio.PyAudio()
         with wave.open( io.BytesIO( data ), 'rb' ) as wav:
             # Get sample length in seconds
-            waveLen = len(data) / (wav.getnchannels() * wav.getsampwidth() * wav.getframerate())
+            waveLen = len( data ) / ( wav.getnchannels() * wav.getsampwidth() * wav.getframerate() )
             audioStream = audio.open( format=pyaudio.get_format_from_width( wav.getsampwidth() ),
                 channels=wav.getnchannels(),
                 rate=wav.getframerate(),
@@ -95,10 +99,10 @@ def play( data, onPlayed = None ):
                 output_device_index=config.audioOutputDevice )
             audioStream.start_stream()
             # Get absolute time when data playing finished
-            stopTime = time.time() + waveLen + 0.2
+            stopTime = time.time() + waveLen + 0.3
             audioStream.write( wav.readframes( wav.getnframes() ) )
             # Wait until complete
-            while time.time()<stopTime : time.sleep( 0.2 )
+            while time.time() < stopTime : time.sleep( 0.2 )
 
     except Exception as e:
         print( f'Exception playing audio: {e}' )
@@ -110,7 +114,8 @@ def play( data, onPlayed = None ):
         shared.messageProcessingPaused = False
 #endregion
 
-### processMessages() ##################################################################
+### processMessages()
+### ##################################################################
 #region
 async def processMessages( connection ):
     global lastMessageReceived
@@ -149,8 +154,10 @@ async def processMessages( connection ):
                 print( p )
         elif m == MSG_MUTE: 
             microphone.muted = True
+            animator.muted = True
         elif m == MSG_UNMUTE: 
             microphone.muted = False
+            animator.muted = False
         elif m == MSG_ANIMATE:
             if p == None : p = ANIMATE_NONE
             if animator != None and p in ANIMATION_ALL:
@@ -159,31 +166,32 @@ async def processMessages( connection ):
         elif m == MSG_UPDATE:
             if p != None: 
                 try:
-                    package = json.loads(p)
+                    package = json.loads( p )
                     updater = Updater()
-                    if updater.update(package) :
+                    if updater.update( package ) :
                         shared.isTerminated = True
-                        await connection.send( MESSAGE( MSG_DISCONNECT, "Reboot after file update") )
-                        time.sleep(3);
+                        await connection.send( MESSAGE( MSG_DISCONNECT, "Reboot after file update" ) )
+                        time.sleep( 3 )
                         restartClient()
                 except Exception as e:
-                    printError(f'Error while updating client: {e}')
+                    printError( f'Error while updating client: {e}' )
         elif m == MSG_REBOOT:
-            print('Device reboot is not yet implemented, resarting client instead')
+            print( 'Device reboot is not yet implemented, resarting client instead' )
             await connection.send( MESSAGE( MSG_DISCONNECT, "Reboot by server request" ) )
             restartClient()
             
-        elif not isinstance(message,str) : # Wave data to play
+        elif not isinstance( message,str ) : # Wave data to play
             shared.messageProcessingPaused = True
             thread = threading.Thread( target=play, args=[message] )
             thread.daemon = False
             thread.start()
         else:
-            print(f'Unknown message received: "{m}"')
+            print( f'Unknown message received: "{m}"' )
             pass
 #endregion
 
-### websockClient() ####################################################################
+### websockClient()
+### ####################################################################
 #region
 async def websockClient():
     global lastMessageReceived
@@ -218,7 +226,8 @@ async def websockClient():
                         shared.isConnected = True
                         print( 'Connected, press Ctrl-C to exit' )
                         await connection.send( MESSAGE( MSG_TERMINAL, config.terminalId, config.password, VERSION ) )
-                        #await connection.send( MESSAGE( MSG_TEXT, 'блаблабла. БЛА!' ) )
+                        #await connection.send( MESSAGE( MSG_TEXT, 'блаблабла.
+                        #БЛА!' ) )
                         #await connection.send( MSG_CONFIG )
 
                         while not shared.isTerminated and shared.isConnected:
@@ -231,7 +240,7 @@ async def websockClient():
                                 pass
 
                             printStatus()
-                            time.sleep(0.1)
+                            time.sleep( 0.1 )
 
                     except KeyboardInterrupt:
                         onCtrlC()
@@ -241,7 +250,7 @@ async def websockClient():
                         elif isinstance( e, websockets.exceptions.ConnectionClosedError ):
                             printError( f'Disconnected due to error: {e} ' )
                         else:
-                            printError(f'Client loop error: {e}')
+                            printError( f'Client loop error: {e}' )
                             try: await connection.send( MSG_DISCONNECT )
                             except:pass
 
@@ -251,13 +260,14 @@ async def websockClient():
             printError( f'Connection thread exception: {e} ' )
             await asyncio.sleep( 10 )
         finally:
-            try: del(microphone)
+            try: del( microphone )
             except:pass
 
     print( "Finishing Client thread" )
 #endregion
 
-### onCtrlC(), restartClient ###########################################################
+### onCtrlC(), restartClient
+### ###########################################################
 #region
 def onCtrlC():
     """ Gracefuly terminate program """
@@ -274,11 +284,12 @@ def onCtrlC():
 
 def restartClient():
     """  Make Python re-compile and re-run app """
-    print('Restarting...')
-    os.execl(sys.executable, f'"{format(sys.executable)}"', *sys.argv)
+    print( 'Restarting...' )
+    os.execl( sys.executable, f'"{format(sys.executable)}"', *sys.argv )
 #endregion
 
-### Main program #######################################################################
+### Main program
+### #######################################################################
 #region
 if __name__ == '__main__':
     print()
@@ -301,30 +312,30 @@ if __name__ == '__main__':
         a = arg.strip().lower()
         if ( a == '-h' ) or ( a == '--help' ) or ( a == '/?' ) :
             showHelp()
-            exit(0)
+            exit( 0 )
         elif ( a == '-d' ) or ( a == '--devices' ) :
             showDevices()
-            exit(0)
+            exit( 0 )
         elif ( a == '-q' ) or ( a == '--quiet' ) :
             shared.quiet = True
-        elif a.startswith("-l") or a.startswith("-log"):
-            b = arg.split('=',2)
-            config.logFileName = b[1] if len(b)==2 else "logs/client.log"
+        elif a.startswith( "-l" ) or a.startswith( "-log" ):
+            b = arg.split( '=',2 )
+            config.logFileName = b[1] if len( b ) == 2 else "logs/client.log"
 
         else:
-            printError(f'Invalid command line argument: "{arg}"')
+            printError( f'Invalid command line argument: "{arg}"' )
 
     Logger.initialize( config )
     Microphone.initialize( config )
     Updater.initialize( config, shared )
 
-    if config.animator=="text":
+    if config.animator == "text":
         from lvt.client.animator import Animator
-        animator = Animator(config,shared)
+        animator = Animator( config,shared )
         animator.start()
-    elif config.animator=="apa102":
+    elif config.animator == "apa102":
         from lvt.client.animator_apa102 import APA102Animator
-        animator = APA102Animator(config,shared,12)
+        animator = APA102Animator( config,shared )
         animator.start()
     else:
         animator = None
@@ -347,6 +358,6 @@ if __name__ == '__main__':
         else:
             printError( f'Unhandled exception in main thread: {e}' )
 
-    if animator != None : del(animator)
+    if animator != None : del( animator )
     print( 'Finishing application' )
 #endregion

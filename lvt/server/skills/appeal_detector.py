@@ -97,6 +97,7 @@ class AppealDetectorSkill(Skill):
         if( this.topic == TOPIC_WAIT_COMMAND ):
             if time.time() > this.waitUntil:
                 this.play('appeal_off.wav')
+                this.terminal.animate(ANIMATION_NONE);
                 this.changeTopic(this.savedTopic)
 
 

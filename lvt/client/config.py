@@ -55,6 +55,17 @@ class Config:
            
         this.animator = p.getValue( '', "Animator",'' ).strip().lower()
         if this.animator not in ['apa102','text',''] : raise Exception( "Invalid Animator specified" )
+        if this.animator=='apa102' :
+            n = p.getIntValue('','APA102LEDCount',3)
+            this.apa102LedCount = 1 if n<1 else 127 if n>127 else n
+            this.apa102MuteLeds = set()
+            leds = p.getValue( '', "APA102MuteLEDs",'0' ).strip().split(',')
+            for s in leds :
+                try: n = int(s)
+                except: n=-1
+                if (n>=0) and (n<this.apa102LedCount) : 
+                    this.apa102MuteLeds.add(n)
+
 
     def getAudioDevice( this, deviceIndex, isInput:bool ):
         audio = pyaudio.PyAudio()
