@@ -1,6 +1,6 @@
 # Lite Voice Terminal
 
-Lite Voice Terminal is free open source client-server platform for powering up DIY offline "light" smart speaker for Russian language.
+Lite Voice Terminal is free open source client-server platform for powering up DIY offline "lite" smart speaker for Russian language.
 “Lite” means lite speaker is built on hardware with limited computational power like RaspberryPi Zero / Zero W
 "Offline" means voice recognition services are provided by on-premise ASR server.
 

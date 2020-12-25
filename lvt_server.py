@@ -235,7 +235,7 @@ def onCtrlC():
 #First thing first: save store script' folder as ROOT_DIR:
 ROOT_DIR = os.path.abspath( os.path.dirname( __file__ ) )
 print()
-print( f'Light Voice Terminal Server v{VERSION}' )
+print( f'Lite Voice Terminal Server v{VERSION}' )
 
 logFileName = None
 

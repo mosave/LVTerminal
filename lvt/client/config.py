@@ -12,7 +12,7 @@ class Config:
 
         this.serverAddress = p.getValue( '', "serverAddress","" )
         if len( this.serverAddress.strip() ) == 0:
-            raise Exception( "Light Voice Terminal Server address was not specified" )
+            raise Exception( "Lite Voice Terminal Server address was not specified" )
         this.serverPort = p.getIntValue( '', "ServerPort", 2700 )
         this.terminalId = p.getValue( '', "TerminalId", '' ).replace( ' ','' )
         if len( this.terminalId ) <= 0 :
