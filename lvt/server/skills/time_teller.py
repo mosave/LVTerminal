@@ -8,8 +8,8 @@ from lvt.server.skill import Skill
 class TellTheTimeSkill(Skill):
     def onLoad( this ):
         #print('loading AppealDetector')
-        this.priority = 5000
-        this.subscribe( TOPIC_ALL )
+        this.priority = 1000
+        this.subscribe( TOPIC_DEFAULT )
 
     def onText( this ):
         pass

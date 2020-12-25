@@ -26,21 +26,21 @@ class Terminal():
 #region
     def __init__( this, terminalId: str, configParser: ConfigParser ):
         this.id = terminalId
-        this.logDebug(f'Initializing terminal')
+        this.logDebug( f'Initializing terminal' )
 
         this.password = configParser.getValue( '','Password','' )
         if this.password == '': 
             this.raiseException( f'Termininal configuration error: Password is not defined' )
 
         this.clientVersion = ""
-        # Использовать "словарный" режим 
+        # Использовать "словарный" режим
         this.vocabularyMode = config.vocabularyMode
         this.usingVocabulary = config.vocabularyMode
         this.vocabulary = set()
 
         this.name = configParser.getValue( '','Name',this.id )
         this.defaultLocation = configParser.getValue( '','Location', '' ).lower()
-        this.autoUpdate = (configParser.getIntValue( '', 'AutoUpdate', 1 ) != 0)
+        this.autoUpdate = ( configParser.getIntValue( '', 'AutoUpdate', 1 ) != 0 )
 
         this.extendVocabulary( this.name )
         this.extendVocabulary( config.assistantName, {'NOUN', 'nomn', 'sing'} )
@@ -72,14 +72,14 @@ class Terminal():
         for skill in this.skills:
             this.logDebug( f'{skill.priority:6} {skill.name}' )
             this.allTopics = this.allTopics.union( skill.subscriptions )
-            this.vocabulary.update(skill.vocabulary)
+            this.vocabulary.update( skill.vocabulary )
 
         this.basicVocabulary = this.loadEntities( 'vocabulary' )
-        this.extendVocabulary(this.basicVocabulary)
+        this.extendVocabulary( this.basicVocabulary )
         this.acronyms = this.loadEntities( 'acronyms' )
-        this.extendVocabulary(this.acronyms)
+        this.extendVocabulary( this.acronyms )
         this.knownLocations = this.loadEntities( 'locations' )
-        this.extendVocabulary(this.knownLocations)
+        this.extendVocabulary( this.knownLocations )
 
         this.lastAnimation = ''
 
@@ -87,6 +87,7 @@ class Terminal():
 
     def reset( this ):
         this.topic = TOPIC_DEFAULT
+        this.topicParams = None
         this.appeal = wordsToList( config.assistantName )[0]
         this.appealPos = -1
         this.words = list()
@@ -99,16 +100,16 @@ class Terminal():
           Текст сообщения так же дублируется командой "Text"
         """
         this.sendMessage( MSG_TEXT, text )
-        this.logDebug(f'Say "{text}"')
+        this.sendMessage( MSG_MUTE )
+        this.logDebug( f'Say "{text}"' )
         if( config.ttsEngine == TTS_RHVOICE ):
-            this.sendMessage(MSG_MUTE)
             if rhvoiceTTS != None :
                 waveData = rhvoiceTTS.get( text, 
                     voice=config.rhvVoice, 
                     format_='wav', 
                     sets=config.rhvParams, )
                 this.sendDatagram( waveData )
-            this.sendMessage(MSG_UNMUTE)
+        this.sendMessage( MSG_UNMUTE )
 
 
     def play( this, waveFileName: str ):
@@ -155,7 +156,11 @@ class Terminal():
         for w in wds: 
             parses = parseWord( w )
             #Проигнорировать предикативы, наречия, междометия и частицы
-            if {'PRED'} not in parses[0].tag and {'ADVB'} not in parses[0].tag and {'INTJ'} not in parses[0].tag and {'PRCL'} not in parses[0].tag :
+            #if {'PRED'} not in parses[0].tag and {'ADVB'} not in parses[0].tag
+            #and {'INTJ'} not in parses[0].tag and {'PRCL'} not in
+            #parses[0].tag :
+            #Проигнорировать наречия и междометия
+            if {'ADVB'} not in parses[0].tag and {'INTJ'} not in parses[0].tag :
                 this.words.append( parses )
 #endregion
 ### onConnect() / onDisconnect() #######################################################
@@ -175,6 +180,9 @@ class Terminal():
         else: # Необходимо переинициализировать состояние терминала
             this.reset()
 
+        this.sendMessage( MSG_ANIMATE, ANIMATION_NONE )
+
+
     def onDisconnect( this ):
         """Вызывается при (после) завершения сессии"""
         this.log( 'Terminal disconnected' )
@@ -183,103 +191,118 @@ class Terminal():
 #endregion
 ### onText() ###########################################################################
 #region
-    def onText( this, text:str, final:bool ):
-        """Основная точка входа для обработки распознанного фрагмента """
+    def onText( this, text:str ):
+        """Основная точка входа для обработки полностью распознанного фрагмента """
         text = normalizeWords( text )
 
-        if final : 
-            this.originalText = text
-            speakerName = this.speaker.name if this.speaker != None else 'Человек'
-            this.logDebug( f'{speakerName}: "{text}"' )
-        else:
-            this.originalText = ""
+        this.originalText = text
+        speakerName = this.speaker.name if this.speaker != None else 'Человек'
+        this.logDebug( f'{speakerName}: "{text}"' )
 
         # Провести морфологический разбор слов текста
         this.text = text
-        if final and text != this.text :
-            this.logDebug( f'Вычищенный текст: "{this.text}"' )
+        if text != this.text :
+            text = this.text
+            this.logDebug( f'Вычищенный текст: "{text}"' )
 
         while True:
             this.parsedLocations = []
             wasAppealed = this.isAppealed
+            this.newTopic = None
+            this.newTopicParams = {}
+            this.parsingStopped = False
+            this.parsingRestart = False
             for skill in this.skills:
-                # Проверить, подписан ли скилл на текущий топик:
-                if not skill.isSubscribed( this.topic ) : 
-                    continue
-                try:
-                    method = 'onText()'
-                    this.newTopic = None
-                    this.parsingStopped = False
-                    this.parsingRestart = False
-                    _text = this.text
-                    if final: 
+                # Пропускать скиллы, не подписанные на текущий топик:
+                if skill.isSubscribed( this.topic ) : 
+                    try:
+                        # Отработать onText / onPartialText
                         skill.onText()
-                    else: 
-                        skill.onPartialText()
-                    text = this.text
-                    if text != _text and final:
-                        this.logDebug( f'{skill.name}: changing text to "{text}"' )
+                        if text != this.text:
+                            text = this.text
+                            this.logDebug( f'{skill.name}.onText(): text changed to "{text}"' )
+                        if this.parsingStopped : 
+                            this.logDebug( f'{skill.name}.onText(): Анализ фразы завершен' )
+                            break
+                    except Exception as e:
+                        this.logError( f'{skill.name}.onText() exception: {e}' )
 
+            this.processTopicChange()
 
-                    method = 'onTopicChange()'
-                    # Проверить, не изменился ли топик
-                    if this.newTopic != None and this.newTopic != this.topic :
-                        this.logDebug( f'{skill.name}: changing topic to "{this.newTopic}"' )
-                        for s in this.skills:
-                            if s.isSubscribed( this.topic ) or s.isSubscribed( this.newTopic ):
-                                s.onTopicChange( this.topic, this.newTopic )
-                        this.topic = this.newTopic
-                        if this.topic == TOPIC_DEFAULT :
-                            this.usingVocabulary = this.vocabularyMode
+            if not this.parsingRestart: break
+            this.logDebug( 'Перезапуск анализа фразы' )
 
-                        this.newTopic = None
-                        
+        if not this.parsingStopped : 
+            this.logDebug( 'Анализ фразы завершен' )
 
-                    # If current skill requested to abort further processing
-                    if this.parsingRestart: 
-                        this.logDebug( 'Перезапуск анализа фразы' )
-                        break
-                    if this.parsingStopped: 
-                        this.logDebug( 'Анализ фразы прерван' )
-                        break
+        if this.topic == TOPIC_DEFAULT :
+            this.usingVocabulary = this.vocabularyMode
+
+        if this.topic == TOPIC_DEFAULT and this.lastAnimation == ANIMATION_AWAKE : 
+            this.animate( ANIMATION_NONE )
+
+#endregion
+### onText() ###########################################################################
+#region
+    def onPartialText( this, text:str ):
+        """Основная точка входа для обработки частично распознанного фрагмента """
+        this.originalText = ''
+
+        # Провести морфологический разбор слов текста
+        this.text = normalizeWords( text )
+        this.parsingStopped = False
+        for skill in this.skills:
+            # Пропускать скиллы, не подписанные на текущий топик:
+            if skill.isSubscribed( this.topic ) : 
+                try:
+                    skill.onPartialText()
                 except Exception as e:
-                    this.logError( f'{skill.name}.{method} exception: {e}' )
-            if not this.parsingRestart : break
+                    this.logError( f'{skill.name}.onPartialText() exception: {e}' )
 
-        if final:
-            if this.topic == TOPIC_DEFAULT and this.lastAnimation == ANIMATION_AWAKE : 
-                this.animate( ANIMATION_NONE )
-        else:
-            pass
 #endregion
 ### onTimer() ##########################################################################
 #region
     def onTimer( this ):
+
+        this.newTopic = None
+        this.newTopicParams = {}
         for skill in this.skills: 
             try:
-                this.newTopic = None
-
                 skill.onTimer()
-
-                if this.newTopic != None and this.newTopic != this.topic :
-                    this.logDebug( f'{skill.name}.onTimer(): changing topic to {this.newTopic}' )
-                    for s in this.skills:
-                        if s.isSubscribed( this.topic ) or s.isSubscribed( this.newTopic ):
-                            s.onTopicChange( this.topic, this.newTopic )
-                    this.topic = this.newTopic
-                    this.newTopic = None
-
             except Exception as e:
                 this.logError( f'{skill.name}.onTimer() exception: {e}' )
+        this.processTopicChange()
+#endregion
+### processTopicChange() ###############################################################
+#region
+    def processTopicChange( this ):
+        # Обработать изменения топика
+        while this.newTopic != None and this.newTopic != this.topic:
+            newTopic = this.newTopic
+            newTopicParams = this.newTopicParams
+            this.newTopic = None
+            this.newTopicParams = {}
+            this.logDebug( f'New topic "{newTopic}"' )
+
+            # Дернуть скилы, подписанные на текущий или новый топик
+            for skill in this.skills:
+                try:
+                    if skill.isSubscribed( this.topic ) or skill.isSubscribed( newTopic ):
+                        skill.onTopicChange( newTopic, newTopicParams )
+                except Exception as e:
+                    this.logError( f'{skill.name}.onTopicChange() exception: {e}' )
+
+            this.topic = newTopic
+
 #endregion
 ### Vocabulary manipulations ###########################################################
 #region
-    def extendVocabulary(this, words, tags = None ) :
+    def extendVocabulary( this, words, tags=None ) :
         """Расширить словарь словоформами, удовлетворяющим тегам
         По умолчанию (tags = None) слова добавляется в том виде как они были переданы
         Принимает списки слов как в виде строк так и в виде массивов (рекурсивно)
         """
-        this.vocabulary.update( wordsToVocabulary(words, tags) )
+        this.vocabulary.update( wordsToVocabulary( words, tags ) )
 
     def getVocabulary( this ) -> str:
         """Возвращает полный текущий список слов для фильтрации распознавания речи 
@@ -299,21 +322,21 @@ class Terminal():
 #endregion
 ### Updating client ####################################################################
 #region
-    def updateClient(this):
+    def updateClient( this ):
         def packageFile( fileName ):
-            with open( os.path.join( ROOT_DIR, fileName), "r", encoding='utf-8' ) as f:
-                package.append( (fileName, f.readlines() ) )
+            with open( os.path.join( ROOT_DIR, fileName ), "r", encoding='utf-8' ) as f:
+                package.append( (fileName, f.readlines()) )
         def packageDirectory( dir ):
             files = os.listdir( os.path.join( ROOT_DIR, dir ) )
             for file in files:
-                if file.endswith('.py') : 
+                if file.endswith( '.py' ) : 
                     packageFile( os.path.join( dir, file ) )
 
         package = []
-        packageFile('lvt_client.py')
+        packageFile( 'lvt_client.py' )
         packageDirectory( 'lvt' )
         packageDirectory( os.path.join( 'lvt','client' ) )
-        this.sendMessage( MSG_UPDATE, json.dumps( package, ensure_ascii=False ))
+        this.sendMessage( MSG_UPDATE, json.dumps( package, ensure_ascii=False ) )
 
 #endregion
 ### Log wrappers #######################################################################
@@ -343,7 +366,8 @@ class Terminal():
         js += f'"Name":"{this.name}",'
         js += f'"UsingVocabulary":"{this.usingVocabulary}",'
         #if this.usingVocabulary :
-        #    js += f'"Vocabulary":' + json.dumps( list(this.vocabulary), ensure_ascii=False ) + ', '
+        #    js += f'"Vocabulary":' + json.dumps( list(this.vocabulary),
+        #    ensure_ascii=False ) + ', '
         js += f'"Active":"{this.isActive}" '
         js += '}'
         return js
@@ -356,7 +380,7 @@ class Terminal():
 
     def sendMessage( this, msg:str, p1:str=None, p2:str=None ):
         message = MESSAGE( msg, p1, p2 )
-        m = message if len(message)<80 else message[:80]+'...'
+        m = message if len( message ) < 80 else message[:80] + '...'
         this.logDebug( f'Message: {m}' )
         if this.messageQueue != None:
             this.messageQueue.append( message )
@@ -421,7 +445,7 @@ class Terminal():
                     quiet=True )
                 
             except Exception as e:
-                printError(f'Exception initializing RHVoice engine')
+                printError( f'Exception initializing RHVoice engine' )
         else:
             pass
 

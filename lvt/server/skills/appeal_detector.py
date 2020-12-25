@@ -9,6 +9,16 @@ WAIT_COMMAND_TIMEOUT = 5 # время в режиме ожидания кома�
 
 #Define base skill class
 class AppealDetectorSkill(Skill):
+    """Скил определяет наличие в фразе обращения к ассистенту и реализует режим ожидания команды.
+    Скилл поддерживает следующие переменные
+    * terminal.isAppealed -> bool  : в фразе содержится обращение к ассистенту
+    * terminal.appeal -> str : имя, по которому обратились к ассистенту
+    * terminal.appealPos -> int : индекс слова, в котором содержится обращение
+
+    Кроме того, если фраза содержит только имя ассистента, скилл переходит к топику "WaitCommand" 
+    Если в течение 5 секунд распознается очередная фраза
+
+    """
     def onLoad( this ):
         #print('loading AppealDetector')
         this.priority = 10000
@@ -57,6 +67,7 @@ class AppealDetectorSkill(Skill):
             if aPos>=0 : 
                 # Сохраняем на будущее как обратились к ассистенту
                 this.terminal.appeal = this.getNormalForm( aPos, {'NOUN','nomn','sing'})
+                if this.terminal.appeal=='алиша' : this.terminal.appeal='алиса'
                 break
 
         this.terminal.appealPos = aPos
@@ -84,12 +95,12 @@ class AppealDetectorSkill(Skill):
         this.terminal.appealPos = aPos
         return True
 
-    def onTopicChange( this, topic:str, newTopic: str ):
+    def onTopicChange( this, newTopic: str, params = {} ):
         if newTopic == TOPIC_WAIT_COMMAND :
             # Задаем время ожидания команды
             this.waitUntil = time.time() + WAIT_COMMAND_TIMEOUT
             this.play('appeal_on.wav')
-        elif topic == TOPIC_WAIT_COMMAND :
+        elif this.topic == TOPIC_WAIT_COMMAND :
             # Играем отбой
             this.waitUntil = 0
        

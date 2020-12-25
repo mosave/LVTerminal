@@ -12,8 +12,7 @@ class ParrotModeSkill(Skill):
     """
     def onLoad( this ):
         #print('loading repeat')
-        this.subscribe( TOPIC_DEFAULT )
-        this.subscribe( TOPIC_PARROT_MODE )
+        this.subscribe( TOPIC_DEFAULT,TOPIC_PARROT_MODE )
         this.priority = 1000
         this.remindOn = 0
         this.extendVocabulary("повторяй за мной, включи, переключись в режим попугая");
@@ -65,12 +64,10 @@ class ParrotModeSkill(Skill):
                     this.findWordChain( 'переключись в режим попугая' )>=0 or \
                     this.findWordChain( 'перейди в режим попугая' )>=0 or \
                     this.findWordChain( 'повторяй за мной' )>=0 :
-                    this.terminal.animate(ANIMATION_ACCEPT)
                     this.changeTopic( TOPIC_PARROT_MODE )
+                    this.stopParsing(ANIMATION_ACCEPT)
 
-        this.stopParsing()
-
-    def onTopicChange( this, topic:str, newTopic: str ):
+    def onTopicChange( this, newTopic: str, params = {} ):
         if newTopic == TOPIC_PARROT_MODE :
             this.say( 'Окей, говорите и я буду повторять всё, что услышу!' )
             s = "со словарем" if this.terminal.usingVocabulary else "без словаря"
@@ -78,7 +75,7 @@ class ParrotModeSkill(Skill):
             this.say( 'Для завершения скажите: "перестань за мной повторять"' )
             # Задаем время проговаривания напоминания
             this.remindOn = time.time() + REMINDER_TIMEOUT
-        elif topic == TOPIC_PARROT_MODE :
+        elif this.topic == TOPIC_PARROT_MODE :
             this.say( 'Режим попугая выключен' )
             this.remindOn = 0
             if this.terminal.usingVocabulary != this.terminal.vocabularyMode :

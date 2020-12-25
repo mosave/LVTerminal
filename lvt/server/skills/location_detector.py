@@ -12,7 +12,7 @@ class LocationsDetectorSkill(Skill):
     """'Мажордом, свет!'"""
     def onLoad( this ):
         this.priority = 9900
-        this.subscribe( TOPIC_DEFAULT )
+        this.subscribe( TOPIC_ALL )
 
     def onText( this ):
         for locations in this.terminal.knownLocations :

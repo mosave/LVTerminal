@@ -32,9 +32,9 @@ def onText( text:str, controlPhrase : str=None ):
     text = ""
     for w in words :
         text += ( ' ' if text != '' else '' ) + w
-        terminal.onText( text, False )
+        terminal.onPartialText( text )
     print( '>>> Анализ фразы' )
-    terminal.onText( text, True )
+    terminal.onText( text )
     print( f'>>> Сообщений в очереди клиента: {len(messageQueue)}' )
     if len( terminal.locations ) > 0 :
         locations = ', '.join( terminal.locations )
@@ -62,12 +62,12 @@ def testAppealDetector():
     logs.clear()
     print( '***** AppealDetectorSkill tests' )
     onText( 'Ой, ехал некогда Грека через какую-то реку. И ведь доехал же! ', \
-          'ехал грека через какую-то реку и доехал')
+          'ехал грека через какую-то реку')
     onText( 'слушай, мажордом, сделай что-нибудь!', 'мажордом сделай что-нибудь' )
     onText( 'слушай, алиса...' )
     if( terminal.topic != 'WaitCommand') : abort('Терминал не перешел в режим ожидания команды')
     onText( 'сделай уже что нибудь!', 'алиса сделай что нибудь' )
-    if( terminal.topic != '') : abort('Терминал не вернулся в нормальный режим')
+    if( terminal.topic != TOPIC_DEFAULT) : abort('Терминал не вернулся в нормальный режим')
 
 def testAcronym():
     logs.clear()
@@ -95,9 +95,39 @@ def testParrotMode():
     onText( 'Ехал грека через реку' )
     checkIfSaid('ехал грека через реку')
     onText( 'На мели мы лениво налима ловили' )
+    checkIfSaid( 'На мели мы лениво налима ловили' )
+
+    onText( 'Включи режим распознавания со словарем' )
+    onText( 'Включи режим распознавания со словарем' )
+    checkIfSaid( 'уже включен' )
+
+    onText( 'Включи режим распознавания без словаря' )
+    checkIfSaid( 'Выключаю режим распознавания со словарем' )
+
     onText( 'Перестань попугайничать' )
     checkIfSaid('режим попугая выключен')
-    if( terminal.topic != '') : abort('Терминал не вернулся в нормальный режим')
+    if( terminal.topic != TOPIC_DEFAULT) : abort('Терминал не вернулся в нормальный режим')
+
+def testServerConfig():
+    logs.clear()
+    print( '***** ServerConfigSkill tests' )
+    onText( 'слушай мажордом выключи режим распознавания со словарем' )
+    onText( 'слушай мажордом включи режим распознавания со словарем' )
+    checkIfSaid( 'Включаю режим распознавания со словарем' )
+    onText( 'слушай мажордом включи режим распознавания без словаря' )
+    checkIfSaid( 'Выключаю режим распознавания со словарем' )
+
+def testYesNo():
+    logs.clear()
+    print( '***** YesNoSkill tests' )
+    onText( 'алиса проверка да или нет' )
+    checkIfSaid( 'Да или нет' )
+    onText('Траливали набекрень')
+    checkIfSaid( 'не поняла' )
+    onText( 'отмена' )
+    onText( 'да, уверен' )
+    checkIfSaid( 'Подтверждено' )
+
 
 
 config = Config( 'lvt_server.cfg' )
@@ -116,13 +146,15 @@ messageQueue = list()
 terminal = Terminal.authorize( 'test', 'Password', 'testscript' )
 terminal.onConnect( messageQueue )
 
-
 testAppealDetector()
 testAcronym()
 testOneWordCommandSkill()
 testLocationExtractor()
 testParrotMode()
-
+testServerConfig()
+testYesNo()
 
 
 terminal.onDisconnect()
+
+print('ALL SKILL TESTS PASSED!!!')

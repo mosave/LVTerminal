@@ -59,7 +59,11 @@ def processChunk( waveform,
                 j = json.loads( recognizer.PartialResult() )
                 text = str( j['partial'] ).strip() if 'partial' in j else ''
 
-        if len( text ) > 0 : terminal.onText( text, final )
+        if len( text ) > 0 : 
+            if final:
+                terminal.onText( text )
+            else: 
+                terminal.onPartialText( text )
 
     except KeyboardInterrupt as e:
         onCtrlC()
@@ -160,8 +164,6 @@ async def websockServer( connection, path ):
                     terminal = Terminal.authorize( id, password, version )
                     if terminal != None:
                         terminal.onConnect( messageQueue )
-                        #terminal.say("Терминал авторизован")
-                        #terminal.play('/home/md/chord.wav')
                         if terminal.autoUpdate and version != VERSION :
                             if terminal.id == 'respeaker4' :
                                 terminal.updateClient()

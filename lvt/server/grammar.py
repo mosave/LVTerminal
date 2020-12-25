@@ -16,6 +16,11 @@ def parseWord( word: str ):
     global morphy
     return morphy.parse(word)
 
+#def inflectWord( word: str, tags ):
+#    """Parse word using phmorphy2 library"""
+#    global morphy
+#    return morphy.parse (word)
+
 def normalizePhrases( phrases ) -> str:
     """Возвращает нормальизованный список (через запятую) нормализованных цепочек слов (через пробел)
     Пример "включи свет,выключи свет,сделай что-то"

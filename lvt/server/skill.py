@@ -56,7 +56,7 @@ class Skill:
         """
         pass
 
-    def onTopicChange( this, topic:str, newTopic: str ):
+    def onTopicChange( this, newTopic:str, params={} ):
         """Вызывается при переходе синтаксического анализатора в состояние, на которое подписан скилл
         """
         pass
@@ -97,12 +97,12 @@ class Skill:
     @property
     def topic( this ): return this.terminal.topic
 
-    def animate( this, animation:str, force:bool=False ): this.terminal.animate(animation, force)
+    def animate( this, animation:str ): this.terminal.animate( animation )
     def say( this, text ): this.terminal.say( text )
     def play( this, waveFileName ): this.terminal.play( waveFileName )
-    def log( this, msg:str ): log(f'[{this.terminal.name}:{this.name}]: {msg}')
-    def logError( this, msg:str ): logError(f'[{this.terminal.name}:{this.name}]: {msg}')
-    def logDebug( this, msg:str ): logDebug(f'[{this.terminal.name}:{this.name}]: {msg}')
+    def log( this, msg:str ): log( f'[{this.terminal.name}:{this.name}]: {msg}' )
+    def logError( this, msg:str ): logError( f'[{this.terminal.name}:{this.name}]: {msg}' )
+    def logDebug( this, msg:str ): logDebug( f'[{this.terminal.name}:{this.name}]: {msg}' )
 #endregion
 
 ### Манипуляции словами и цепочками слов - поиск, удаление, подмена ####################
@@ -112,21 +112,29 @@ class Skill:
         parses = parseWord( word )
         for p in parses:
             if ( tags == None ) or tags in p.tag: 
-                return p.normal_form
+                return p.normal_form.replace('ё', 'e')
         return ''
 
     def getNormalForm( this, index: int, tags=None ) -> str:
         """Возвращает нормальную форму слова в фразе с учетом морфологических признаков"""
         for p in this.words[index]:
             if ( tags == None ) or tags in p.tag: 
-               return p.normal_form
+               return p.normal_form.replace('ё', 'e')
         return ''
+
+    def conformToAppeal( this, word: str )->str:
+        """Согласовать слово с обращением (мужской-женский-средний род)"""
+        parse = parseWord(word)[0]
+        gender = parseWord(this.terminal.appeal)[0].tag.gender
+        return parse.inflect({gender}).word
 
     def isWord( this, index, word: str, tags=None ) -> bool:
         """Сравнение слова со словом в фразе с учетом морфологических признаков"""
-        nf = this.getNormalFormOf( word, tags ) if word != None else None
+        if word == None or not isinstance(word, str) : return False
+
+        nf = this.getNormalFormOf( word, tags )
         for p in this.terminal.words[index]:
-            if ( tags == None or tags in p.tag ) and (nf==None or p.normal_form == nf): 
+            if ( tags == None or tags in p.tag ) and ( p.normal_form.replace('ё', 'e') == nf ): 
                 return True
         return False
 
@@ -142,12 +150,13 @@ class Skill:
         nf = this.getNormalFormOf( word,tags )
         for index in range( len( this.terminal.words ) ):
             for p in this.terminal.words[index]:
-                if ( tags == None or tags in p.tag ) and p.normal_form == nf: 
+                if ( tags == None or tags in p.tag ) and p.normal_form.replace('ё', 'e') == nf: 
                     return index
         return -1
 
-    def findWordChain( this, chain: str, startIndex: int=0 ) -> int:
-        """Поиск в фразе цепочки слов"""
+    def findWordChain( this, chain: str, startIndex: int=0, exact: bool=True ) -> int:
+        """Поиск в фразе цепочки слов
+       Возвращает индекс первого слова в цепочке"""
 
         cWords = wordsToList( chain )
         # Количество возможных положений цепочки в фразе (длина фразы-длина
@@ -199,13 +208,13 @@ class Skill:
 
 ### Методы конфигурации скила и управление ходом разбора фразы #########################
 #region
-    def subscribe( this, topic:str ):
+    def subscribe( this, *topics ):
         """Привязать вызов process к состоянию"""
-        this.subscriptions.add( str( topic ) )
+        for t in topics : this.subscriptions.add( str( t ) )
 
-    def unsubscribe( this, topic:str ):
+    def unsubscribe( this, *topics ):
         """Привязать вызов process к состоянию"""
-        this.subscriptions.remove( str( topic ) )
+        for t in topics : this.remove( str( t ) )
 
     def isSubscribed( this, topic ):
         """Возвращает True если скилл подписан на Topic с учетом маски *, """
@@ -216,22 +225,30 @@ class Skill:
             if len( ab ) == 1 and ab[0] == topic : return True
             if len( ab ) > 1 and topic.startswith( ab[0] ) and topic.endswith( ab[-1] ): return True
 
-    def extendVocabulary( this, words, tags = None ):
+    def extendVocabulary( this, words, tags=None ):
         """Расширить словарь словоформами, удовлетворяющим тегам
         По умолчанию (tags = None) слова добавляется в том виде как они были переданы
         Принимает списки слов как в виде строк так и в виде массивов (рекурсивно)
         """
-        this.vocabulary.update( wordsToVocabulary(words, tags) )
+        this.vocabulary.update( wordsToVocabulary( words, tags ) )
 
-    def changeTopic( this, newTopic ):
+    def changeTopic( this, newTopic, *params, **kwparams ):
         """Изменить текущий топик. Выполняется ПОСЛЕ выхода из обработчика onText/onPartialText"""
         this.terminal.newTopic = str( newTopic )
 
-    def stopParsing( this, animation: str = None ):
+        p = kwparams
+        if len( params ) == 1 and isinstance( params[0],dict ) : 
+            p.update( params[0] )
+        elif len( params ) > 0 : 
+            p.update( {'params':params} )
+        this.terminal.newTopicParams = p
+        this.terminal.logDebug(f'{this.name}.changeTopic("{newTopic}", {p}) ]')
+
+    def stopParsing( this, animation: str=None ):
         """Прервать исполнение цепочки скиллов после выхода из обработчика onText/onPartialText"""
         if animation != None : 
-            this.terminal.animate(ANIMATION_NONE);
-            this.terminal.animate(animation);
+            this.terminal.animate( ANIMATION_NONE )
+            this.terminal.animate( animation )
         this.terminal.parsingStopped = True
 
     def restartParsing( this ):

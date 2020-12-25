@@ -22,7 +22,7 @@ class ServerConfigSkill(Skill):
             iOn = this.findWord( 'включи' )
             iDict = this.findWord( 'словарь' )
             iRecognize = this.findWord( 'распознавание' )
-            iNoDict = this.findWordChain( 'без словаря' )
+            iNoDict = this.findWordChain( 'без словарь' )
 
             if (iDict>=0 and iNoDict<0) and iOn>=0 and iOn<iDict or \
                 iNoDict>=0 and iOff>=0 and iOff<iNoDict :

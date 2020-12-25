@@ -15,7 +15,6 @@ class OneWordCommandSkill(Skill):
         this.subscribe( TOPIC_DEFAULT )
 
     def onText( this ):
-
         if this.isAppealed and this.appealPos + 2 == len( this.words ):
             if this.isWord( this.appealPos + 1, 'свет', {'NOUN','nomn'} ):
                 this.insertWords( this.appealPos + 1,'включи' )

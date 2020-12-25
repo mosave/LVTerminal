@@ -26,8 +26,7 @@ shared = None
 microphone = None
 animator = None
 
-### showHelp(), showDevices()
-### ##########################################################
+### showHelp(), showDevices() ##########################################################
 #region
 def showHelp():
     """Display usage instructions"""
@@ -51,8 +50,7 @@ def showDevices():
 
 #endregion
 
-### printStatus()
-### ######################################################################
+### printStatus() ######################################################################
 #region
 def printStatus():
     global quiet
@@ -81,8 +79,7 @@ def printStatus():
     sys.__stdout__.write( f'[{lastAnimation:^10}] {face} {rms:>5} [{graph}]  \r' )
 #endregion
 
-### play()
-### #############################################################################
+### play() #############################################################################
 #region
 def play( data, onPlayed=None ):
     # Asynchronously play wave from memory by with BytesIO via
@@ -114,8 +111,7 @@ def play( data, onPlayed=None ):
         shared.messageProcessingPaused = False
 #endregion
 
-### processMessages()
-### ##################################################################
+### processMessages() ##################################################################
 #region
 async def processMessages( connection ):
     global lastMessageReceived
@@ -190,8 +186,7 @@ async def processMessages( connection ):
             pass
 #endregion
 
-### websockClient()
-### ####################################################################
+### websockClient() ####################################################################
 #region
 async def websockClient():
     global lastMessageReceived
@@ -266,8 +261,7 @@ async def websockClient():
     print( "Finishing Client thread" )
 #endregion
 
-### onCtrlC(), restartClient
-### ###########################################################
+### onCtrlC(), restartClient ###########################################################
 #region
 def onCtrlC():
     """ Gracefuly terminate program """
@@ -288,8 +282,7 @@ def restartClient():
     os.execl( sys.executable, f'"{format(sys.executable)}"', *sys.argv )
 #endregion
 
-### Main program
-### #######################################################################
+### Main program #######################################################################
 #region
 if __name__ == '__main__':
     print()
