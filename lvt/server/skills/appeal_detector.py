@@ -25,6 +25,8 @@ class AppealDetectorSkill(Skill):
         this.subscribe( TOPIC_ALL )
         this.savedTopic = TOPIC_DEFAULT
         this.waitUntil = 0
+        this.aNames = wordsToList(this.terminal.config.assistantName)
+
 
     def onText( this ):
         # Если в режиме ожидания 
@@ -61,8 +63,7 @@ class AppealDetectorSkill(Skill):
     def detectAppeals( this ):
         aPos = None
         # Получить список имен ассистента
-        aNames = wordsToList(this.config.assistantName)
-        for aName in aNames: # Встречается ли в фразе имя ассистента?
+        for aName in this.aNames: # Встречается ли в фразе имя ассистента?
             aPos = this.findWord( aName, {'NOUN','nomn','sing'} )
             if aPos>=0 : 
                 # Сохраняем на будущее как обратились к ассистенту
@@ -107,8 +108,9 @@ class AppealDetectorSkill(Skill):
     def onTimer( this ):
         if( this.topic == TOPIC_WAIT_COMMAND ):
             if time.time() > this.waitUntil:
-                this.play('appeal_off.wav')
                 this.terminal.animate(ANIMATION_NONE);
+                this.terminal.animate(ANIMATION_CANCEL);
+                this.play('appeal_off.wav')
                 this.changeTopic(this.savedTopic)
 
 

@@ -16,38 +16,45 @@ class Config:
     def __init__( this, fileName ):
         p = ConfigParser( fileName )
         section = 'LVTServer'
+        ### Network configuration
         this.serverAddress = p.getValue( section, 'ServerAddress','0.0.0.0' )
         this.serverPort = p.getIntValue( section, 'ServerPort',2700 )
         this.sslCertFile = p.getValue( section, 'SSLCertFile','' )
         this.sslKeyFile = p.getValue( section, 'SSLKeyFile','' )
+
+        ### Voice recognition configuration 
         this.model = p.getValue( section, 'Model','' ).strip()
         this.fullModel = p.getValue( section, 'FullModel','' ).strip()
         if this.model=='' and this.fullModel== '':
             raise Exception( 'No models specified' )
 
-        this.spkModel = p.getValue( section, 'SpkModel','' ).strip()
         this.sampleRate = p.getIntValue( section, 'SampleRate',8000 )
         this.recognitionThreads = p.getIntValue( section, 'RecognitionThreads',os.cpu_count() )
         if( this.recognitionThreads < 1 ): this.recognitionThreads = 1
+
         this.vocabularyMode = bool(p.getIntValue( section, 'VocabularyMode', 1 ))
         if this.model=='' : this.vocabularyMode = False
 
+        this.language = p.getValue( section, 'Language','ru' )
+        if this.language not in {'ru','uk','en' } : this.language = 'ru'
+
+        ### Speaker identification config
+        this.spkModel = p.getValue( section, 'SpkModel','' ).strip()
         this.voiceSimilarity = p.getFloatValue( section, 'VoiceSimilarity', 0.6 )
         this.voiceSelectivity = p.getFloatValue( section, 'VoiceSelectivity', 0.2 )
 
+        ### Assistant configuration
         this.assistantName = p.getValue( section, 'AssistantName','' ) \
             .replace( ',',' ' ).replace( '  ',' ' ).strip().lower()
         if( len( this.assistantName.strip() ) == 0 ): 
             raise Exception( 'AssistantName should be specified' )
 
+        ### Logging
         this.logFileName = p.getValue( section, "Log", None )
         this.logLevel = p.getIntValue( section, "LogLevel",20 )
         this.printLevel = p.getIntValue( section, "PrintLevel",20 )
 
-        this.language = p.getValue( section, 'Language','ru' )
-        if this.language not in {'ru','uk','en' } : this.language = 'ru'
-
-        # TTS Engine
+        ### TTS Engine
         this.ttsEngine = p.getValue( section, 'TTSEngine', '' )
 
         if str( this.ttsEngine ) == '':
@@ -70,6 +77,29 @@ class Config:
                             pass
         else:
             raise Exception( 'Invalid voice engine specified' )
+
+        ### Terminals
+        this.terminals = dict()
+        for section in p.sections :
+            if section.lower().startswith("terminal|") :
+                id = p.getValue(section,'ID','')
+                pwd = p.getValue(section,'Password','')
+                if id=='' or pwd=='':
+                    raise Exception( 'Terminal ID and Password are mandatory')
+                this.terminals[id] = {
+                    'password': pwd,
+                    'name': p.getValue(section,'Name',id),
+                    'location': p.getValue(section,'Location',''),
+                    'autoupdate': bool(p.getValue(section,'AutoUpdate','0') != '0')
+                }
+        ### Skills
+        this.skills = dict()
+        for section in p.sections :
+            if section.lower().find("skill|")>0 :
+                cfg = p.getRawValues(section)
+                cfg['enable'] = bool(p.getValue(section,'Enable','1')!='0')
+                this.skills[section.split('|')[0].lower()] = cfg
+
 
 #endregion
 

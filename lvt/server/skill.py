@@ -5,14 +5,14 @@ from lvt.logger import *
 from lvt.server.grammar import *
 
 class Skill:
-    """Базовый класс скиллов.
+    """Базовый класс скиллов
     Описания класса используются для автодокументирования возможностей ассистента.
     """
-    def __init__( this, terminal, moduleFileName: str, name: str ):
+    def __init__( this, terminal, moduleFileName: str, name: str, cfg: dict ):
         this.terminal = terminal
         this.moduleFileName = moduleFileName
         this.name = name
-        this.enable = True
+        this.config = cfg
         this.subscriptions = set()
         this.vocabulary = set()
         # Чем выше значение приоритета, тем ближе к началу в цепочке
@@ -77,10 +77,6 @@ class Skill:
 
 ### Terminal wrappers ##################################################################
 #region
-    @property
-    def config( this ): return this.terminal.config
-    @property
-    def assistantNames( this ): return this.terminal.assistantNames
     @property
     def isAppealed( this ): return this.terminal.isAppealed
     @property

@@ -1,6 +1,13 @@
 # Litght Voice Terminal entities
 
-# Стандартные типы устройств
+[MainLightLeft]
+Name="Свет"
+Location="Зал"
+TurnOn="MQTT","Common/OMG/433", '{"value":12219937,"protocol":1,"length":24,"delay":362}'
+TurnOff="MQTT","Common/OMG/433", '{"value":12219936,"protocol":1,"length":24,"delay":362}'
+
+
+
 
 Телевизор
 Кондиционер Кондей

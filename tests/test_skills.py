@@ -124,16 +124,19 @@ def testYesNo():
     checkIfSaid( 'Да или нет' )
     onText('Траливали набекрень')
     checkIfSaid( 'не поняла' )
-    onText( 'отмена' )
+    #onText( 'отмена' )
     onText( 'да, уверен' )
     checkIfSaid( 'Подтверждено' )
 
 
-
 config = Config( 'lvt_server.cfg' )
-config.logFileName = "logs/test1.log"
+config.logFileName = "logs/test_skills.log"
 config.logLevel = logging.DEBUG
 config.printLevel = logging.DEBUG
+
+# hack - allow debug skill under no conditions:
+config.skills['debugskill']['enable']=True
+
 logs = list()
 Logger.initialize( config )
 Logger.setLogCapture(logs)

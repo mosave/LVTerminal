@@ -267,7 +267,7 @@ if( len( config.sslCertFile ) > 0 and len( config.sslKeyFile ) > 0 ):
     print( f'Connection: Secured' )
     try:
         sslContext = ssl.SSLContext( ssl.PROTOCOL_TLS_SERVER )
-        sslContext.load_cert_chain( config.sslCertFile, config.sslKeyFile )
+        sslContext.load_cert_chain( os.path.join( ROOT_DIR, config.sslCertFile), os.path.join( ROOT_DIR, config.sslKeyFile) )
     except Exception as e:
         sslContext = None
         print( f'Error loading certificate files: {e}' )

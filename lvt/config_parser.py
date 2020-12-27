@@ -47,8 +47,8 @@ class ConfigParser:
 
         this.sections = list( this.sections )
 
-    def getValue( this, section: str, key: str, default: str=None ) -> str:
-        """Retrieve single (first appearing) value as string, using default if not specified
+    def getRawValue( this, section: str, key: str ):
+        """Retrieve single (first appearing) raw value (string or list of strings) returning None if not found
           * section: could be both "SectionName" or "SectionName|SectionId", case-insensitive
           * key: parameter name, case-insensitive
           * default: string value to return if parameter not found
@@ -60,13 +60,28 @@ class ConfigParser:
         else:
             searchWithId = True
         
+        value = None
         for v in this.values:
             thisSection = (v[iSection] == section) if searchWithId else (v[iSection].startswith( section ))
-
             if( thisSection and v[iVarName] == key.strip().lower() ):
-                value = str( v[iValue] )
-                for i in range( iValue2, len( v ) ): value+=' ' + v[i]
-                return value
+                if( len(v)>iValue2 ) :
+                    value = v[iValue:]
+                elif( len(v)>iValue ) :
+                    value = str( v[iValue] )
+                break
+        return value
+
+    def getValue( this, section: str, key: str, default: str=None ) -> str:
+        """Retrieve single (first appearing) value as string, using default if not specified
+          * section: could be both "SectionName" or "SectionName|SectionId", case-insensitive
+          * key: parameter name, case-insensitive
+          * default: string value to return if parameter not found
+        """
+        value = this.getRawValue( section, key )
+        if( isinstance(value, list)) :
+            return ' '.join(value)
+        elif value != None:
+            return value
         return default
 
     def getIntValue( this, section: str, key: str, default: int ) -> int:
@@ -85,8 +100,8 @@ class ConfigParser:
         """
         return float( this.getValue( section, key, default ) )
 
-    def getValues( this, section: str ) -> dict():
-        """Retrieve all values for specific section(s) as dictionary
+    def getRawValues( this, section: str ) -> dict():
+        """Retrieve all RAW values (str or list(str)) for specific section(s) as dictionary
           * section: could be both "SectionName" or "SectionName|SectionId", case-insensitive
           * key: parameter name, case-insensitive
           * default: string value to return if parameter not found
@@ -99,14 +114,30 @@ class ConfigParser:
             searchWithId = True
 
         values = dict()
-        values['section']=(section+'|0').split('|')[0]
-        values['sectionId']=(section+'|0').split('|')[1]
+        #values['section']=(section+'|0').split('|')[0]
+        #values['sectionId']=(section+'|0').split('|')[1]
 
         for v in this.values:
             thisSection = (v[iSection] == section) if searchWithId else (v[iSection].startswith( section ))
 
             if thisSection:
-                value = str( v[iValue] )
-                for i in range( iValue2, len( v ) ): value+=' ' + v[i]
+                if len(v)>iValue2 :
+                    value = v[iValue:]
+                elif len(v)>iValue :
+                    value = str( v[iValue] )
+                else:
+                    value = None
                 values[v[iVarName]] = value
+        return values
+
+    def getValues( this, section: str ) -> dict():
+        """Retrieve all values for specific section(s) as dictionary
+          * section: could be both "SectionName" or "SectionName|SectionId", case-insensitive
+          * key: parameter name, case-insensitive
+          * default: string value to return if parameter not found
+        """
+        values = this.getRawValues(section)
+        for name in values:
+            if isinstance(values[name], list):
+                values[name] = ' '.join(values[name])
         return values

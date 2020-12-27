@@ -51,8 +51,6 @@ class YesNoSkill(Skill):
         if this.topic != TOPIC_YES_NO : 
             return
 
-        this.dtRepeat = time.time() + TIMEOUT_REPEAT
-        this.dtCancel = time.time() + TIMEOUT_CANCEL
         if this.topicCancel != '' and ( \
             this.findWordChain( 'отменить' ) >= 0 or \
             this.findWordChain( 'отмена' ) >= 0 ) :
@@ -79,7 +77,12 @@ class YesNoSkill(Skill):
             this.stopParsing( ANIMATION_ACCEPT )
             return
         this.say('Извините, я не '+this.conformToAppeal('понял')+' что вы сказали. Скажите пожалуйста да или нет')
-        this.stopParsing( ANIMATION_CANCEL )
+        this.stopParsing()
+
+    def onPartialText( this ):
+        if this.topic == TOPIC_YES_NO : 
+            this.dtRepeat = time.time() + TIMEOUT_REPEAT
+            this.dtCancel = time.time() + TIMEOUT_CANCEL
 
     def onTopicChange( this, newTopic: str, params={} ):
         if newTopic == TOPIC_YES_NO:

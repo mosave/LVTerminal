@@ -124,7 +124,7 @@ class APA102Animator(Animator):
 
         if this.muted :
             for i in this.muteLeds:
-                this.leds.set_pixel( i, 255,0,0, 100 )
+                this.leds.set_pixel( i, 0,0,255, 100 )
 
         this.leds.show()
 
@@ -134,7 +134,7 @@ class APA102Animator(Animator):
 
         if this.muted :
             for i in this.muteLeds:
-                this.leds.set_pixel( i, 127,0,0, 100 )
+                this.leds.set_pixel( i, 0,0,255, 100 )
 
         this.leds.show()
 

@@ -3,18 +3,20 @@ import importlib
 from lvt.const import *
 from lvt.logger import *
 from lvt.server.grammar import *
+from lvt.server.config import Config
 from lvt.server.skill import Skill
 
 class SkillFactory():
     def __init__( this, terminal ):
         this.terminal = terminal
         pass
-    def loadSkills( this ) -> list():
+    def loadSkills( this, config: Config ) -> list():
         """Returns list of skill instances.
           * Scans lvt/skills directory recursively
           * Loads all module found there
           * Creates instance of every lvt.skill.Skill successor class
         """
+        this.config = config
         this.skills = list()
         this.skillCount = 0
         this.skillErrors = 0
@@ -46,8 +48,13 @@ class SkillFactory():
                         try:
                             cls = getattr( module, className )
                             if this.isSkillClass( cls ) :
-                                this.skills.append( cls( this.terminal, filePath, className ) )
-                            this.skillCount += 1
+                                sn = className.lower()
+                                cfg = this.config.skills[sn] if sn in this.config.skills else {'enable':True}
+                                if cfg['enable'] :
+                                    this.skills.append( cls( this.terminal, filePath, className, cfg ) )
+                                    this.skillCount += 1
+                                else:
+                                    this.terminal.logDebug(f'Skill "className" disabled in configuration')
                         except Exception as e:
                             this.skillErrors += 1
                             this.terminal.logError( f'Exception creating class {moduleName}.{className}: {e}' )

@@ -5,8 +5,8 @@ import json
 from lvt.const import *
 from lvt.logger import *
 from lvt.protocol import *
-from lvt.server.grammar import *
 from lvt.config_parser import ConfigParser
+from lvt.server.grammar import *
 from lvt.server.skill import Skill
 from lvt.server.skill_factory import SkillFactory
 
@@ -24,13 +24,15 @@ class Terminal():
     """
 ### Terminal initialization ############################################################
 #region
-    def __init__( this, terminalId: str, configParser: ConfigParser ):
-        this.id = terminalId
+    def __init__( this, id ):
+        this.id = id
         this.logDebug( f'Initializing terminal' )
+        
+        this.password = config.terminals[id]['password']
+        this.name = config.terminals[id]['name']
+        this.defaultLocation = config.terminals[id]['location']
+        this.autoUpdate = config.terminals[id]['autoupdate']
 
-        this.password = configParser.getValue( '','Password','' )
-        if this.password == '': 
-            this.raiseException( f'Termininal configuration error: Password is not defined' )
 
         this.clientVersion = ""
         # Использовать "словарный" режим
@@ -38,9 +40,6 @@ class Terminal():
         this.usingVocabulary = config.vocabularyMode
         this.vocabulary = set()
 
-        this.name = configParser.getValue( '','Name',this.id )
-        this.defaultLocation = configParser.getValue( '','Location', '' ).lower()
-        this.autoUpdate = ( configParser.getIntValue( '', 'AutoUpdate', 1 ) != 0 )
 
         this.extendVocabulary( this.name )
         this.extendVocabulary( config.assistantName, {'NOUN', 'nomn', 'sing'} )
@@ -67,7 +66,7 @@ class Terminal():
         this.logDebug( 'Loading skills' )
 
         this.allTopics = set()
-        this.skills = SkillFactory( this ).loadSkills()
+        this.skills = SkillFactory( this ).loadSkills( config )
 
         for skill in this.skills:
             this.logDebug( f'{skill.priority:6} {skill.name}' )
@@ -91,7 +90,6 @@ class Terminal():
         this.appeal = wordsToList( config.assistantName )[0]
         this.appealPos = -1
         this.words = list()
-        this.animate( ANIMATION_NONE )
 #endregion
 ### Say / Play #########################################################################
 #region
@@ -354,7 +352,7 @@ class Terminal():
         this.logError( message )
         raise Exception( message )
 #endregion
-### Messages ###########################################################################
+### Messages, animate, getStatus #######################################################
 #region
     def getStatus( this ):
         """JSON строка с описанием текущего состояния терминала на стороне сервера
@@ -396,28 +394,6 @@ class Terminal():
 #endregion
 ### Static methods #####################################################################
 #region
-    def loadTerminals():
-        """Кеширует в память список сконфигурированных терминалов"""
-        global config
-        global terminals
-        """Returns dictionary of terminals[terminalId]
-        terminalId is a lowered terminal config file name
-        """
-        dir = os.path.join( 'lvt','terminals' )
-        terminals = list()
-
-        files = os.listdir( os.path.join( ROOT_DIR, dir ) )
-        for file in files:
-            path = os.path.join( dir, file )
-            if os.path.isfile( path ) and file.lower().endswith( '.cfg' ):
-                try: 
-                    terminalId = os.path.splitext( file )[0].lower()
-                    configParser = ConfigParser( path )
-                    if configParser.getValue( '','Enable','1' ) == '1':
-                        terminals.append( Terminal( terminalId, configParser ) )
-                    configParser = None
-                except Exception as e:
-                    print( f'Exception loading  "{file}" : {e}' )
 
     def authorize( terminalId:str, password:str, clientVersion ):
         """Авторизация терминала по terminalId и паролю"""
@@ -449,7 +425,10 @@ class Terminal():
         else:
             pass
 
-        Terminal.loadTerminals()
+        terminals = list()
+        for id in config.terminals: 
+            terminals.append( Terminal( id ) )
+
 
     def dispose():
         if config.ttsEngine == TTS_RHVOICE :
