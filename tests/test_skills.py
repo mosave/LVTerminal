@@ -16,6 +16,7 @@ from lvt.protocol import *
 from lvt.logger import *
 from lvt.server.grammar import *
 from lvt.server.config import Config 
+from lvt.server.entities import Entities
 from lvt.server.terminal import Terminal
 from lvt.server.speaker import Speaker
 from lvt.server.skill import Skill
@@ -72,7 +73,7 @@ def testAppealDetector():
 def testAcronym():
     logs.clear()
     print( '***** AcronymaExpanderSkill tests' )
-    terminal.acronyms.append(['зелёный вентилятор ','махатель лопастями'])
+    Entities().acronyms.append(['зелёный вентилятор ','махатель лопастями'])
     onText( 'слушай мажордом выключи махателя лопастями','зелёный вентилятор' )
 
 def testOneWordCommandSkill():
@@ -141,6 +142,7 @@ logs = list()
 Logger.initialize( config )
 Logger.setLogCapture(logs)
 Grammar.initialize( config )
+Entities.initialize( config )
 Terminal.initialize( config )
 Speaker.initialize( config )
 

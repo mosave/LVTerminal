@@ -15,7 +15,7 @@ class LocationsDetectorSkill(Skill):
         this.subscribe( TOPIC_ALL )
 
     def onText( this ):
-        for locations in this.terminal.knownLocations :
+        for locations in this.entities.locations :
             for badIndex in range(1,len(locations)+1) :
                 il = badIndex if badIndex<len(locations) else 0
                 location = locations[il]

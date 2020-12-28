@@ -15,6 +15,7 @@ from lvt.server.grammar import *
 from lvt.protocol import *
 from lvt.logger import *
 from lvt.server.config import Config 
+from lvt.server.entities import Entities
 from lvt.server.terminal import Terminal
 from lvt.server.speaker import Speaker
 
@@ -255,6 +256,7 @@ for arg in sys.argv[1:]:
 
 Logger.initialize( config )
 Grammar.initialize( config )
+Entities.initialize( config )
 Terminal.initialize( config )
 Speaker.initialize( config )
 

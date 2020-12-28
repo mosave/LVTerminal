@@ -18,7 +18,7 @@ class AcronymaExpanderSkill(Skill):
         this.subscribe( TOPIC_ALL )
 
     def onText( this ):
-        for a in this.terminal.acronyms:
+        for a in this.entities.acronyms:
             for i in range(1, len(a)):
                 this.replaceWordChain( a[i], a[0] )
 

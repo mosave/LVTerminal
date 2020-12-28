@@ -85,6 +85,8 @@ class Skill:
     def appeal( this ): return this.terminal.appeal
     @property
     def location( this ): return this.terminal.location
+    @property
+    def entities( this ): return this.terminal.entities
 
     @property
     def words( this ): return this.terminal.words

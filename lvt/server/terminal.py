@@ -7,6 +7,7 @@ from lvt.logger import *
 from lvt.protocol import *
 from lvt.config_parser import ConfigParser
 from lvt.server.grammar import *
+from lvt.server.entities import Entities
 from lvt.server.skill import Skill
 from lvt.server.skill_factory import SkillFactory
 
@@ -33,16 +34,13 @@ class Terminal():
         this.defaultLocation = config.terminals[id]['location']
         this.autoUpdate = config.terminals[id]['autoupdate']
 
-
         this.clientVersion = ""
         # Использовать "словарный" режим
         this.vocabularyMode = config.vocabularyMode
         this.usingVocabulary = config.vocabularyMode
         this.vocabulary = set()
 
-
-        this.extendVocabulary( this.name )
-        this.extendVocabulary( config.assistantName, {'NOUN', 'nomn', 'sing'} )
+        this.entities = Entities()
 
         this.parsedLocations = []
 
@@ -71,14 +69,8 @@ class Terminal():
         for skill in this.skills:
             this.logDebug( f'{skill.priority:6} {skill.name}' )
             this.allTopics = this.allTopics.union( skill.subscriptions )
-            this.vocabulary.update( skill.vocabulary )
 
-        this.basicVocabulary = this.loadEntities( 'vocabulary' )
-        this.extendVocabulary( this.basicVocabulary )
-        this.acronyms = this.loadEntities( 'acronyms' )
-        this.extendVocabulary( this.acronyms )
-        this.knownLocations = this.loadEntities( 'locations' )
-        this.extendVocabulary( this.knownLocations )
+        this.updateVocabulary()
 
         this.lastAnimation = ''
 
@@ -130,8 +122,8 @@ class Terminal():
         return ( time.time() - this.lastActivity < 1 * 60 )
 
     @property
-    def locations( this ) -> str:
-        """Локация, распознанная в процессе анализа фразы либо локация по умолчанию, заданная в конфигурации терминала"""
+    def locations( this ):
+        """Список локаций, распознанные при анализе фразы либо локация, заданная в конфигурации терминала"""
         return ( this.parsedLocations if len( this.parsedLocations ) > 0 else [this.defaultLocation] )
 
     @property
@@ -240,7 +232,7 @@ class Terminal():
             this.animate( ANIMATION_NONE )
 
 #endregion
-### onText() ###########################################################################
+### onPartialText() ####################################################################
 #region
     def onPartialText( this, text:str ):
         """Основная точка входа для обработки частично распознанного фрагмента """
@@ -308,15 +300,18 @@ class Terminal():
         """
         return this.vocabulary if this.usingVocabulary else ''
 
-    def loadEntities( this, entityFileName ):
-        entities = list()
-        p = ConfigParser( os.path.join( 'lvt','entities', entityFileName ) )
-        for v in p.values:
-            entity = list()
-            for i in range( 2,len( v ) ):
-                entity.append( v[i] )
-            entities.append( entity )
-        return entities
+    def updateVocabulary( this ) -> str:
+        this.vocabulary = set()
+
+        this.extendVocabulary( this.name )
+        this.extendVocabulary( config.assistantName, {'NOUN', 'nomn', 'sing'} )
+
+        this.extendVocabulary( this.entities.vocabulary )
+        this.extendVocabulary( this.entities.acronyms )
+        this.extendVocabulary( this.entities.locations )
+        for skill in this.skills:
+            this.vocabulary.update( skill.vocabulary )
+
 #endregion
 ### Updating client ####################################################################
 #region
@@ -436,5 +431,11 @@ class Terminal():
             except: pass
         else:
             pass
+
+    #def updateVocabulary():
+    #    global terminals
+    #    for t in terminals:
+    #        t.updateVocabulary()
+
 
 #endregion
