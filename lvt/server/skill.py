@@ -123,8 +123,8 @@ class Skill:
     def conformToAppeal( this, word: str ) -> str:
         """Согласовать слово с обращением (мужской-женский-средний род)"""
         parse = parseWord( word )[0]
-        gender = parseWord( this.terminal.appeal )[0].tag.gender
-        return parse.inflect( {gender} ).word
+        tags = changeGender( parse.tag, parseWord( this.terminal.appeal )[0].tag.gender )
+        return parse.inflect( tags ).word
 
     def isWord( this, index, word: str, tags=None ) -> bool:
         """Сравнение слова со словом в фразе с учетом морфологических признаков"""
