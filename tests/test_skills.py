@@ -129,6 +129,12 @@ def testYesNo():
     onText( 'да, уверен' )
     checkIfSaid( 'Подтверждено' )
 
+def testFindWordChain():
+    logs.clear()
+    print( '***** findWordChain() tests' )
+    onText( 'алиса проверка поиска по шаблону' )
+    checkIfSaid( 'Поиск по шаблону работает' )
+
 
 config = Config( 'lvt_server.cfg' )
 config.logFileName = "logs/test_skills.log"
@@ -152,6 +158,7 @@ terminal = Terminal.authorize( 'test', 'Password', 'testscript' )
 terminal.onConnect( messageQueue )
 
 testAppealDetector()
+testFindWordChain()
 testAcronym()
 testOneWordCommandSkill()
 testLocationExtractor()

@@ -36,7 +36,7 @@ class YesNoSkill(Skill):
     
     """
     def onLoad( this ):
-        this.priority = 5000
+        this.priority = 100
         this.subscribe( TOPIC_YES_NO )
         this.extendVocabulary( "нет, не согласен, отказ, стой, отмена, отменить, не хочу, прекрати, не надо, не нужно" )
         this.extendVocabulary( "да, согласен, конечно, продолжить, уверен, поехали" )
@@ -52,27 +52,27 @@ class YesNoSkill(Skill):
             return
 
         if this.topicCancel != '' and ( \
-            this.findWordChain( 'отменить' ) >= 0 or \
-            this.findWordChain( 'отмена' ) >= 0 ) :
+            this.findWordChainB( 'отменить' ) or \
+            this.findWordChainB( 'отмена' ) ) :
             this.changeTopic( this.topicCancel,this.text )
             this.stopParsing( ANIMATION_CANCEL )
             return
-        if this.findWordChain( 'нет' ) >= 0 or \
-            this.findWordChain( 'отмена' ) >= 0 or \
-            this.findWordChain( 'не согласен' ) >= 0 or \
-            this.findWordChain( 'отказ' ) >= 0 or \
-            this.findWordChain( 'стой' ) >= 0 or \
-            this.findWordChain( 'не уверен' ) >= 0 or \
-            this.findWordChain( 'не нужно' ) >= 0 :
+        if this.findWordChainB( 'нет' ) or \
+            this.findWordChainB( 'отмена' ) or \
+            this.findWordChainB( 'не согласен' ) or \
+            this.findWordChainB( 'отказ' ) or \
+            this.findWordChainB( 'стой' ) or \
+            this.findWordChainB( 'не уверен' ) or \
+            this.findWordChainB( 'не нужно' ) :
             this.changeTopic( this.topicNo,this.text )
             this.stopParsing( ANIMATION_CANCEL )
             return
-        if this.findWordChain( 'да' ) >= 0 or \
-            this.findWordChain( 'согласен' ) >= 0 or \
-            this.findWordChain( 'продолжай' ) >= 0 or \
-            this.findWordChain( 'конечно' ) >= 0 or \
-            this.findWordChain( 'поехали' ) >= 0 or \
-            this.findWordChain( 'уверен' ) >= 0 :
+        if this.findWordChainB( 'да' ) or \
+            this.findWordChainB( 'согласен' ) or \
+            this.findWordChainB( 'продолжай' ) or \
+            this.findWordChainB( 'конечно' ) or \
+            this.findWordChainB( 'поехали' ) or \
+            this.findWordChainB( 'уверен' ) :
             this.changeTopic( this.topicYes,this.text )
             this.stopParsing( ANIMATION_ACCEPT )
             return

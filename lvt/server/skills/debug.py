@@ -16,14 +16,42 @@ TOPIC_DEBUG_CANCEL = "DebugCancel"
 #Define base skill class
 class DebugSkill(Skill):
     def onLoad( this ):
-        this.priority = 5000
+        this.priority = 9000
         this.extendVocabulary("проверка да или нет")
+        this.extendVocabulary("проверка поиска по шаблону")
         this.subscribe( TOPIC_DEFAULT,  TOPIC_DEBUG_YES,TOPIC_DEBUG_NO, TOPIC_DEBUG_CANCEL,
                        TOPIC_DEBUG1,TOPIC_DEBUG2, TOPIC_DEBUG3, TOPIC_DEBUG4 )
 
     def onText( this ):
         if this.isAppealed :
-            if this.findWordChain("проверка да или нет")>=0 :
+            if this.findWordChainB("проверка поиска по шаблону") :
+                def failed( pattern, pos, len ) :
+                    (p,l) = this.findWordChain( pattern )
+                    if p != pos  or l != len :
+                        this.say(f'Ошибка при поиске {pattern}: ({p},{l})')
+                        this.stopParsing(ANIMATION_CANCEL)
+                        return True
+                    else:
+                        return False
+
+                this.stopParsing(ANIMATION_ACCEPT)
+                this.terminal.text = normalizeWords('ноль один два три четыре пять шесть семь восемь девять ноль один два')
+                if failed('два три четыре',2,3) : return
+                if failed('девять ноль один два три', -1, 0) : return
+                if failed('два три ? четыре', -1, 0) : return
+                if failed('два три ? пять', 2,4) : return
+                if failed('два три * четыре', 2,3) : return
+                if failed('два три * шесть', 2,5) : return
+                if failed('два * один',2,10) : return
+                if failed('два * пять * шесть * один',2,10) : return
+                if failed('два * пять ? шесть * один',-1,0) : return
+                if failed('два * пять ? семь * один',2,10) : return
+                if failed('три * три',-1,0) : return
+
+                this.stopParsing(ANIMATION_ACCEPT)
+                this.say('Поиск по шаблону работает')
+
+            elif this.findWordChainB("проверка да или нет") :
                 this.stopParsing(ANIMATION_ACCEPT)
                 this.changeTopic( "YesNo", \
                     message='Да или нет?',
@@ -31,7 +59,6 @@ class DebugSkill(Skill):
                     topicNo = TOPIC_DEBUG_NO,
                     topicCancel = TOPIC_DEBUG_CANCEL
                 )
-        pass
     def onTopicChange( this, newTopic: str, params = {} ):
         if newTopic == TOPIC_DEBUG_YES :
             this.say( 'Подтверждено' )

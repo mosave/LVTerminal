@@ -12,4 +12,9 @@ class TellTheTimeSkill(Skill):
         this.subscribe( TOPIC_DEFAULT )
 
     def onText( this ):
+        if this.isAppealed :
+            if this.findWordChainB('сколько * времени') or \
+                this.findWordChainB('который * час'):
+                this.stopParsing(ANIMATION_ACCEPT)
+                this.say('московское')
         pass

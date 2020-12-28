@@ -20,12 +20,11 @@ class ServerConfigSkill(Skill):
         if this.isAppealed :
             iOff = this.findWord( 'выключи' )
             iOn = this.findWord( 'включи' )
-            iDict = this.findWord( 'словарь' )
+            (iNoDict,_) = this.findWordChain( 'без словаря' )
+            iDict = this.findWord( 'словарь' ) if iNoDict<0 else -1
             iRecognize = this.findWord( 'распознавание' )
-            iNoDict = this.findWordChain( 'без словарь' )
 
-            if (iDict>=0 and iNoDict<0) and iOn>=0 and iOn<iDict or \
-                iNoDict>=0 and iOff>=0 and iOff<iNoDict :
+            if iOn>=0 and iOn<iDict  or  iOff>=0 and iOff<iNoDict :
                 if this.terminal.vocabularyMode:
                     this.stopParsing( ANIMATION_CANCEL )
                     this.say("режим распознавания со словарем уже включен")
@@ -34,8 +33,7 @@ class ServerConfigSkill(Skill):
                     this.terminal.usingVocabulary = True
                     this.stopParsing( ANIMATION_ACCEPT )
                     this.say("Включаю режим распознавания со словарем")
-            elif (iDict>=0 and iNoDict<0) and iOff>=0 and  iOff<iDict or \
-                iNoDict>=0 and iOn>=0 and iOn<iNoDict :
+            elif iOff>=0 and iOff<iDict  or  iOn>=0 and iOn<iNoDict :
                 if this.terminal.vocabularyMode:
                     this.terminal.vocabularyMode = False
                     this.terminal.usingVocabulary = False

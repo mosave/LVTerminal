@@ -24,19 +24,18 @@ class ParrotModeSkill(Skill):
             iOff = this.findWord( 'выключи' )
             iOn = this.findWord( 'включи' )
             if iOn<0 : iOn = this.findWord( 'переключись' )
-            iDict = this.findWord( 'словарь' )
             iRecognize = this.findWord( 'распознавание' )
-            iNoDict = this.findWordChain( 'без словаря' )
+            (iNoDict,_) = this.findWordChain( 'без словаря' )
+            iDict = this.findWord( 'словарь' ) if iNoDict<0 else -1
+
             iStop = this.findWord( 'перестань' )
             iRepeat = this.findWord( 'повторять' )
             iParrot = this.findWord( 'попугай' )
             iBeParrot = this.findWord( 'попугайничать',{'INFN'} )
-            if iOff>=0 and iParrot>0 or \
-                iStop>=0 and ( iRepeat>=0 or iBeParrot>=0 ) :
+            if iOff>=0 and iParrot>0  or  iStop>=0 and ( iRepeat>=0 or iBeParrot>=0 ) :
                 this.stopParsing(ANIMATION_ACCEPT)
                 this.changeTopic( TOPIC_DEFAULT )
-            elif iNoDict<0 and iDict>=0 and iOn>=0 and iOn<iDict or \
-                iNoDict>=0 and iOff>=0 and iOff<iNoDict :
+            elif iOn>=0 and iOn<iDict  or  iOff>=0 and iOff<iNoDict :
                 if this.terminal.usingVocabulary:
                     this.stopParsing(ANIMATION_CANCEL)
                     this.say("режим распознавания со словарем уже включен")
@@ -44,8 +43,7 @@ class ParrotModeSkill(Skill):
                     this.stopParsing(ANIMATION_ACCEPT)
                     this.terminal.usingVocabulary = True
                     this.say("Включаю режим распознавания со словарем")
-            elif iNoDict<0 and iDict>=0 and iOff>=0 and  iOff<iDict or \
-                iNoDict>=0 and iOn>=0 and iOn<iNoDict :
+            elif iOff>=0 and  iOff<iDict  or  iOn>=0 and iOn<iNoDict :
                 if this.terminal.usingVocabulary:
                     this.stopParsing(ANIMATION_ACCEPT)
                     this.terminal.usingVocabulary = False
@@ -59,11 +57,10 @@ class ParrotModeSkill(Skill):
 
         else:
             if this.isAppealed :
-                if this.findWordChain( 'включи режим попугая' )>=0 or \
-                    this.findWordChain( 'переключись режим попугая' )>=0 or \
-                    this.findWordChain( 'переключись в режим попугая' )>=0 or \
-                    this.findWordChain( 'перейди в режим попугая' )>=0 or \
-                    this.findWordChain( 'повторяй за мной' )>=0 :
+                if this.findWordChainB( 'включи режим попугая' ) or \
+                    this.findWordChainB( 'переключись * режим попугая' ) or \
+                    this.findWordChainB( 'перейди в режим попугая' ) or \
+                    this.findWordChainB( 'повторяй за мной' ) :
                     this.changeTopic( TOPIC_PARROT_MODE )
                     this.stopParsing(ANIMATION_ACCEPT)
 

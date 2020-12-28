@@ -110,29 +110,29 @@ class Skill:
         parses = parseWord( word )
         for p in parses:
             if ( tags == None ) or tags in p.tag: 
-                return p.normal_form.replace('ё', 'e')
+                return p.normal_form.replace( 'ё', 'e' )
         return ''
 
     def getNormalForm( this, index: int, tags=None ) -> str:
         """Возвращает нормальную форму слова в фразе с учетом морфологических признаков"""
         for p in this.words[index]:
             if ( tags == None ) or tags in p.tag: 
-               return p.normal_form.replace('ё', 'e')
+               return p.normal_form.replace( 'ё', 'e' )
         return ''
 
-    def conformToAppeal( this, word: str )->str:
+    def conformToAppeal( this, word: str ) -> str:
         """Согласовать слово с обращением (мужской-женский-средний род)"""
-        parse = parseWord(word)[0]
-        gender = parseWord(this.terminal.appeal)[0].tag.gender
-        return parse.inflect({gender}).word
+        parse = parseWord( word )[0]
+        gender = parseWord( this.terminal.appeal )[0].tag.gender
+        return parse.inflect( {gender} ).word
 
     def isWord( this, index, word: str, tags=None ) -> bool:
         """Сравнение слова со словом в фразе с учетом морфологических признаков"""
-        if word == None or not isinstance(word, str) : return False
+        if word == None or not isinstance( word, str ) : return False
 
         nf = this.getNormalFormOf( word, tags )
         for p in this.terminal.words[index]:
-            if ( tags == None or tags in p.tag ) and ( p.normal_form.replace('ё', 'e') == nf ): 
+            if ( tags == None or tags in p.tag ) and ( p.normal_form.replace( 'ё', 'e' ) == nf ): 
                 return True
         return False
 
@@ -148,30 +148,62 @@ class Skill:
         nf = this.getNormalFormOf( word,tags )
         for index in range( len( this.terminal.words ) ):
             for p in this.terminal.words[index]:
-                if ( tags == None or tags in p.tag ) and p.normal_form.replace('ё', 'e') == nf: 
+                if ( tags == None or tags in p.tag ) and p.normal_form.replace( 'ё', 'e' ) == nf: 
                     return index
         return -1
 
-    def findWordChain( this, chain: str, startIndex: int=0, exact: bool=True ) -> int:
-        """Поиск в фразе цепочки слов
-       Возвращает индекс первого слова в цепочке"""
+    def findWordChain( this, chain: str, startIndex: int=0 ) :
+        """Поиск в фразе цепочки слов по шаблону
+       Возвращает индекс первого слова в цепочке и длину
+       Поддерживаемые шаблоны: 
+       ? - одно любое слово
+       * - ноль или больше любых слов
+       """
 
         cWords = wordsToList( chain )
-        # Количество возможных положений цепочки в фразе (длина фразы-длина
-        # цепочки)
-        n = len( this.terminal.words ) - len( cWords ) - startIndex + 1
-        # Проверить, достаточно ли слов в фразе
-        if n < 1 : return -1
+        txt = wordsToList(this.terminal.text)
+        lenW = len( this.terminal.words )
+        lenCW = len( cWords )
+        if lenW<=0 : return(-1,0)
+        if lenCW<=0 : return(startIndex,0)
 
-        for index in range( startIndex, n ):
+        for index in range( startIndex, lenW ):
             found = True
-            for i in range( len( cWords ) ) :
-                if not this.isWord( index + i, cWords[i] ) : 
+            iW = index
+            iCW = 0
+            while iCW < lenCW :
+                if iW >= lenW :
+                    return(-1, 0)
+                elif cWords[iCW] == '*' :
+                    iCW += 1
+                    (p,l) = this.findWordChain( ' '.join( cWords[iCW:] ), iW )
+                    if p<0 : found = False
+                    iW = p+l
+                    iCW = lenCW
+                    break
+                elif cWords[iCW] == '?' :
+                    iW += 1
+                    iCW += 1
+                elif this.isWord( iW, cWords[iCW] ) : 
+                    iW += 1
+                    iCW += 1
+                else :
                     found = False
                     break
-            if found : return index
+            if found and iCW == lenCW : 
+                return (index,iW - index)
 
-        return -1
+        return (-1, 0)
+
+    def findWordChainB( this, chain: str, startIndex: int=0 ) -> bool:
+        """Поиск в фразе цепочки слов по шаблону
+        Возвращает True если цепочка найдена в 
+        Поддерживаемые шаблоны: 
+        ? - одно любое слово
+        * - ноль или больше любых слов
+        """
+        (start, len) = this.findWordChain( chain, startIndex )
+        return ( start >= 0 )
 
     def deleteWord( this, index: int, wordsToDelete:int=1 ):
         """ Удаление одного или нескольких слов из фразы"""
@@ -192,10 +224,10 @@ class Skill:
         """Найти в фразе цепочку слов chain и заменить ее на replaceWithChain """
         found = False
         while True:
-            n = this.findWordChain( chain )
-            if n >= 0:
-                this.deleteWord( n, len( wordsToList( chain ) ) )
-                this.insertWords( n, replaceWithChain )
+            (p,l) = this.findWordChain( chain )
+            if p >= 0:
+                this.deleteWord( p, l )
+                this.insertWords( p, replaceWithChain )
                 found = True
             else:
                 break
@@ -240,7 +272,7 @@ class Skill:
         elif len( params ) > 0 : 
             p.update( {'params':params} )
         this.terminal.newTopicParams = p
-        this.terminal.logDebug(f'{this.name}.changeTopic("{newTopic}", {p}) ]')
+        this.terminal.logDebug( f'{this.name}.changeTopic("{newTopic}", {p}) ]' )
 
     def stopParsing( this, animation: str=None ):
         """Прервать исполнение цепочки скиллов после выхода из обработчика onText/onPartialText"""
