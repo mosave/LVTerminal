@@ -8,6 +8,7 @@ import pathlib
 import websockets
 import logging
 import time
+import datetime
 
 sys.path.append(os.path.abspath( os.path.join( os.path.dirname( __file__ ),'../' ) ))
 
@@ -45,7 +46,8 @@ def onText( text:str, controlPhrase : str=None ):
     errors = 0
     for m in logs :
         if m.startswith('E '): errors += 1
-    if errors >0 : abort(f'Обнаружены ошибки: {errors}')
+    if errors >0 : 
+        abort(f'Обнаружены ошибки: {errors}')
     if controlPhrase != None :
         if terminal.text.find(normalizeWords(controlPhrase)) <0 :
             abort(f'Не обнаружена контрольная фраза "{controlPhrase}"')
@@ -62,12 +64,10 @@ def checkIfSaid(phrase):
 def testAppealDetector():
     logs.clear()
     print( '***** AppealDetectorSkill tests' )
-    onText( 'Ой, ехал некогда Грека через какую-то реку. И ведь доехал же! ', \
-          'ехал грека через какую-то реку')
     onText( 'слушай, мажордом, сделай что-нибудь!', 'мажордом сделай что-нибудь' )
     onText( 'слушай, алиса...' )
     if( terminal.topic != 'WaitCommand') : abort('Терминал не перешел в режим ожидания команды')
-    onText( 'сделай уже что нибудь!', 'алиса сделай что нибудь' )
+    onText( 'сделай уже что нибудь!', 'алиса сделай уже что нибудь' )
     if( terminal.topic != TOPIC_DEFAULT) : abort('Терминал не вернулся в нормальный режим')
 
 def testAcronym():
@@ -135,6 +135,14 @@ def testFindWordChain():
     onText( 'алиса проверка поиска по шаблону' )
     checkIfSaid( 'Поиск по шаблону работает' )
 
+def testTimeTeller():
+    logs.clear()
+    print( '***** TellTheTimeSkill tests' )
+    onText( 'алиса скажи сколько сейчас времени' )
+    checkIfSaid( '' )
+    onText( 'алиса какое сегодня число' )
+
+
 
 config = Config( 'lvt_server.cfg' )
 config.logFileName = "logs/test_skills.log"
@@ -156,6 +164,36 @@ messageQueue = list()
 
 terminal = Terminal.authorize( 'test', 'Password', 'testscript' )
 terminal.onConnect( messageQueue )
+
+print( transcribeDate(datetime.datetime.today()) )
+
+print( transcribeTime(datetime.datetime.today()) )
+
+
+print( transcribeNumber(28,{'nomn','ADJF'}) )
+
+#_s=''
+#w = parseWord('восемь')[0]
+#t = w.tag
+#for c in list(t.CASES) :
+#    for p in list(t.PARTS_OF_SPEECH) :
+#        for g in list(t.KNOWN_GRAMMEMES) :
+#            s = w.inflect( {str(c),str(p), str(g)})
+#            if s!=None :
+#                s = s.word
+#                if s=='восьмое' :
+#                    print( f'{str(c)},{str(p)}, {str(g)}: ' + s )
+#                _s = s
+#        #for g in list(t.KNOWN_GRAMMEMES) :
+#        #    print( f'{c}, {p}, {g}: ' + transcribeNumber(28,{str(c),str(p),str(g),'neut'},'декабря') )
+
+print( transcribeNumber(1000,{'gent'},'хомяк') )
+print( transcribeNumber(1111111,{'gent'}, 'хомяк') )
+
+print( transcribeNumber(123123123,{'gent'}, 'хомяк') )
+
+testTimeTeller()
+
 
 testAppealDetector()
 testFindWordChain()

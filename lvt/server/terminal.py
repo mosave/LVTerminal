@@ -149,8 +149,8 @@ class Terminal():
             #if {'PRED'} not in parses[0].tag and {'ADVB'} not in parses[0].tag
             #and {'INTJ'} not in parses[0].tag and {'PRCL'} not in
             #parses[0].tag :
-            #Проигнорировать наречия и междометия
-            if {'ADVB'} not in parses[0].tag and {'INTJ'} not in parses[0].tag :
+            #Проигнорировать междометия
+            if {'INTJ'} not in parses[0].tag :
                 this.words.append( parses )
 #endregion
 ### onConnect() / onDisconnect() #######################################################
