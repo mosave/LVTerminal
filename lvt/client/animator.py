@@ -4,6 +4,7 @@ import os
 import threading
 import queue as Queue
 from lvt.const import *
+from lvt.logger import *
 from lvt.client.config import Config
 
 class Animator:
@@ -20,7 +21,7 @@ class Animator:
 
     def start( this ):
         this.thread = threading.Thread( target=this.__run__ )
-        this.thread.daemon = True
+        this.thread.daemon = False
         this.thread.start()
 
 ### Effects implementation ##############################################################
@@ -65,38 +66,43 @@ class Animator:
         """Alias to none()
         Returns effect lock status: True if should not be interrupted
         """
-        return this.none( True )
+        return this.animationNone( True )
 #endregion
 
     def __run__( this ):
         muted = False
         locked = False
         defaultAnimation = ANIMATION_NONE
-        while not this.shared.isTerminated:
-            animation = this.animation
-            restart = False
-            if not locked:
-                if not this.queue.empty() :
-                    this.animation = this.queue.get()
-                    if this.animation in ANIMATION_STICKY:
-                        defaultAnimation = this.animation
-                    restart = animation != this.animation
-                elif this.animation != defaultAnimation:
-                    this.animation = defaultAnimation
+        try:
+            while not this.shared.isTerminated:
+                animation = this.animation
+                restart = False
+                if not locked:
+                    if not this.queue.empty() :
+                        this.animation = this.queue.get()
+                        if this.animation in ANIMATION_STICKY:
+                            defaultAnimation = this.animation
+                        restart = animation != this.animation
+                    elif this.animation != defaultAnimation:
+                        this.animation = defaultAnimation
 
-            if this.animation == ANIMATION_AWAKE : 
-                locked = this.animationAwake( restart )
-            elif this.animation == ANIMATION_THINK : 
-                locked = this.animationThink( restart )
-            elif this.animation == ANIMATION_ACCEPT : 
-                locked = this.animationAccept( restart )
-            elif this.animation == ANIMATION_CANCEL : 
-                locked = this.animationCancel( restart )
-            else: 
-                locked = this.animationNone(restart)
+                if this.animation == ANIMATION_AWAKE : 
+                    locked = this.animationAwake( restart )
+                elif this.animation == ANIMATION_THINK : 
+                    locked = this.animationThink( restart )
+                elif this.animation == ANIMATION_ACCEPT : 
+                    locked = this.animationAccept( restart )
+                elif this.animation == ANIMATION_CANCEL : 
+                    locked = this.animationCancel( restart )
+                else: 
+                    locked = this.animationNone(restart)
 
-            #sleep 10ms
-            time.sleep(this.timeout)
+                #sleep 10ms
+                time.sleep(this.timeout)
+        except KeyboardInterrupt as e:
+            pass
+        except Exception as e:
+            logError( f'Exception in animator thread: {e} ')
         this.off
 
     def animate( this, animation ):

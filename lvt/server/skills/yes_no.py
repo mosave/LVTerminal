@@ -54,7 +54,7 @@ class YesNoSkill(Skill):
         if this.topicCancel != '' and ( \
             this.findWordChainB( 'отменить' ) or \
             this.findWordChainB( 'отмена' ) ) :
-            this.changeTopic( this.topicCancel,this.text )
+            this.changeTopic( this.topicCancel,this.terminal.text )
             this.stopParsing( ANIMATION_CANCEL )
             return
         if this.findWordChainB( 'нет' ) or \
@@ -64,7 +64,7 @@ class YesNoSkill(Skill):
             this.findWordChainB( 'стой' ) or \
             this.findWordChainB( 'не уверен' ) or \
             this.findWordChainB( 'не нужно' ) :
-            this.changeTopic( this.topicNo,this.text )
+            this.changeTopic( this.topicNo,this.terminal.text )
             this.stopParsing( ANIMATION_CANCEL )
             return
         if this.findWordChainB( 'да' ) or \
@@ -73,7 +73,7 @@ class YesNoSkill(Skill):
             this.findWordChainB( 'конечно' ) or \
             this.findWordChainB( 'поехали' ) or \
             this.findWordChainB( 'уверен' ) :
-            this.changeTopic( this.topicYes,this.text )
+            this.changeTopic( this.topicYes,this.terminal.text )
             this.stopParsing( ANIMATION_ACCEPT )
             return
         this.say('Извините, я не '+this.conformToAppeal('понял')+' что вы сказали. Скажите пожалуйста да или нет')

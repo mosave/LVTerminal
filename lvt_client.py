@@ -286,7 +286,7 @@ def restartClient():
 #region
 if __name__ == '__main__':
     print()
-    print( f'Lignt Voice Terminal Client v{VERSION}' )
+    print( f'Lite Voice Terminal Client v{VERSION}' )
 
     config = Config( os.path.splitext( os.path.basename( __file__ ) )[0] + '.cfg' )
 

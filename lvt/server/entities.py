@@ -7,14 +7,25 @@ from lvt.logger import *
 from lvt.protocol import *
 from lvt.config_parser import ConfigParser
 from lvt.server.grammar import *
-from lvt.server.skill import Skill
-from lvt.server.skill_factory import SkillFactory
 
 config = None
 vocabulary = None
 acronyms = None
 locations = None
-devices = None
+
+### class Location() ###################################################################
+#region
+class Location():
+    def __init__( this, id: str, names ):
+        this.id = id
+        this.names= names if isinstance(names, list) else [names]
+    @property
+    def name(this):
+        return names[0]
+
+#endregion
+    
+
 
 class Entities():
     """Entities class. Single-instance in-memory world facts
@@ -24,7 +35,7 @@ class Entities():
     def __init__( this ):
         pass
 #endregion
-### Properties #########################################################################
+### Properties & Methods ###############################################################
 #region
     @property
     def vocabulary( this ) -> list:
@@ -43,11 +54,12 @@ class Entities():
         global locations
         return locations
 
-    @property
-    def devices( this ) -> list:
-        """Список локаций"""
-        global devices
-        return devices
+    def findLocation( this, location: str ) -> str:
+        location = normalizeWords( location )
+        for l in this.locations:
+            if location in l: return(l[0])
+        return None
+
 ### Static methods #####################################################################
 #region
     def initialize( gConfig ):
@@ -56,12 +68,10 @@ class Entities():
         global vocabulary
         global acronyms
         global locations
-        global devices
 
         vocabulary = Entities.load( 'vocabulary' )
         acronyms = Entities.load( 'acronyms' )
         locations = Entities.load( 'locations' )
-        devices = Entities.load( 'devices' )
         
         config = gConfig
 

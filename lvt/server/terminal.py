@@ -8,6 +8,7 @@ from lvt.protocol import *
 from lvt.config_parser import ConfigParser
 from lvt.server.grammar import *
 from lvt.server.entities import Entities
+from lvt.server.devices import Devices
 from lvt.server.skill import Skill
 from lvt.server.skill_factory import SkillFactory
 

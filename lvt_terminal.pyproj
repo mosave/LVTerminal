@@ -38,6 +38,7 @@
     <Compile Include="lvt\config_parser.py" />
     <Compile Include="lvt\const.py" />
     <Compile Include="lvt\logger.py" />
+    <Compile Include="lvt\server\devices.py" />
     <Compile Include="lvt\server\entities.py" />
     <Compile Include="lvt\server\grammar.py" />
     <Compile Include="lvt\protocol.py" />

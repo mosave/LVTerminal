@@ -18,6 +18,7 @@ from lvt.logger import *
 from lvt.server.grammar import *
 from lvt.server.config import Config 
 from lvt.server.entities import Entities
+from lvt.server.devices import Devices
 from lvt.server.terminal import Terminal
 from lvt.server.speaker import Speaker
 from lvt.server.skill import Skill
@@ -58,7 +59,7 @@ def checkIfSaid(phrase):
     phrase = normalizeWords(phrase)
     for m in logs :
         if m.startswith('D') and m.find('Say')>0 and normalizeWords(m).find(phrase)>0 : return True
-    abort(f'Терминал не произнес ключеву фразу "{phrase}"')
+    abort(f'Терминал не произнес ключевую фразу "{phrase}"')
 
 
 def testAppealDetector():
@@ -139,8 +140,9 @@ def testTimeTeller():
     logs.clear()
     print( '***** TellTheTimeSkill tests' )
     onText( 'алиса скажи сколько сейчас времени' )
-    checkIfSaid( '' )
+    checkIfSaid( transcribeTime(datetime.datetime.today()) )
     onText( 'алиса какое сегодня число' )
+    checkIfSaid( transcribeDate(datetime.datetime.today()) )
 
 
 
@@ -157,6 +159,7 @@ Logger.initialize( config )
 Logger.setLogCapture(logs)
 Grammar.initialize( config )
 Entities.initialize( config )
+Devices.initialize( config )
 Terminal.initialize( config )
 Speaker.initialize( config )
 
