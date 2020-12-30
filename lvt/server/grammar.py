@@ -10,6 +10,13 @@ class Grammar():
         #config = gConfig
         morphy = pymorphy2.MorphAnalyzer( lang=gConfig.language )
         pass
+### pymorphy2 isolation ################################################################
+#region
+
+def parseWord( word: str ):
+    """Parse word using phmorphy2 library"""
+    global morphy
+    return morphy.parse( word )
 
 def changeGender( tags, gender ) :
     try:
@@ -21,22 +28,14 @@ def changeGender( tags, gender ) :
     except:
         t = {gender}
     return t
-
-def parseWord( word: str ):
-    """Parse word using phmorphy2 library"""
-    global morphy
-    return morphy.parse( word )
-
-#def inflectWord( word: str, tags ):
-#    """Parse word using phmorphy2 library"""
-#    global morphy
-#    return morphy.parse (word)
-
 def conformToNumber( this, number: int, word: str ) -> str:
     """Согласовать слово с числом"""
     return transcribeNumber( number ) + ' ' + parseWord( word )[0].make_agree_with_number( number ).word
-
+#endregion
+### Numbers transcription ##############################################################
+#region
 def transcribeNumber999( number: int, tags=None ):
+    """Перевод целого числа в диапазоне 0..999 в фразу на русском языке с учетом заданных тегов"""
     if tags == None : tags = {'nomn'}
 
     s1 = {1:'один', 2:'два', 3:'три', 4:'четыре', 5:'пять', 6:'шесть', 7:'семь', 8:'восемь', 9:'девять', 0:''}
@@ -69,6 +68,7 @@ def transcribeNumber999( number: int, tags=None ):
     return transcription
     
 def transcribeNumber( number: int, tags=None, word: str='' ):
+    """Перевод целого числа до миллиарда в фразу на русском языке с учетом заданных тегов"""
     if tags == None : tags = {'nomn'}
     s = ''
     if number < 0 :
@@ -106,13 +106,17 @@ def transcribeNumber( number: int, tags=None, word: str='' ):
         s += w.make_agree_with_number( number ).word
 
     return s.strip()
-
+#endregion
+### Date/Time transcription ############################################################
+#region
 def transcribeTime( tm, tags=None ):
+    """Перевод времени в фразу на русском с учетом тегов"""
     return \
-        transcribeNumber( tm.hour,{'nomn'},'часов' ) + ' ' + \
-        transcribeNumber( tm.minute, {'nomn'}, 'минут' )
+        transcribeNumber( tm.hour,{'nomn','masc'},'часов' ) + ' ' + \
+        transcribeNumber( tm.minute, {'nomn','femn'}, 'минут' )
 
 def transcribeDate( dt, tags=None ):
+    """Перевод даты в фразуна русском вида "пятница, 13 февраля" с учетом тегов """
     weekdays = {0:'понедельник', 1:'вторник',2:'среда',3:'четверг',4:'пятница',5:'суббота',6:'воскресенье'}
     months = {1:'января', 2:'февраля',3:'марта',4:'апреля',5:'мая',6:'июня',7:'июля', \
                 8:'августа',9:'сентября',10:'октября',11:'ноября',12:'декабря' }
@@ -146,11 +150,11 @@ def transcribeDate( dt, tags=None ):
     #TODO: добавить год, если дата отличается от текущей больше чем на 3 месяца
     day = f'{d1} {d2}'.strip()
     return f'{dow}, {day} {month}'.strip()
-
-
-
+#endregion
+### Манипуляция цепочками слов (чере пробел) и фразами (через запятую) #################
+#region
 def normalizePhrases( phrases ) -> str:
-    """Возвращает нормальизованный список (через запятую) нормализованных цепочек слов (через пробел)
+    """Возвращает нормализованный список (через запятую) нормализованных цепочек слов (через пробел)
     Пример "включи свет,выключи свет,сделай что-то"
     """
     allowed_chars = 'abcdefghijklmnopqrstuvxyzабвгдеёжзийклмнопрстуфхцчшщъыьэюя 1234567890-,'
@@ -200,8 +204,9 @@ def joinWords( words, words2 ) -> str:
         if ( ' ' + words + ' ' ).find( ' ' + w + ' ' ) < 0 :
             words += ' ' + w
     return words.strip()
-
-
+#endregion
+### Манипуляция цепочками слов (чере пробел) и фразами (через запятую) #################
+#region
 def wordsToVocabulary( words, tags=None ) :
     """Расширить словарь словами с генерацией словоформ для заданных тегов
     По умолчанию (теги не заданы) в словарь добавляется только переданные словоформы
@@ -224,8 +229,6 @@ def wordsToVocabulary( words, tags=None ) :
             else: 
                 vocabulary.add( w )
     return vocabulary
-
-
 
 def wordsToVocabularyAllForms( words, tags=None ) :
     """Расширить словарь словами с генерацией словоформ для заданных тегов.
@@ -251,4 +254,4 @@ def wordsToVocabularyAllForms( words, tags=None ) :
             vocabulary.update( lexemes )
 
     return vocabulary
-
+#endregion

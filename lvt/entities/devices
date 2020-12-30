@@ -1,11 +1,29 @@
-# Litght Voice Terminal entities
+# Lite Voice Terminal entities
 
-[MainLightLeft]
-Name="Свет"
+[onoffLeft]
+Name="Свет слева"
+Type="Свет"
 Location="Зал"
-TurnOn="MQTT","Common/OMG/433", '{"value":12219937,"protocol":1,"length":24,"delay":362}'
-TurnOff="MQTT","Common/OMG/433", '{"value":12219936,"protocol":1,"length":24,"delay":362}'
+Default = 1
 
+On= MQTT "Common/OMG/433", '{"value":12219937,"protocol":1,"length":24,"delay":362}'
+Off= MQTT "Common/OMG/433", '{"value":12219936,"protocol":1,"length":24,"delay":362}'
+
+[onoffRight]
+Name="Свет справа"
+Type="Свет"
+Location="Зал"
+Default = 1
+
+
+
+[fireplace]
+Name="Камин"
+Type="Обогрев"
+Location="Зал"
+
+On= MQTT "Common/OMG/433", '{"value":12219937,"protocol":1,"length":24,"delay":362}'
+Off= MQTT "Common/OMG/433", '{"value":12219936,"protocol":1,"length":24,"delay":362}'
 
 
 
@@ -15,10 +33,6 @@ TurnOff="MQTT","Common/OMG/433", '{"value":12219936,"protocol":1,"length":24,"de
 кофеварка
 тостер
 увлажнитель
-воздухомойка "мойка воздуха"
-Свет Подсветка Светильник Лампа Освещение
-Нагреватель Обогрев
-теплопол "Теплый пол"
 Камин
 шторы
 рольставни

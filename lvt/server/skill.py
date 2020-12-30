@@ -91,16 +91,14 @@ class Skill:
     @property
     def words( this ): return this.terminal.words
     @property
-    def text( this ): return this.terminal.text
-    @property
     def topic( this ): return this.terminal.topic
 
     def animate( this, animation:str ): this.terminal.animate( animation )
     def say( this, text ): this.terminal.say( text )
     def play( this, waveFileName ): this.terminal.play( waveFileName )
-    def log( this, msg:str ): log( f'[{this.terminal.name}:{this.name}]: {msg}' )
-    def logError( this, msg:str ): logError( f'[{this.terminal.name}:{this.name}]: {msg}' )
-    def logDebug( this, msg:str ): logDebug( f'[{this.terminal.name}:{this.name}]: {msg}' )
+    def log( this, msg:str ): log( f'[{this.terminal.name}.{this.name}]: {msg}' )
+    def logError( this, msg:str ): logError( f'[{this.terminal.name}.{this.name}]: {msg}' )
+    def logDebug( this, msg:str ): logDebug( f'[{this.terminal.name}.{this.name}]: {msg}' )
 #endregion
 
 ### Манипуляции словами и цепочками слов - поиск, удаление, подмена ####################
