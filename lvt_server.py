@@ -9,12 +9,14 @@ import websockets
 import concurrent.futures
 import logging
 import time
+
 from vosk import Model, SpkModel, KaldiRecognizer, SetLogLevel
 from lvt.const import *
 from lvt.server.grammar import *
 from lvt.protocol import *
 from lvt.logger import *
-from lvt.server.config import Config 
+from lvt.server.config import Config
+from lvt.server.mqtt import MQTT, mqttClient
 from lvt.server.entities import Entities
 from lvt.server.devices import Devices
 from lvt.server.terminal import Terminal
@@ -74,7 +76,6 @@ def processChunk( waveform,
         logError( f'Exception processing waveform chunk : {e}' )
     return final
 #endregion
-
 ### websockServer ######################################################################
 #region
 async def websockServer( connection, path ):
@@ -121,7 +122,7 @@ async def websockServer( connection, path ):
                     vocabulary = v
                     if ( len( vocabulary ) > 0 ) and model != None: # Фильтрация по словарю:
                         #SetLogLevel( -10 )
-                        recognizer = KaldiRecognizer( model, config.sampleRate, json.dumps( list(vocabulary), ensure_ascii=False ) )
+                        recognizer = KaldiRecognizer( model, config.sampleRate, json.dumps( list( vocabulary ), ensure_ascii=False ) )
                         SetLogLevel( -1 )
                         if( spkModel != None ): 
                             spkRecognizer = KaldiRecognizer( model, spkModel, config.sampleRate )
@@ -210,7 +211,6 @@ async def websockServer( connection, path ):
         recognizer = None
         spkRecognizer = None
 #endregion
-
 ### showHelp() #########################################################################
 #region
 def showHelp():
@@ -221,7 +221,6 @@ def showHelp():
     print( " -l[=<file>] | --log[=<file>]   overwrite log file location defined in config file " )
 
 #endregion
-
 ### onCtrlC ############################################################################
 #region
 def onCtrlC():
@@ -231,7 +230,6 @@ def onCtrlC():
     print()
     print( "Terminating..." )
 #endregion
-
 ### Main program #######################################################################
 #region
 #First thing first: save store script' folder as ROOT_DIR:
@@ -247,16 +245,17 @@ for arg in sys.argv[1:]:
     a = arg.strip().lower()
     if ( a == '-h' ) or ( a == '--help' ) or ( a == '/?' ) :
         showHelp()
-        exit(0)
-    elif a.startswith("-l") or a.startswith("-log"):
-        b = arg.split('=',2)
-        config.logFileName = b[1] if len(b)==2 else "logs/server.log"
+        exit( 0 )
+    elif a.startswith( "-l" ) or a.startswith( "-log" ):
+        b = arg.split( '=',2 )
+        config.logFileName = b[1] if len( b ) == 2 else "logs/server.log"
     else:
-        printError(f'Invalid command line argument: "{arg}"')
+        printError( f'Invalid command line argument: "{arg}"' )
 
 
 Logger.initialize( config )
 Grammar.initialize( config )
+MQTT.initialize( config )
 Entities.initialize( config )
 Devices.initialize( config )
 Terminal.initialize( config )
@@ -271,7 +270,7 @@ if( len( config.sslCertFile ) > 0 and len( config.sslKeyFile ) > 0 ):
     print( f'Connection: Secured' )
     try:
         sslContext = ssl.SSLContext( ssl.PROTOCOL_TLS_SERVER )
-        sslContext.load_cert_chain( os.path.join( ROOT_DIR, config.sslCertFile), os.path.join( ROOT_DIR, config.sslKeyFile) )
+        sslContext.load_cert_chain( os.path.join( ROOT_DIR, config.sslCertFile ), os.path.join( ROOT_DIR, config.sslKeyFile ) )
     except Exception as e:
         sslContext = None
         print( f'Error loading certificate files: {e}' )
@@ -296,9 +295,14 @@ spkModel = SpkModel( config.spkModel ) if config.spkModel != '' else None
 # Main server loop
 try:
     pool = concurrent.futures.ThreadPoolExecutor( config.recognitionThreads )
-    start_server = websockets.serve( websockServer, config.serverAddress, config.serverPort, ssl=sslContext )
+    lvtServer = websockets.serve( websockServer, config.serverAddress, config.serverPort, ssl=sslContext )
     loop = asyncio.get_event_loop()
-    loop.run_until_complete( start_server )
+    if config.mqttServer != '' :
+        #t = asyncio.create_task(mqttClient())
+        t = asyncio.ensure_future(mqttClient())
+        #asyncio.create_task( loop.run_in_executor( pool, mqttClient) )
+        pass
+    loop.run_until_complete( lvtServer )
     loop.run_forever()
 except KeyboardInterrupt:
     onCtrlC()

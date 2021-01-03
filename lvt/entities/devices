@@ -25,7 +25,8 @@ Location="Зал"
 On= MQTT "Common/OMG/433", '{"value":12219937,"protocol":1,"length":24,"delay":362}'
 Off= MQTT "Common/OMG/433", '{"value":12219936,"protocol":1,"length":24,"delay":362}'
 
-
+On2 = "GET" "http://asdf.com?" '["parameter":"value"]'
+On3 = "POST" "http://asdf.com?a=a" '[parameter:"value"]'
 
 Телевизор
 Кондиционер Кондей

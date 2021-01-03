@@ -2,7 +2,8 @@ import sys
 import time
 import os
 import threading
-import queue as Queue
+#import queue as Queue
+import asyncio
 from lvt.const import *
 from lvt.logger import *
 from lvt.client.config import Config
@@ -13,7 +14,7 @@ class Animator:
         this.shared = shared
         # shared.animation - текущая анимация
         # shared.isTerminated - необходимо прекратить работу
-        this.queue = Queue.Queue()
+        this.queue = asyncio.Queue()
         this.animation = ANIMATION_NONE
         this.locked = False
         this.timeout = 0.2

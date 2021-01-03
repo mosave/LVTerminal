@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>f7c765a6-ab0d-40c3-82fb-cd372cb281a9</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>tests\test_skills.py</StartupFile>
+    <StartupFile>lvt_client.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -43,6 +43,7 @@
     <Compile Include="lvt\server\grammar.py" />
     <Compile Include="lvt\protocol.py" />
     <Compile Include="lvt\server\config.py" />
+    <Compile Include="lvt\server\mqtt.py" />
     <Compile Include="lvt\server\skills\acronyms.py" />
     <Compile Include="lvt\server\skills\client_updater.py" />
     <Compile Include="lvt\server\skills\datetime_detector.py" />

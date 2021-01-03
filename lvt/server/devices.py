@@ -2,25 +2,48 @@ import sys
 import time
 import datetime
 import json
+import threading
+import requests
 from lvt.const import *
 from lvt.logger import *
 from lvt.config_parser import ConfigParser
+from lvt.server.mqtt import MQTT
 from lvt.server.entities import Entities
 
 config = None
 deviceTypes = None
 devices = None
 
+def httpGet( url, payload=None ):
+    if payload == None :
+        requests.get( url )
+    else :
+        requests.get( url, dict(json.loads(payload)) )
+
+def httpPost( url, payload=None ):
+    pass
+
+
 class Action():
     def __init__( this ):
-        this.type = 'none'
+        this.action = None
         this.url = None
-        this.topic = None
-        this.value = None
+        this.params = None
 
     def execute( this ):
-        pass
-
+        if this.action==None or this.action=='none' :
+            pass
+        elif this.action=='mqtt' :
+            MQTT.publish( this.url, this.params )
+        elif this.action=='get' :
+            #json.loads( p )
+            thread = threading.Thread( target=httpGet, args=[this.url, this.params] )
+            thread.daemon = False
+            thread.start()
+        elif this.action=='post' :
+            thread = threading.Thread( target=httpPost, args=[this.url, this.params] )
+            thread.daemon = False
+            thread.start()
 
 class DeviceType():
     def __init__( this, names, methods ):

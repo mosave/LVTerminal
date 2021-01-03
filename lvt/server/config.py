@@ -78,6 +78,11 @@ class Config:
         else:
             raise Exception( 'Invalid voice engine specified' )
 
+        ### MQTT client
+        section = 'MQTT'
+        this.mqttServer = p.getValue( section, 'Server','' )
+
+
         ### Terminals
         this.terminals = dict()
         for section in p.sections :

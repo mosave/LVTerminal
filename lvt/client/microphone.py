@@ -82,6 +82,7 @@ class Microphone:
             except:pass
             this.vad = None
 
+
     @property
     def muted(this)->bool:
         return this._muted

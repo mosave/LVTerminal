@@ -387,10 +387,10 @@ class Terminal():
             this.messageQueue.append( data )
         else:
             this.messages.append( data )
+
 #endregion
 ### Static methods #####################################################################
 #region
-
     def authorize( terminalId:str, password:str, clientVersion ):
         """Авторизация терминала по terminalId и паролю"""
         terminalId = str( terminalId ).lower()
