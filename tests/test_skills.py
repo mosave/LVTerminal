@@ -17,6 +17,7 @@ from lvt.protocol import *
 from lvt.logger import *
 from lvt.server.grammar import *
 from lvt.server.config import Config 
+from lvt.server.mqtt import MQTT
 from lvt.server.entities import Entities
 from lvt.server.devices import Devices
 from lvt.server.terminal import Terminal
@@ -158,10 +159,16 @@ logs = list()
 Logger.initialize( config )
 Logger.setLogCapture(logs)
 Grammar.initialize( config )
+MQTT.initialize( config )
 Entities.initialize( config )
 Devices.initialize( config )
 Terminal.initialize( config )
 Speaker.initialize( config )
+
+
+d = Devices().devices['relayKitchen']
+d.methods['on'].execute()
+#d.methods['off'].execute()
 
 messageQueue = list()
 

@@ -50,7 +50,7 @@ class MQTT:
         global config
         global queue
         if config.mqttServer != '' :
-            queue.put( (topic, message) )
+            queue.put_nowait( (topic, message) )
 
     def subscribe(topic):
         global config
