@@ -1,6 +1,7 @@
-Разработка скиллов
+# Lite Voice Terminal
+## Разработка скиллов
 
-Общая структура
+### Общая структура
  * Модуль класса подгружается автоматически при инициализации загружке сервера
  * Экземпляр класса создается для каждого терминала-клиента в момент инициализации. При отключении клиента из памяти не выгружается.
  * Класс скилла должен наследоваться от базового класса Skill, имя класса так же дожно обязательно заканчиваться на Skill
@@ -13,72 +14,62 @@
    Каждый скилл может подписаться на определенный набор топиков.
 
 
-События:
+### События:
 
  * onLoad(): вызывается после создания экземпляра класса. Здесь выполняются все необходимые настройки и инициализация скилла
  * onText(): вызывается после завершения распознавания очередной фразы. Основной метод, реализующий логику скилла
  * onPartialText() - Вызывается в процессе распознавания фразы. Следует учитывать, что частично распознанный текст
    изменяется в процессе и может сильно отличаться от финальной версии.
    Перекрывать onPartialText() рекомендуется только в случае необходимости, поскольку это приводит к излишней загрузке системы.
-
  * onTimer() - вызывается по мере возможности, примерно раз в секунду. Использовать с аккуратностью, избегать блокировок.
  * onTopicChange( newTopic, params ): вызывается при изменении топика (контекст семантического анализатора)
    Вызывается только если скилл подписан на новый (newTopic) либо текущий (this.terminal.topic) топики
  
 
-Свойства базового класса Skill:
+### Свойства базового класса Skill:
+ * terminal
+ * moduleFileName
+ * name
+ * config
+ * subscriptions = set()
+ * vocabulary = set()
+ * priority - Чем выше значение приоритета, тем ближе к началу в цепочке
+    распознавания ставится скил
+ * isAppealed
+ * appeal
+ * appealPos
+ * location
+ * entities
+ * words
+ * topic
 
-        this.terminal
-        this.moduleFileName
-        this.name
-        this.config
-        this.subscriptions = set()
-        this.vocabulary = set()
-        # Чем выше значение приоритета, тем ближе к началу в цепочке
-        # распознавания ставится скил
-        this.priority
+### Методы базового класса Skill:
+ * animate( this, animation:str )
+ * say( this, text )
+ * play( this, waveFileName )
+ * log( this, msg:str )
+ * logError( this, msg:str )
+ * logDebug( this, msg:str )
 
-isAppealed
-appeal
-appealPos
-location
-entities
-words
-topic
+ * getNormalFormOf( this, word: str, tags=None ) -> str:
+ * getNormalForm( this, index: int, tags=None ) -> str:
+ * conformToAppeal( this, word: str ) -> str:
+ * isWord( this, index, word: str, tags=None ) -> bool:
+ * isInTag( this, index, tags ) -> bool:
+ * findWord( this, word: str, tags=None ) -> int:
+ * findWordChain( this, chain: str, startIndex: int=0 ) :
+ * findWordChainB( this, chain: str, startIndex: int=0 ) -> bool:
+ * deleteWord( this, index: int, wordsToDelete:int=1 ):
+ * insertWords( this, index:int, words: str ):
+ * replaceWordChain( this, chain: str, replaceWithChain: str ) -> bool:
+ * subscribe( this, *topics ):
+ * unsubscribe( this, *topics ):
+ * isSubscribed( this, topic ):
+ * extendVocabulary( this, words, tags=None ):
+ * changeTopic( this, newTopic, *params, **kwparams ):
+ * stopParsing( this, animation: str=None ):
+ * restartParsing( this ):
 
-
-
-Методы базового класса Skill:
-
-
-animate( this, animation:str )
-say( this, text )
-play( this, waveFileName )
-log( this, msg:str )
-logError( this, msg:str )
-logDebug( this, msg:str )
-
-    def getNormalFormOf( this, word: str, tags=None ) -> str:
-    def getNormalForm( this, index: int, tags=None ) -> str:
-    def conformToAppeal( this, word: str ) -> str:
-    def isWord( this, index, word: str, tags=None ) -> bool:
-    def isInTag( this, index, tags ) -> bool:
-    def findWord( this, word: str, tags=None ) -> int:
-    def findWordChain( this, chain: str, startIndex: int=0 ) :
-    def findWordChainB( this, chain: str, startIndex: int=0 ) -> bool:
-    def deleteWord( this, index: int, wordsToDelete:int=1 ):
-    def insertWords( this, index:int, words: str ):
-    def replaceWordChain( this, chain: str, replaceWithChain: str ) -> bool:
-
-
-
-    def subscribe( this, *topics ):
-    def unsubscribe( this, *topics ):
-    def isSubscribed( this, topic ):
-    def extendVocabulary( this, words, tags=None ):
-    def changeTopic( this, newTopic, *params, **kwparams ):
-    def stopParsing( this, animation: str=None ):
-    def restartParsing( this ):
-
-
+### Свойства терминала (this.terminal)
+### Методы терминала (this.terminal)
 
