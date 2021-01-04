@@ -1,3 +1,3 @@
 # Lite Voice Terminal
-## Терминал на базе Raspberry Pi 3A+ и платы Respeaker 4 MIC
+## РўРµСЂРјРёРЅР°Р» РЅР° Р±Р°Р·Рµ Raspberry Pi 3A+ Рё РїР»Р°С‚С‹ Respeaker 4 MIC
 

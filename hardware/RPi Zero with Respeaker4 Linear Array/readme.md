@@ -1,3 +1,3 @@
 # Lite Voice Terminal
-## Терминал на базе Raspberry Pi ZeroW и платы Respeaker 4 Mic Linear Array
+## РўРµСЂРјРёРЅР°Р» РЅР° Р±Р°Р·Рµ Raspberry Pi ZeroW Рё РїР»Р°С‚С‹ Respeaker 4 Mic Linear Array
 

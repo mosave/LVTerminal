@@ -1,3 +1,3 @@
 # Lite Voice Terminal
-## Терминал на базе Raspberry Pi ZeroW и платы Respeaker 2 Mic
+## РўРµСЂРјРёРЅР°Р» РЅР° Р±Р°Р·Рµ Raspberry Pi ZeroW Рё РїР»Р°С‚С‹ Respeaker 2 Mic
 
