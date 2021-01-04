@@ -50,7 +50,7 @@ MSG_ALL = { \
     }
 
 def split2( s: str ):
-    """Отделяет первое ключевое слово "от всего остального" """
+    """Разбивает строку на "первое ключевое слово и все остальное" """
     if not isinstance( s, str ) : return (None, None)
     s = s.strip()
     if len( s ) <= 0 : return (None,None)
@@ -59,19 +59,22 @@ def split2( s: str ):
     return (s[:p], s[p:].strip())
 
 def split3( s: str ):
+    """Разбивает строку на "ключевое слово, первый параметр и все остальное" """
     a,b = split2( s )
     if b == None : return (a,b,None)
     b,c = split2( b )
     return a,b,c
 
-# Returns tuple: message name and parameters
 def parseMessage( message ) :
+    """Разбивает сообщение на LVT команду и список параметров".
+    Если ключевое слово не является командой - возвращает (None, None) """
     m, p = split2( message.strip() )
     if m in MSG_ALL: return (m, p)
     return (None, None) 
 
 
 def MESSAGE( msg: str, p1: str=None, p2: str=None, p3: str=None ) -> str:
+    """Конструирует LVT сообщение из команды и параметров"""
     if msg not in MSG_ALL: raise Exception( f'Invalid message "{msg}"' )
     if p1 != None: msg += ' ' + str( p1 ).strip()
     if p2 != None: msg += ' ' + str( p2 ).strip()

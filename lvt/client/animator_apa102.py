@@ -35,32 +35,25 @@ class APA102Animator(Animator):
         """Wake up and listening"""
 
         if restart : 
-            this.brAwake = 100
-            this.phaseAwake = 0
-            this.timeout = 0.1
-            locked = True
-        elif this.phaseAwake == 0 :
-            this.brAwake *= 0.7
-            if this.brAwake < 10 : 
-                this.brAwake = 9
-                this.phaseAwake = 1
-                this.stepAwake = -1
-            this.timeout = 0.02
-            locked = True
+            this.brAwake = 2
+            this.stepAwake = 2
+            this.timeout = 0.3
         else:
             this.brAwake += this.stepAwake 
             if this.stepAwake < 0 and this.brAwake < 2 :
                 this.brAwake = 2
                 this.stepAwake = -this.stepAwake
-            elif this.stepAwake > 0 and this.brAwake > 30 :
+                this.timeout = 0.5
+            elif this.stepAwake > 0 and this.brAwake > 40 :
                 this.brAwake = 30
                 this.stepAwake = -this.stepAwake
-            this.timeout = 0.05
-            locked = False
+                this.timeout = 0.05
+            else:
+                this.timeout = 0.05
 
 
         this.show( [255,255,255,this.brAwake] * this.nPixels )
-        return locked
+        return False
 
     def animationThink( this, restart:bool ):
         """Thinking"""
@@ -80,13 +73,12 @@ class APA102Animator(Animator):
         """Accepted"""
         if restart : 
             this.brAccept = 100
-            this.timeout = 0.1
+            this.timeout = 0.5
         else:
             this.brAccept = this.brAccept * 0.5
-            this.timeout = 0.02
+            this.timeout = 0.1
             if this.brAccept < 2 :
                 this.brAccept = 0
-                this.animation = ANIMATION_NONE
                 this.timeout = 0.5
 
         this.show( [0,255,0,this.brAccept] * this.nPixels )
@@ -96,13 +88,12 @@ class APA102Animator(Animator):
         """Cancelled / Ignoring"""
         if restart : 
             this.brCancel = 100
-            this.timeout = 0.1
+            this.timeout = 0.5
         else:
             this.brCancel = this.brCancel * 0.5
-            this.timeout = 0.02
+            this.timeout = 0.1
             if this.brCancel < 2 :
                 this.brCancel = 0
-                this.animation = ANIMATION_NONE
                 this.timeout = 0.5
 
         this.show( [255,0,0,this.brCancel] * this.nPixels )
@@ -112,7 +103,7 @@ class APA102Animator(Animator):
         """Standup animation"""
         this.show( [0,0,0,0] * this.nPixels )
         this.timeout = 0.3
-    
+        return False
 
     def show( this, pixels ):
         for i in range( this.nPixels ):

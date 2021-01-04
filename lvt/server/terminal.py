@@ -229,7 +229,7 @@ class Terminal():
         if this.topic == TOPIC_DEFAULT :
             this.usingVocabulary = this.vocabularyMode
 
-        if this.topic == TOPIC_DEFAULT and this.lastAnimation == ANIMATION_AWAKE : 
+        if this.topic == TOPIC_DEFAULT and this.lastAnimation != ANIMATION_NONE : 
             this.animate( ANIMATION_NONE )
 
 #endregion
@@ -369,7 +369,7 @@ class Terminal():
     def animate( this, animation:str ):
         """Передать слиенту запрос на анимацию"""
         if animation != this.lastAnimation:
-            if animation in ANIMATION_STICKY : this.lastAnimation = animation
+            this.lastAnimation = animation if animation in ANIMATION_STICKY  else ANIMATION_NONE
             this.sendMessage( MSG_ANIMATE, animation )
 
     def sendMessage( this, msg:str, p1:str=None, p2:str=None ):

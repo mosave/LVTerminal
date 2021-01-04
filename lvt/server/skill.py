@@ -275,8 +275,9 @@ class Skill:
     def stopParsing( this, animation: str=None ):
         """Прервать исполнение цепочки скиллов после выхода из обработчика onText/onPartialText"""
         if animation != None : 
-            this.terminal.animate( ANIMATION_NONE )
             this.terminal.animate( animation )
+            #if animation not in ANIMATION_STICKY :
+            #    this.terminal.animate( ANIMATION_NONE )
         this.terminal.parsingStopped = True
 
     def restartParsing( this ):

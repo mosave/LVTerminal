@@ -27,27 +27,28 @@ class MajorDoMoSkill(Skill):
             if this.findWordChainB('обновить список устройств'):
                 this.changeTopic(TOPIC_MD_REFRESH)
                 this.stopParsing(ANIMATION_THINK)
-            else:
-                this.stopParsing(ANIMATION_NONE)
-                thread = threading.Thread( target=httpGet, args=[this.url, this.user, this.password] )
+                thread = threading.Thread( target=this.httpGet, args=[this.url, this.user, this.password] )
                 thread.daemon = False
                 thread.start()
 
-                this.say('Сегодня '+ transcribeDate(datetime.datetime.today()) )
+            else:
+                this.stopParsing(ANIMATION_NONE)
+
 
     def onTopicChange( this, newTopic: str, params={} ):
-        if this.topic == TOPIC_MD_REFRESH:
-            this.animate( ANIMATION_NONE )
-            this.say( 'Устройства обновлены' )
-        else:
-            this.terminal.animate( this.defaultAnimation )
+        #if this.topic == TOPIC_MD_REFRESH:
+        #    this.animate( ANIMATION_NONE )
+        #    this.say( 'Устройства обновлены' )
+        #elif newTopic==TOPIC:
+        #    this.terminal.animate( this.lastAnimation )
+        pass
 
     def onTimer( this ):
         if( this.topic == TOPIC_MD_REFRESH ):
             pass
 
 
-    def httpGet( url, user, password ):
+    def httpGet( this, url, user, password ):
         try:
             if user and password :
                 auth = requests.auth.HTTPBasicAuth( user, password )

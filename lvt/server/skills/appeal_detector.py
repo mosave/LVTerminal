@@ -108,8 +108,7 @@ class AppealDetectorSkill(Skill):
     def onTimer( this ):
         if( this.topic == TOPIC_WAIT_COMMAND ):
             if time.time() > this.waitUntil:
-                this.terminal.animate(ANIMATION_NONE);
-                this.terminal.animate(ANIMATION_CANCEL);
+                this.animate(ANIMATION_CANCEL);
                 this.play('appeal_off.wav')
                 this.changeTopic(this.savedTopic)
 

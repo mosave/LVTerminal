@@ -73,19 +73,16 @@ class Animator:
     def __run__( this ):
         muted = False
         locked = False
-        defaultAnimation = ANIMATION_NONE
         try:
             while not this.shared.isTerminated:
                 animation = this.animation
                 restart = False
                 if not locked:
                     if not this.queue.empty() :
-                        this.animation = this.queue.get()
-                        if this.animation in ANIMATION_STICKY:
-                            defaultAnimation = this.animation
+                        this.animation = this.queue.get_nowait()
                         restart = animation != this.animation
-                    elif this.animation != defaultAnimation:
-                        this.animation = defaultAnimation
+                    elif this.animation not in ANIMATION_STICKY:
+                        this.animation = ANIMATION_NONE
 
                 if this.animation == ANIMATION_AWAKE : 
                     locked = this.animationAwake( restart )
@@ -107,5 +104,5 @@ class Animator:
         this.off
 
     def animate( this, animation ):
-        this.queue.put( animation )
+        this.queue.put_nowait( animation )
     
