@@ -6,8 +6,8 @@ from lvt.server.skill import Skill
 
 #Define base skill class
 class DateTimeDetectorSkill(Skill):
+    """Извлекает из фразы информацию о дате и/или времени """
     def onLoad( this ):
-        #print('loading AppealDetector')
         this.priority = 9930
         this.subscribe( TOPIC_ALL )
 

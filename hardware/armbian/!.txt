@@ -1,0 +1,170 @@
+==================
+1. Copy network config to boot partition to auto-configure network on boot)
+2. Create empty "ssh" file on boot partition to auto-enable ssh
+3. sudo apt-get update/upgrade/autoremove/autoclean
+4. raspi-config: change host name, add locales, set timezone, expand disk
+5.
+sudo apt-get install htop mc p7zip samba smbclient cifs-utils git
+sudo adduser admin
+sudo smbpasswd -a admin
+sudo smbpasswd -a pi
+
+edit /etc/samba/smb.conf
+6.
+add to /etc/rc.local:
+
+iwconfig wlan0 power off  
+
+7. https://wiki.seeedstudio.com/ReSpeaker_4_Mic_Array_for_Raspberry_Pi/ 
+
+git clone https://github.com/respeaker/seeed-voicecard.git
+cd seeed-voicecard
+sudo ./install.sh  
+sudo reboot
+
+8.
+
+/usr/share/alsa/init/
+
+для respeaker:
+
+#Play percent/volume
+ENV{ppercent}:="90%"
+ENV{pvolume}:="1.2dB"
+
+#Capture percent/volume
+ENV{cpercent}:="90%"
+#ENV{cvolume}:="12dB"
+ENV{has_pmaster_vol}:="false"
+
+
+
+
+
+
+==================
+Monitor hardware:
+htop
+==================
+
+sudo usermod -a -G audio admin
+pacmd set-default-sink '1'
+
+==================
+
+Use network manager to connect AE Home 5Ghz, both "0A" and "3B" adapters
+nmtui - отредактировать wlan0 и сделать их static
+
+https://docs.armbian.com/User-Guide_Getting-Started/#how-to-connect-to-wireless
+
+
+Disable wifi power management: 
+# if no iwconfig found:
+# apt-get install --reinstall wireless-tools
+
+1: Setting 
+iwconfig wlan0 power off 
+in an /etc/rc.local fixes the issue
+
+
+2: /etc/NetworkManager/conf.d/default-wifi-powersave-on.conf
+[connection]
+wifi.powersave = 3
+
+Change the value to 2. Reboot for the change to take effect.
+
+NM_SETTING_WIRELESS_POWERSAVE_DEFAULT (0): use the default value
+NM_SETTING_WIRELESS_POWERSAVE_IGNORE  (1): don't touch existing setting
+NM_SETTING_WIRELESS_POWERSAVE_DISABLE (2): disable powersave
+NM_SETTING_WIRELESS_POWERSAVE_ENABLE  (3): enable powersave
+
+=======================
+
+In order to make text boot the default under systemd (regardless of which distro, really):
+systemctl set-default multi-user.target
+To change back to booting to the GUI,
+systemctl set-default graphical.target
+
+
+apt-get install p7zip
+apt install samba cifs-utils smbclient
+smbpasswd -a root
+smbpasswd -a admin
+
+
+=======================
+Disable unattended upgrades:
+apt-get remove unattended-upgrades
+
+Using your favorite editor open the file /etc/apt/apt.conf.d/10periodic and change:
+
+APT::Periodic::Update-Package-Lists "1";
+To:
+
+APT::Periodic::Update-Package-Lists "0";
+That's it. Automatic update is now off.
+
+=======================
+RTC:
+
+http://orangepi.pp.ua/index.php/topic,210.0.html?PHPSESSID=65uuvsu56jqbk9qhvh14kflt62
+
+apt-get install i2c-tools
+systemctl enable rtc-i2c.service
+apt-get --purge autoremove fake-hwclock
+
+
+echo ds1307 0x68 > /sys/class/i2c-adapter/i2c-2/new_device
+echo ds3231 0x68 > /sys/class/i2c-adapter/i2c-2/new_device
+
+
+=======================
+
+НЕТ:    Install majordomo: https://kb.mjdm.ru/install-script/
+
+wget https://raw.githubusercontent.com/immortalserg/installmd/master/installmd
+chmod +x ./installmd
+./installmd -t
+
+advanced config:
+./installmd -c
+
+#phpadmin:
+./installmd -p
+
+
+
+wget http://repo.mosquitto.org/debian/mosquitto-repo.gpg.key
+apt-key add mosquitto-repo.gpg.key
+cd /etc/apt/sources.list.d/
+#wget http://repo.mosquitto.org/debian/mosquitto-jessie.list
+#wget http://repo.mosquitto.org/debian/mosquitto-stretch.list
+wget http://repo.mosquitto.org/debian/mosquitto-buster.list
+apt update
+apt install mosquitto
+
+
+
+
+Backup disk via samba:
+
+mount.cifs //mosave1/d /mnt/mosave1 -o user=admin
+rm /mnt/mosave1/zBackup/md.img
+dd if=/dev/mmcblk2 bs=10M| 7zr a -bd -t7z -m0=lzma -mx=9 -mfb=64 -md=32m -ms=on -si /mnt/mosave1/zBackup/md.img.7z
+
+
+
+Backup eMMC to SD:
+
+dd if=/dev/mmcblk2 of=/dev/mmcblk1
+
+
+==================
+Определение платы:
+mb_type=$(cat /proc/device-tree/model)
+
+mb_type = "OrangePi 4"
+
+
+==================
+mount /dev/mmcblk1p1 /mnt/sd

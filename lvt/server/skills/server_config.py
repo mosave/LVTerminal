@@ -10,7 +10,6 @@ class ServerConfigSkill(Skill):
     Ключевые фразы скилла: "Включи (выключи) режим распознавания со словарем"
     """
     def onLoad( this ):
-        #print('loading AppealDetector')
         this.priority = 5000
         this.subscribe( TOPIC_DEFAULT )
         this.extendVocabulary("включи выключи используй режим распознавания со словарем, без словаря, с использованием, без использования");

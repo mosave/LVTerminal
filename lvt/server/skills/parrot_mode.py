@@ -11,7 +11,6 @@ class ParrotModeSkill(Skill):
     Ключевые фразы для активации режима: "Повторяй за мной" или "Включи режим попугая"
     """
     def onLoad( this ):
-        #print('loading repeat')
         this.subscribe( TOPIC_DEFAULT,TOPIC_PARROT_MODE )
         this.priority = 1000
         this.remindOn = 0

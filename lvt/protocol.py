@@ -1,27 +1,34 @@
-
 # Lite Voice Terminal communication protocol messages
-MSG_IDLE = "Idle"                   # Force terminal to Idle mode
-MSG_STATUS = "Status"               # Request / Send server-side terminal status
-MSG_CONFIG = "Config"               # Request / Send server configuration and status
-MSG_DISCONNECT = "Disconnect"       # Close current session
 
-# Authorize terminal on server.
-MSG_TERMINAL = "Terminal"# <TerminalId> <Pasword> <Version>
+# Server => Terminal: Перевести терминал в stand-by
+MSG_IDLE = "Idle"                   
 
-# Server request to display a text (if supported)
-MSG_TEXT = "Text" # <any text to display goes after the command without quotes>
+# Terminal => Server: Запрос состояния терминала на стороне сервера
+# Server => Terminal: Состояние терминала (JSON пакет)
+MSG_STATUS = "Status" # [<terminal status, JSON>]
 
-# Server request to play animation.  See const.ANIMATION* constants
-MSG_ANIMATE = "Animate" # <AnimationName>
+# Terminal => Server: Запрос конфигурации сервера
+# Server => Terminal: Конфигурация сервера (JSON пакет)
+MSG_CONFIG = "Config" # [<Server configuration, JSON>]
 
-# Mute microphone
+# Terminal => Server: Завершение текущей сессии
+# Server => Terminal: Завершение текущей сессии
+MSG_DISCONNECT = "Disconnect"
+
+# Server => Terminal: Текст для отображения на терминале (если поддерживается)
+MSG_TEXT = "Text" # text string to display
+
+# Server => Terminal: play terminal animation (if supported by terminal)
+# See const.ANIMATION* constants
+MSG_ANIMATE = "Animate" # None|Awake|Think|Accept|Cancel 
+
+# Server => Terminal: выключить/включить микрофон
 MSG_MUTE = "Mute"
-# Unmute microphone
 MSG_UNMUTE = "Unmute"               
 
-# Server request to update client
-MSG_UPDATE = "Update" # <update package>
-# Update package is json :
+# Server => Terminal: terminal client update package
+MSG_UPDATE = "Update" # <client update JSON package>
+# Update package is JSON data:
 # [
 #   ["lvt/const.py", "Content of file /lvt/const.py"],
 #   ["File 2 to update, client-relative path", "Updated file content>"],
@@ -29,17 +36,21 @@ MSG_UPDATE = "Update" # <update package>
 #   ...
 # ]
 
+# Server => Terminal: Запрос на перезагрузку терминала
+MSG_REBOOT = "Reboot" 
 
-# Server request to reboot terminal device
-MSG_REBOOT = "Reboot" # <update package>
+# Terminal => Server: Запрос терминала на авторизацию
+# Server => Terminal: состояние авторизованного терминала либо disconnect если терминал не был авторизован
+MSG_TERMINAL = "Terminal"# <TerminalId> <Password> <Version>
 
-# All available commands (for command validation
+# All available commands
 MSG_ALL = { \
     MSG_IDLE, MSG_STATUS, MSG_CONFIG, MSG_DISCONNECT, MSG_TERMINAL, \
     MSG_TEXT, MSG_ANIMATE, MSG_MUTE, MSG_UNMUTE, MSG_UPDATE \
     }
 
 def split2( s: str ):
+    """Отделяет первое ключевое слово "от всего остального" """
     if not isinstance( s, str ) : return (None, None)
     s = s.strip()
     if len( s ) <= 0 : return (None,None)

@@ -9,7 +9,7 @@ WAIT_COMMAND_TIMEOUT = 5 # время в режиме ожидания кома�
 
 #Define base skill class
 class LocationsDetectorSkill(Skill):
-    """'Мажордом, свет!'"""
+    """Извлекает из распознанной фразы информацию о локации"""
     def onLoad( this ):
         this.priority = 9900
         this.subscribe( TOPIC_ALL )

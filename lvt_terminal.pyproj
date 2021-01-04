@@ -49,6 +49,7 @@
     <Compile Include="lvt\server\skills\datetime_detector.py" />
     <Compile Include="lvt\server\skills\debug.py" />
     <Compile Include="lvt\server\skills\location_detector.py" />
+    <Compile Include="lvt\server\skills\majordomo.py" />
     <Compile Include="lvt\server\skills\one_word_commands.py" />
     <Compile Include="lvt\server\skills\server_config.py" />
     <Compile Include="lvt\server\skills\time_teller.py" />
@@ -79,8 +80,10 @@
     <InterpreterReference Include="Global|PythonCore|3.9" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="docs\configure speaker.txt" />
+    <Content Include="docs\configuration_server.txt" />
+    <Content Include="docs\configuration_terminal.txt" />
     <Content Include="docs\LVT protocol.txt" />
+    <Content Include="docs\skill_development.txt" />
     <Content Include="docs\stuff.txt" />
     <Content Include="docs\todo.txt" />
     <Content Include="lvt\entities\acronyms" />

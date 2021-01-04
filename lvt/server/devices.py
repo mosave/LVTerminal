@@ -50,7 +50,6 @@ class Action():
         elif this.action == 'mqtt' :
             MQTT.publish( this.url, bytes(this.data,'utf-8') )
         elif this.action == 'get' :
-            #json.loads( p )
             thread = threading.Thread( target=httpGet, args=[this.url, this.user, this.password] )
             thread.daemon = False
             thread.start()

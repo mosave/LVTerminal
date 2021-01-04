@@ -15,6 +15,7 @@ TOPIC_DEBUG_NO = "DebugNo"
 TOPIC_DEBUG_CANCEL = "DebugCancel"
 #Define base skill class
 class DebugSkill(Skill):
+    """Скилл для отладки"""
     def onLoad( this ):
         this.priority = 9000
         this.extendVocabulary("проверка да или нет")

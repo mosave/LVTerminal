@@ -13,7 +13,6 @@ class TellTheTimeSkill(Skill):
     * Какой сегодня день недели, какое число, какая дата
     """
     def onLoad( this ):
-        #print('loading AppealDetector')
         this.priority = 1000
         this.subscribe( TOPIC_DEFAULT )
         this.extendVocabulary('сколько, времени, который час, какой сегодня день недели, скажи, число, дата')
