@@ -16,12 +16,12 @@ Lite Voice Terminal это клиент-серверная платформа с открытым кодом для создания
 
 ### Возможности (реализованные и планируемые к реализации)
 
-* Не требует использования внешних онлайн сервисов
-* Обмен между клиентской и серверной частью реализовано по протоколу websock с поддержкой SSL
-* Идентификация говорящего по голосу (работает только на достаточно длинных фразах)
-* Возможность расширения функций ассистента за счет написания своих модулей 
-* Взаимодействие с устройствами по MQTT протоколу
-* Интеграция в систему MajorDoMo (?)
+- [x] Не требует использования внешних онлайн сервисов
+- [x] Обмен между клиентской и серверной частью реализовано по протоколу websock с поддержкой SSL
+- [ ] Идентификация говорящего по голосу (работает только на достаточно длинных фразах)
+- [x] Возможность расширения функций ассистента за счет написания своих модулей 
+- [ ] Взаимодействие с устройствами по MQTT протоколу
+- [ ] Интеграция в систему MajorDoMo
 
 ### При реализации LVT использованы сторонние компоненты и модули:
 
@@ -35,10 +35,14 @@ Lite Voice Terminal это клиент-серверная платформа с открытым кодом для создания
 * [mdmTerminale](https://github.com/Aculeasis/mdmTerminal2): Много идей и кода позаимствовано из реализации голосового терминала MajorDoMo
 
 ### Документация
- * [Установка и настройка сервера LVT](https://github.com/mosave/LVTerminal/docs/Configuration - Server.md)
- * [Установка и настройка терминала](https://github.com/mosave/LVTerminal/docs/Configuration%20-%20Terminal.md)
- * []()
- * []()
+ * [Установка и настройка сервера LVT](https://github.com/mosave/LVTerminal/blob/master/docs/Configuration%20-%20Server.md)
+ * [Установка и настройка терминала](https://github.com/mosave/LVTerminal/blob/master/docs/Configuration%20-%20Terminal.md)
+ * Примеры реализации терминалов
+    * [Raspberry Pi3 A+ и Respeaker 4 MIC](https://github.com/mosave/LVTerminal/tree/master/hardware/RPi%203A%2B%20with%20Respeaker4/readme.md)
+    * [Raspberry Pi ZeroW и Respeaker 4 MIC Linear Array](https://github.com/mosave/LVTerminal/tree/master/hardware/RPi%20Zero%20with%20Respeaker4%20Linear%20Array/readme.md)
+    * [Raspberry Pi ZeroW и Respeaker 2 MIC](https://github.com/mosave/LVTerminal/tree/master/hardware/RPi%20Zero%20with%20Respeaker2/readme.md)
+ * [Описание протокола LVT](https://github.com/mosave/LVTerminal/blob/master/docs/LVT%20-%20Protocol.md)
+ * [Разработка скиллов (skill, навык)](https://github.com/mosave/LVTerminal/blob/master/docs/Skill%20-%20Development.md)
  * []()
 
 ## License
