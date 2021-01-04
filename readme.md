@@ -35,8 +35,8 @@ Lite Voice Terminal это клиент-серверная платформа с открытым кодом для создания
 * [mdmTerminale](https://github.com/Aculeasis/mdmTerminal2): Много идей и кода позаимствовано из реализации голосового терминала MajorDoMo
 
 ### Документация
- * [Установка и настройка сервера LVT](./docs/Configuration - Server.md)
- * [Установка и настройка терминала](./docs/Configuration - Terminal.md)
+ * [Установка и настройка сервера LVT](https://github.com/mosave/LVTerminal/docs/Configuration - Server.md)
+ * [Установка и настройка терминала](https://github.com/mosave/LVTerminal/docs/Configuration%20-%20Terminal.md)
  * []()
  * []()
  * []()
