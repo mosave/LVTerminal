@@ -56,6 +56,23 @@ function getDevices() {
           if( !empty($s) ) $devices[$i]['DeviceType'] = $s;
       }
    }
+/*
+    'DEVICES_LOADTYPE_VENT' => 'Вентиляция',
+    'DEVICES_LOADTYPE_HEATING' => 'Обогрев',
+    'DEVICES_LOADTYPE_CURTAINS' => 'Шторы',
+    'DEVICES_LOADTYPE_GATES' => 'Ворота',
+    'DEVICES_LOADTYPE_LIGHT' => 'Освещение',
+    'DEVICES_LOADTYPE_LIGHT_ALT' => 'Свет',
+    'DEVICES_LOADTYPE_POWER' => 'Разное',
+
+    'DEVICES_OPENTYPE_CURTAINS' => 'Шторы',
+    'DEVICES_OPENTYPE_SHUTTERS' => 'Ставни',
+    'DEVICES_OPENTYPE_GATES' => 'Ворота',
+    'DEVICES_OPENTYPE_WINDOW' => 'Окно',
+    'DEVICES_OPENTYPE_DOOR' => 'Дверь',
+
+*/
+
    return $devices;
 }
 
@@ -64,9 +81,9 @@ function postEntities(){
     $r = array();
     $l = array();
 
-    $r['locations'][] = getLocations();
-    $r['patterns'][] = getPatterns();
-    $r['devices'][] = getDevices();
+    $r['locations'] = getLocations();
+    $r['patterns'] = getPatterns();
+    $r['devices'] = getDevices();
 
     header("Content-type:application/json; encoding=utf-8;");
     echo json_encode($r, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);

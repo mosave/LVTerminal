@@ -30,9 +30,8 @@ class MajorDoMoSkill(Skill):
                 thread = threading.Thread( target=this.httpGet, args=[this.url, this.user, this.password] )
                 thread.daemon = False
                 thread.start()
-
             else:
-                this.stopParsing(ANIMATION_NONE)
+                pass
 
 
     def onTopicChange( this, newTopic: str, params={} ):

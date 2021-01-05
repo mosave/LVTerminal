@@ -166,8 +166,8 @@ Terminal.initialize( config )
 Speaker.initialize( config )
 
 
-d = Devices().devices['relayKitchen']
-d.methods['on'].execute()
+d = Devices().devices['relayToilet']
+#d.methods['on'].execute()
 #d.methods['off'].execute()
 
 messageQueue = list()
@@ -175,12 +175,12 @@ messageQueue = list()
 terminal = Terminal.authorize( 'test', 'Password', 'testscript' )
 terminal.onConnect( messageQueue )
 
-print( transcribeDate(datetime.datetime.today()) )
+#print( transcribeDate(datetime.datetime.today()) )
 
-print( transcribeTime(datetime.datetime.today()) )
+#print( transcribeTime(datetime.datetime.today()) )
 
 
-print( transcribeNumber(28,{'nomn','ADJF'}) )
+#print( transcribeNumber(28,{'nomn','ADJF'}) )
 
 #_s=''
 #w = parseWord('восемь')[0]

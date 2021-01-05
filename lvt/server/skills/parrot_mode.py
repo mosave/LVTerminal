@@ -37,22 +37,25 @@ class ParrotModeSkill(Skill):
             elif iOn>=0 and iOn<iDict  or  iOff>=0 and iOff<iNoDict :
                 if this.terminal.usingVocabulary:
                     this.stopParsing(ANIMATION_CANCEL)
-                    this.say("режим распознавания со словарем уже включен")
+                    s = "Режим распознавания со словарем уже включен"
                 else:
                     this.stopParsing(ANIMATION_ACCEPT)
                     this.terminal.usingVocabulary = True
-                    this.say("Включаю режим распознавания со словарем")
+                    s = "Включаю режим распознавания со словарем"
+                this.animate(ANIMATION_AWAKE)
+                this.say(s)
             elif iOff>=0 and  iOff<iDict  or  iOn>=0 and iOn<iNoDict :
                 if this.terminal.usingVocabulary:
                     this.stopParsing(ANIMATION_ACCEPT)
                     this.terminal.usingVocabulary = False
-                    this.say("Выключаю режим распознавания со словарем")
+                    s = "Выключаю режим распознавания со словарем"
                 else:
                     this.stopParsing(ANIMATION_CANCEL)
-                    this.say("режим распознавания со словарем уже выключен")
+                    s = "Режим распознавания со словарем уже выключен"
+                this.animate(ANIMATION_AWAKE)
+                this.say(s)
             else:
                 this.say( this.terminal.originalText )
-            this.animate(ANIMATION_AWAKE)
 
         else:
             if this.isAppealed :
@@ -73,7 +76,6 @@ class ParrotModeSkill(Skill):
             # Задаем время проговаривания напоминания
             this.remindOn = time.time() + REMINDER_TIMEOUT
         elif this.topic == TOPIC_PARROT_MODE :
-            this.animate(ANIMATION_NONE)
             this.say( 'Режим попугая выключен' )
             this.remindOn = 0
             if this.terminal.usingVocabulary != this.terminal.vocabularyMode :

@@ -3,10 +3,12 @@ import time
 import datetime
 import json
 import threading
+from urllib.parse import urljoin, urlencode
 import requests
 from lvt.const import *
 from lvt.logger import *
 from lvt.config_parser import ConfigParser
+from lvt.server.grammar import *
 from lvt.server.mqtt import MQTT
 from lvt.server.entities import Entities
 
@@ -14,6 +16,8 @@ config = None
 deviceTypes = None
 devices = None
 
+### httpGet(), httpPost() action helpers ###############################################
+#region
 def httpGet( url, user, password ):
     try:
         if user and password :
@@ -33,8 +37,9 @@ def httpPost( url, user, password, data ):
         r = requests.post( url, auth=auth,data=data )
     except Exception as e:
         logError( f'HTTP POST("{url}","payload"): {e}' )
-
-
+#endregion
+### Action class: device' method encapsulation #########################################
+#region
 class Action():
     def __init__( this ):
         this.action = None
@@ -57,7 +62,9 @@ class Action():
             thread = threading.Thread( target=httpPost, args=[this.url, this.user, this.password, this.data] )
             thread.daemon = False
             thread.start()
-
+#endregion
+### DeviceType class: specific device implementation ###################################
+#region
 class DeviceType():
     def __init__( this, names, methods ):
         if isinstance( names, str ) : names = [names]
@@ -69,7 +76,9 @@ class DeviceType():
         """Основное название типа устройтсв"""
         return this.names[0]
 
-
+#endregion
+### Device() class #####################################################################
+#region
 class Device():
     def __init__( this, id: str, source: str='config' ):
         global deviceTypes
@@ -77,20 +86,19 @@ class Device():
             raise Exception( f'Invalid device source: {source}. Should be one of {SOURCES}' )
 
         this.id = id
-        this.names = [id]
+        this.names = []
         this.source = source
         this.methods = dict()
         this._typeName = ''
         this.type = deviceTypes[0]
         this.location = ''
+        this.locationId = None
         this.isDefault = False
-        this.user = None
-        this.password = None
 
     @property
     def name( this ) -> str:
         """Основное название типа устройств"""
-        return this.names[0]
+        return this.names[0] if len(this.names)>0 else this.id
 
     @property 
     def typeName( this ) :
@@ -100,12 +108,7 @@ class Device():
     def typeName( this, newTypeName ):
         global deviceTypes
         newTypeName = newTypeName.lower()
-        this.type = None
-        for t in deviceTypes:
-            a = [tn for tn in t.names if tn == newTypeName]
-            if len( a ) > 0 : 
-                this.type = t
-                break
+        this.type = Devices().getTypeByName(newTypeName)
         if this.type == None :
             raise Exception( f'Указан недопустимый тип устройства {newTypeName} ' )
 
@@ -118,8 +121,9 @@ class Device():
             if m not in methods.keys():
                 methods[m] = Action()
         this.methods = methods
-
-
+#endregion
+### Devices() class: list of devices management ########################################
+#region
 class Devices():
     """Entities class. Single-instance in-memory world facts
     """
@@ -137,7 +141,16 @@ class Devices():
         global devices
         return devices
 
-### Static methods #####################################################################
+    def getTypeByName( this, name: str ) -> DeviceType:
+        global deviceTypes
+        if name == None : return None
+        name = str(name).lower()
+        for t in deviceTypes:
+            if name in t.names : return t
+        return None
+
+#endregion
+### initialize(), dispose() ############################################################
 #region
     def initialize( gConfig ):
         """Initialize module' config variable for easier access """
@@ -148,9 +161,9 @@ class Devices():
         config = gConfig
 
         deviceTypes = list()
-        deviceTypes.append( DeviceType( \
-            [''], \
-            ['on', 'off'] ) )
+        #deviceTypes.append( DeviceType( \
+        #    [''], \
+        #    ['on', 'off'] ) )
         deviceTypes.append( DeviceType( \
             ['свет', 'освещение', 'подсветка', 'светильник', 'лампа'], \
             ['on', 'off'] ) )
@@ -203,9 +216,81 @@ class Devices():
                     raise Exception( f'Ошибка в определении метода {id}.{m}' )
 
             devices[id] = device
-
+        Devices.getMajorDoMoDevices()
         Devices.updateDefaultDevices()
 
+    def dispose():
+        pass
+
+#endregion
+### getMajorDoMoDevices() ##############################################################
+#region
+    def getMajorDoMoDevices():
+        global config
+        global devices
+        if not config.mdServer or not config.mdIntegration :
+            return
+
+        if config.mdUser!='' and config.mdPassword!='' :
+            auth = requests.auth.HTTPBasicAuth( config.mdUser, config.mdPassword )
+        else :
+            auth = None
+        try:
+            url = urljoin(os.environ.get("BASE_URL", config.mdServer ), '/lvt.php' )
+            md = requests.get( url, auth=auth ).json()
+        except Exception as ex:
+            logError(f'Error querying MajorDoMo integration script {url}: {ex}')
+
+        entities = Entities()
+        try:
+            for l in md['locations'] :
+                ln = normalizeWords(l['Title'])
+                if entities.findLocation( ln ) == None : 
+                    entities.locations.append( list([ln]) )
+        except Exception as ex:
+            logError(f'Error processing MajorDoMo locations: {ex}')
+
+        for d in md['devices'] :
+            try:
+                id = d['Id']
+                name = normalizeWords(d['Title'])
+                if not name or id in devices : continue
+                type = Devices().getTypeByName(d['DeviceType'])
+                if type==None : continue
+
+                device = Device( id,'majordomo' )
+
+                if name not in device.names : 
+                    device.names.append(name)
+
+                names = prasesToList(normalizePhrases(d['AltTitles']))
+                for name in names :
+                    if name and name not in device.names : 
+                        device.names.append(name)
+
+                device.typeName = d['DeviceType']
+                device.locationId = d['LocationId']
+                device.location = entities.findLocation( d['Location'] )
+                mdMethods = {'on':'turnOn',
+                             'off': 'turnOff',
+                             'open':'open',
+                             'close': 'close'
+                    }
+                for m in device.methods :
+                    if m in mdMethods :
+                        device.methods[m].user = config.mdUser
+                        device.methods[m].password = config.mdPassword
+                        device.methods[m].action = 'get'
+                        device.methods[m].url = urljoin( \
+                            os.environ.get("BASE_URL", config.mdServer ), \
+                            f'/objects/?object={id}&op=m&m={mdMethods[m]}' )
+                devices[id] = device
+            except Exception as ex:
+                logError(f'Error processing MajorDoMo locations: {ex}')
+
+#endregion
+### updateDefaultDevices() #############################################################
+#region
     def updateDefaultDevices():
         global devices
         #dtypes = set([d.type.name for id,d in devices if d.location!=''])
@@ -225,8 +310,4 @@ class Devices():
                 if not locs[d.location] :
                     d.isDefault = True
                     locs[d.location] = True
-
-    def dispose():
-        pass
-
 #endregion

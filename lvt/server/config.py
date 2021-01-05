@@ -82,6 +82,16 @@ class Config:
         section = 'MQTT'
         this.mqttServer = p.getValue( section, 'Server','' )
 
+        ### MajorDoMo
+        section = 'MajorDoMo'
+        this.mdUser = p.getValue( section, 'User','' )
+        this.mdPassword = p.getValue( section, 'Password','' )
+        this.mdServer = p.getValue( section, 'Server','' )
+        #if this.mdServer!='' :
+        #    this.mdServer = os.environ.get("BASE_URL", this.mdServer )
+        this.mdIntegration = bool(p.getValue( section, 'Integration','0' )=='1')
+        this.mdSendRawCommands = bool(p.getValue( section, 'SendRawCommands','0' )=='1')
+
 
         ### Terminals
         this.terminals = dict()

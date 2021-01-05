@@ -157,8 +157,9 @@ def normalizePhrases( phrases ) -> str:
     """Возвращает нормализованный список (через запятую) нормализованных цепочек слов (через пробел)
     Пример "включи свет,выключи свет,сделай что-то"
     """
+    if phrases==None : return ''
     allowed_chars = 'abcdefghijklmnopqrstuvxyzабвгдеёжзийклмнопрстуфхцчшщъыьэюя 1234567890-,'
-    phrases = phrases.lower()
+    phrases = str(phrases).lower()
     cleaned = ''
     for ch in phrases: cleaned += ch if ch in allowed_chars else ' '
     while True: 
@@ -205,7 +206,7 @@ def joinWords( words, words2 ) -> str:
             words += ' ' + w
     return words.strip()
 #endregion
-### Манипуляция цепочками слов (чере пробел) и фразами (через запятую) #################
+### wordsToVocabulary() / wordsToVocabularyAllForms() ##################################
 #region
 def wordsToVocabulary( words, tags=None ) :
     """Расширить словарь словами с генерацией словоформ для заданных тегов
