@@ -36,7 +36,7 @@ class YesNoSkill(Skill):
     
     """
     def onLoad( this ):
-        this.priority = 100
+        this.priority = 0
         this.subscribe( TOPIC_YES_NO )
         this.extendVocabulary( "нет, не согласен, отказ, стой, отмена, отменить, не хочу, прекрати, не надо, не нужно" )
         this.extendVocabulary( "да, согласен, конечно, продолжить, уверен, поехали" )

@@ -31,6 +31,7 @@
  * moduleFileName
  * name
  * config
+ * cfg
  * subscriptions = set()
  * vocabulary = set()
  * priority - Чем выше значение приоритета, тем ближе к началу в цепочке

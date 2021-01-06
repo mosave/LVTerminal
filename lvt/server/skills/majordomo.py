@@ -1,58 +1,80 @@
 import sys
 import time
 import datetime
+import threading
+import requests
+from urllib.parse import urljoin, urlencode
 from lvt.const import *
+from lvt.logger import *
 from lvt.server.grammar import *
 from lvt.server.skill import Skill
-
-TOPIC_MD_REFRESH = "MDRefreshDevices"
+from lvt.server.devices import Devices
 
 #Define base skill class
 class MajorDoMoSkill(Skill):
     """Скилл интеграции с MajorDoMo.
-    Отправляет все распознанные но не обработанные фразы 
-    на сервер MajorDoMo, если параметр
+    Отправляет распознанные но не обработанные фразы на сервер MajorDoMo, если параметр
     config.mdSendRawCommands == True
-    Кроме того при config.mdUseIntegrationScript == True
-    В ответ на фразу "Обнови список устройств" вызывает
-    * Какой сегодня день недели, какое число, какая дата
+    Кроме того в ответ на фразу "Обнови список устройств" заново загружает список устройств
+    с сервера MajorDoMo (config.mdIntegration должен быть True)
+
+
     """
     def onLoad( this ):
-        this.priority = 1000
-        this.subscribe( TOPIC_DEFAULT, TOPIC_MD_REFRESH )
+        this.priority = 100
+        this.subscribe( TOPIC_DEFAULT )
         this.extendVocabulary('обновить список устройств')
+        this.mdUpdateResult = 0
 
     def onText( this ):
         if this.isAppealed :
-            if this.findWordChainB('обновить список устройств'):
-                this.changeTopic(TOPIC_MD_REFRESH)
+            if this.config.mdIntegration and this.findWordChainB('обновить список устройств'):
                 this.stopParsing(ANIMATION_THINK)
-                thread = threading.Thread( target=this.httpGet, args=[this.url, this.user, this.password] )
+                this.say("Запуск обновления устройств ")
+
+                this.mdUpdateResult = 0
+                thread = threading.Thread( target=this.updateDevices() )
                 thread.daemon = False
                 thread.start()
-            else:
-                pass
+
+            elif this.config.mdSendRawCommands:
+                thread = threading.Thread( target=this.sendRawCommand() )
+                thread.daemon = False
+                thread.start()
+                this.stopParsing(ANIMATION_ACCEPT)
 
 
-    def onTopicChange( this, newTopic: str, params={} ):
-        #if this.topic == TOPIC_MD_REFRESH:
-        #    this.animate( ANIMATION_NONE )
-        #    this.say( 'Устройства обновлены' )
-        #elif newTopic==TOPIC:
-        #    this.terminal.animate( this.lastAnimation )
-        pass
 
     def onTimer( this ):
-        if( this.topic == TOPIC_MD_REFRESH ):
-            pass
+        if this.mdUpdateResult==1:
+            this.stopParsing(ANIMATION_ACCEPT)
+            this.say('Устройства обновлены')
+            this.mdUpdateResult = 0
+        elif this.mdUpdateResult==2:
+            this.stopParsing(ANIMATION_CANCEL)
+            this.say('Ошибка при обновлении устройств')
+            this.mdUpdateResult = 0
 
 
-    def httpGet( this, url, user, password ):
+    def updateDevices( this ):
         try:
-            if user and password :
-                auth = requests.auth.HTTPBasicAuth( user, password )
+            Devices.loadMajorDoMoDevices()
+            Devices.updateDefaultDevices()
+            this.mdUpdateResult = 1
+        except Exception as e:
+            this.mdUpdateResult = 2
+
+    def sendRawCommand( this ):
+        try:
+            if this.config.mdUser and this.config.mdPassword :
+                auth = requests.auth.HTTPBasicAuth( this.config.mdUser, this.config.mdPassword )
             else :
                 auth = None
+
+            qry = urlencode({"qry":this.originalText })
+            log(f'Отправка команды в MajorDoMo: "{this.terminal.originalText}"')
+
+            url = urljoin( os.environ.get("BASE_URL", config.mdServer ), f'/command.php?{qry}' )
             r = requests.get( url, auth=auth )
         except Exception as e:
             logError( f'HTTP GET("{url}","payload"): {e}' )

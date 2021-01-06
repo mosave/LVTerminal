@@ -12,7 +12,6 @@ class Grammar():
         pass
 ### pymorphy2 isolation ################################################################
 #region
-
 def parseWord( word: str ):
     """Parse word using phmorphy2 library"""
     global morphy

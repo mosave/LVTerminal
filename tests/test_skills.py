@@ -145,6 +145,13 @@ def testTimeTeller():
     onText( 'алиса какое сегодня число' )
     checkIfSaid( transcribeDate(datetime.datetime.today()) )
 
+def testMajorDoMo():
+    logs.clear()
+    print( '***** MajorDoMoSkill tests' )
+    onText( 'Мажордом, обнови список устройств' )
+    onText( 'Мажордом, включи свет в зале' )
+    #checkIfSaid( transcribeDate(datetime.datetime.today()) )
+
 
 
 config = Config( 'lvt_server.cfg' )
@@ -166,7 +173,7 @@ Terminal.initialize( config )
 Speaker.initialize( config )
 
 
-d = Devices().devices['relayToilet']
+#d = Devices().devices['relayToilet']
 #d.methods['on'].execute()
 #d.methods['off'].execute()
 
@@ -197,10 +204,13 @@ terminal.onConnect( messageQueue )
 #        #for g in list(t.KNOWN_GRAMMEMES) :
 #        #    print( f'{c}, {p}, {g}: ' + transcribeNumber(28,{str(c),str(p),str(g),'neut'},'декабря') )
 
-print( transcribeNumber(1000,{'gent'},'хомяк') )
-print( transcribeNumber(1111111,{'gent'}, 'хомяк') )
+#print( transcribeNumber(1000,{'gent'},'хомяк') )
+#print( transcribeNumber(1111111,{'gent'}, 'хомяк') )
 
-print( transcribeNumber(123123123,{'gent'}, 'хомяк') )
+#print( transcribeNumber(123123123,{'gent'}, 'хомяк') )
+
+
+testMajorDoMo()
 
 testTimeTeller()
 

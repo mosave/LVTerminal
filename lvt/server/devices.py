@@ -216,7 +216,7 @@ class Devices():
                     raise Exception( f'Ошибка в определении метода {id}.{m}' )
 
             devices[id] = device
-        Devices.getMajorDoMoDevices()
+        Devices.loadMajorDoMoDevices()
         Devices.updateDefaultDevices()
 
     def dispose():
@@ -225,7 +225,7 @@ class Devices():
 #endregion
 ### getMajorDoMoDevices() ##############################################################
 #region
-    def getMajorDoMoDevices():
+    def loadMajorDoMoDevices():
         global config
         global devices
         if not config.mdServer or not config.mdIntegration :
@@ -241,6 +241,7 @@ class Devices():
         except Exception as ex:
             logError(f'Error querying MajorDoMo integration script {url}: {ex}')
 
+
         entities = Entities()
         try:
             for l in md['locations'] :
@@ -249,6 +250,9 @@ class Devices():
                     entities.locations.append( list([ln]) )
         except Exception as ex:
             logError(f'Error processing MajorDoMo locations: {ex}')
+
+        ids = [id for id in devices if devices[id].source=='majordomo' ]
+        for id in ids : devices.pop(id)
 
         for d in md['devices'] :
             try:

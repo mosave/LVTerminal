@@ -2,6 +2,7 @@ import sys
 import importlib
 from lvt.const import *
 from lvt.logger import *
+from lvt.server.config import Config
 from lvt.server.grammar import *
 
 class Skill:
@@ -12,7 +13,7 @@ class Skill:
         this.terminal = terminal
         this.moduleFileName = moduleFileName
         this.name = name
-        this.config = cfg
+        this.cfg = cfg
         this.subscriptions = set()
         this.vocabulary = set()
         # Чем выше значение приоритета, тем ближе к началу в цепочке
@@ -91,7 +92,13 @@ class Skill:
     @property
     def words( this ): return this.terminal.words
     @property
-    def topic( this ): return this.terminal.topic
+    def text( this ) -> str: return this.terminal.text
+    @property
+    def originalText( this ) -> str: return this.terminal.originalText
+    @property
+    def topic( this ) -> str: return this.terminal.topic
+    @property
+    def config( this ) -> Config: return this.terminal.config
 
     def animate( this, animation:str ): this.terminal.animate( animation )
     def say( this, text ): this.terminal.say( text )
@@ -121,8 +128,7 @@ class Skill:
     def conformToAppeal( this, word: str ) -> str:
         """Согласовать слово с обращением (мужской-женский-средний род)"""
         parse = parseWord( word )[0]
-        tags = changeGender( parse.tag, parseWord( this.terminal.appeal )[0].tag.gender )
-        return parse.inflect( tags ).word
+        return parse.inflect( changeGender( parse.tag, this.terminal.gender ) ).word
 
     def isWord( this, index, word: str, tags=None ) -> bool:
         """Сравнение слова со словом в фразе с учетом морфологических признаков"""
