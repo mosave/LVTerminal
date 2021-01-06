@@ -30,24 +30,23 @@ animator = None
 #region
 def showHelp():
     """Display usage instructions"""
-    print( "usage: lvt_client.py [options]" )
-    print( "Options available:" )
-    print( " -h | --help                    show these notes" )
-    print( " -d | --devices                 list audio devices to specify in configuration file" )
-    print( " -q | --quiet                   hide sound level indicator" )
-    print( " -l[=<file>] | --log[=<file>]   Overwrite log file location defined in config file " )
+    print( "Использование: lvt_client.py [параметры]" )
+    print( "Допустимые параметры:" )
+    print( " -h | --help                    Вывод этой подсказки" )
+    print( " -d | --devices                 Показать список аудио устройств" )
+    print( " -q | --quiet                   Не отображать уровень звука в консоли" )
+    print( " -l[=<file>] | --log[=<file>]   Расположение файла журнала (имеет больший приоритет чем соответствующий параметр в файле настроек)" )
 
 def showDevices():
     """List audio deivces to use in config"""
-    print( "List of devices supported. Both device index or device name could be used" )
+    print( "Список поддерживаемых аудио устройств. В файле конфигурации может быть указан как индекс так и название устройств" )
     audio = pyaudio.PyAudio()
-    print( f' Index   Channels   Device name' )
+    print( f' Индекс  Каналы     Название устройтсва' )
     for i in range( audio.get_device_count() ):
         device = audio.get_device_info_by_index( i )
         print( f'  {i:>2}    I:{device.get("maxInputChannels")} / O:{device.get("maxOutputChannels")}   "{device.get("name")}"' )
         #print(device)
     audio.terminate()
-
 #endregion
 
 ### printStatus() ######################################################################
@@ -167,10 +166,10 @@ async def processMessages( connection ):
                     if updater.update( package ) :
                         shared.isTerminated = True
                         await connection.send( MESSAGE( MSG_DISCONNECT, "Reboot after file update" ) )
-                        time.sleep( 3 )
+                        time.sleep( 10 )
                         restartClient()
                 except Exception as e:
-                    printError( f'Error while updating client: {e}' )
+                    printError( f'Ошибка при обновлении клиента: {e}' )
         elif m == MSG_REBOOT:
             print( 'Device reboot is not yet implemented, resarting client instead' )
             await connection.send( MESSAGE( MSG_DISCONNECT, "Reboot by server request" ) )
@@ -194,7 +193,7 @@ async def websockClient():
     global lastAnimation
     global microphone
 
-    print( "Starting websock client" )
+    print( "Запуск Websock сервиса" )
 
     protocol = 'ws'
     sslContext = None
@@ -206,7 +205,7 @@ async def websockClient():
             sslContext.verify_mode = ssl.CERT_NONE
 
     uri = f'{protocol}://{config.serverAddress}:{config.serverPort}'
-    print( f'Connecting {uri}' )
+    print( f'Сервер: {uri}' )
     lastAnimation = ANIMATION_NONE
 
     while not shared.isTerminated:
@@ -218,7 +217,7 @@ async def websockClient():
                     pingAreadySent = False
 
                     shared.isConnected = True
-                    print( 'Connected, press Ctrl-C to exit' )
+                    print( 'Сервис запущен. Нажмите Ctrl-C для выхода' )
                     await connection.send( MESSAGE( MSG_TERMINAL, config.terminalId, config.password, VERSION ) )
 
                     while not shared.isTerminated and shared.isConnected:
@@ -240,7 +239,7 @@ async def websockClient():
             if isinstance( e, websockets.exceptions.ConnectionClosedOK ) :
                 print( 'Disconnected' )
             elif isinstance( e, websockets.exceptions.ConnectionClosedError ):
-                printError( f'Disconnected due to error: {e} ' )
+                printError( f'Отключение в результате ошибки: {e} ' )
             else:
                 printError( f'Websock Client error: {e}' )
                 try: await connection.send( MSG_DISCONNECT )
@@ -269,7 +268,7 @@ def onCtrlC():
 
 def restartClient():
     """  Make Python re-compile and re-run app """
-    print( 'Restarting...' )
+    print( 'Перезапуск...' )
     os.execl( sys.executable, f'"{format(sys.executable)}"', *sys.argv )
 #endregion
 
@@ -278,8 +277,12 @@ def restartClient():
 if __name__ == '__main__':
     print()
     print( f'Lite Voice Terminal Client v{VERSION}' )
+    configFileName = os.path.splitext( os.path.basename( __file__ ) )[0] + '.cfg'
+    if not os.path.exists(os.path.join( ROOT_DIR, configFileName)) :
+        print(f'Используйте "docs/{configFileName}" в качестве шаблона для создания файла настроек')
+        exit(1)
 
-    config = Config( os.path.splitext( os.path.basename( __file__ ) )[0] + '.cfg' )
+    config = Config( configFileName )
 
     shared = multiprocessing.Manager().Namespace()
     shared.isTerminated = False
@@ -307,7 +310,7 @@ if __name__ == '__main__':
             config.logFileName = b[1] if len( b ) == 2 else "logs/client.log"
 
         else:
-            printError( f'Invalid command line argument: "{arg}"' )
+            printError( f'Неизвестный параметр: "{arg}"' )
 
     Logger.initialize( config )
     Microphone.initialize( config )
@@ -325,8 +328,8 @@ if __name__ == '__main__':
         animator = None
 
 
-    print( f'Audio input: #{config.audioInputDevice} "{config.audioInputName}"' )
-    print( f'Audio output: #{config.audioOutputDevice} "{config.audioOutputName}"' )
+    print( f'Устройство для захвата звука: #{config.audioInputDevice} "{config.audioInputName}"' )
+    print( f'Устройтсво для вывода звука: #{config.audioOutputDevice} "{config.audioOutputName}"' )
 
     try:
         loop = asyncio.get_event_loop()
@@ -340,8 +343,8 @@ if __name__ == '__main__':
         elif isinstance( e, KeyboardInterrupt ):
             onCtrlC()
         else:
-            printError( f'Unhandled exception in main thread: {e}' )
+            printError( f'Unhandled exception: {e}' )
 
     if animator != None : del( animator )
-    print( 'Finishing application' )
+    print( 'Завершение работы' )
 #endregion

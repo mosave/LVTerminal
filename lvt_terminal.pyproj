@@ -83,6 +83,8 @@
     <Content Include="docs\Configuration - Server.md" />
     <Content Include="docs\Configuration - Terminal.md" />
     <Content Include="docs\LVT Protocol.md" />
+    <Content Include="docs\lvt_client.cfg" />
+    <Content Include="docs\lvt_server.cfg" />
     <Content Include="docs\Skill Development.md" />
     <Content Include="docs\stuff.txt" />
     <Content Include="docs\todo.txt" />
@@ -94,8 +96,6 @@
     <Content Include="lvt\sounds\appeal_off.wav" />
     <Content Include="lvt\sounds\appeal_on.wav" />
     <Content Include="todo.txt" />
-    <Content Include="lvt_client.cfg" />
-    <Content Include="lvt_server.cfg" />
     <Content Include="readme.md" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />

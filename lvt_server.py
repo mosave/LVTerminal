@@ -234,12 +234,18 @@ def onCtrlC():
 #region
 #First thing first: save store script' folder as ROOT_DIR:
 ROOT_DIR = os.path.abspath( os.path.dirname( __file__ ) )
+
 print()
 print( f'Lite Voice Terminal Server v{VERSION}' )
 
 logFileName = None
 
-config = Config( os.path.splitext( os.path.basename( __file__ ) )[0] + '.cfg' )
+configFileName = os.path.splitext( os.path.basename( __file__ ) )[0] + '.cfg'
+if not os.path.exists(os.path.join( ROOT_DIR, configFileName)) :
+    print(f'Используйте "docs/{configFileName}" в качестве шаблона для создания файла настроек')
+    exit(1)
+
+config = Config( configFileName )
 
 for arg in sys.argv[1:]:
     a = arg.strip().lower()
