@@ -3,6 +3,7 @@ import time
 import os
 import psutil
 from lvt.const import *
+from lvt.server.grammar import *
 from lvt.config_parser import ConfigParser
 
 class Config:
@@ -29,6 +30,8 @@ class Config:
             raise Exception( 'No models specified' )
 
         this.sampleRate = p.getIntValue( section, 'SampleRate',8000 )
+        if this.sampleRate not in [8000,16000]: raise Exception("Invalid SampleRate specified")
+
         this.recognitionThreads = p.getIntValue( section, 'RecognitionThreads',os.cpu_count() )
         if( this.recognitionThreads < 1 ): this.recognitionThreads = 1
 
@@ -44,10 +47,12 @@ class Config:
         this.voiceSelectivity = p.getFloatValue( section, 'VoiceSelectivity', 0.2 )
 
         ### Assistant configuration
-        this.assistantName = p.getValue( section, 'AssistantName','' ) \
-            .replace( ',',' ' ).replace( '  ',' ' ).strip().lower()
-        if( len( this.assistantName.strip() ) == 0 ): 
-            raise Exception( 'AssistantName should be specified' )
+        this.maleAssistantNames = normalizeWords(p.getValue( section, 'MaleAssistantNames','' ))
+        this.femaleAssistantNames = normalizeWords(p.getValue( section, 'FemaleAssistantNames','' ))
+
+          
+        if( len( wordsToList( this.maleAssistantNames + ' ' + this.femaleAssistantNames) ) == 0 ): 
+            raise Exception( 'Either MaleAssistantNames or FemaleAssistantNames should be specified' )
 
         ### Logging
         this.logFileName = p.getValue( section, "Log", None )
@@ -62,7 +67,8 @@ class Config:
         elif( this.ttsEngine.lower().strip() == TTS_RHVOICE.lower() ):
             this.ttsEngine = TTS_RHVOICE
             section = TTS_RHVOICE
-            this.rhvVoice = p.getValue( section, 'Voice', 'Anna+CLB' )
+            this.rhvMaleVoice = p.getValue( section, 'MaleVoice', 'Aleksandr+Alan' )
+            this.rhvFemaleVoice = p.getValue( section, 'FemaleVoice', 'Anna+CLB' )
             this.rhvDataPath = p.getValue( section, 'data_path', None )
             this.rhvConfigPath = p.getValue( section, 'config_path', None )
             this.rhvParams = p.getValues( section )
@@ -139,7 +145,8 @@ class Config:
         js += f'"SpkModel":"{this.spkModel}",'
         js += f'"SampleRate":"{this.sampleRate}",'
         js += f'"RecognitionThreads":"{this.recognitionThreads}",'
-        js += f'"AssistantName":"{this.assistantName}",'
+        s = normalizeWords(this.femaleAssistantNames + this.maleAssistantNames )
+        js += f'"AssistantNames":"{s}",'
         js += f'"VoiceEngine":"{this.ttsEngine}",'
         if terminals != None :
             activeTerminals = 0

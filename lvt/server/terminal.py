@@ -75,12 +75,13 @@ class Terminal():
 
         this.lastAnimation = ''
 
+        this.appeal = wordsToList( config.femaleAssistantNames +' ' + config.maleAssistantNames )[0]
+
         this.reset()
 
     def reset( this ):
         this.topic = TOPIC_DEFAULT
         this.topicParams = None
-        this.appeal = wordsToList( config.assistantName )[0]
         this.appealPos = -1
         this.words = list()
 #endregion
@@ -96,7 +97,7 @@ class Terminal():
         if( config.ttsEngine == TTS_RHVOICE ):
             if rhvoiceTTS != None :
                 waveData = rhvoiceTTS.get( text, 
-                    voice=config.rhvVoice, 
+                    voice= config.rhvMaleVoice if this.gender=='masc' else config.rhvFemaleVoice,
                     format_='wav', 
                     sets=config.rhvParams, )
                 this.sendDatagram( waveData )
@@ -130,6 +131,12 @@ class Terminal():
     @property
     def isAppealed( this ) -> bool:
         return this.appealPos != None
+
+    @property
+    def gender( this ):
+        """Пол ассистента. Определяется по последнему обращению."""
+        global config
+        return 'masc' if this.appeal in wordsToList(config.maleAssistantNames) else 'femn'
 
     @property
     def text( this ) -> str:
@@ -305,7 +312,8 @@ class Terminal():
         this.vocabulary = set()
 
         this.extendVocabulary( this.name )
-        this.extendVocabulary( config.assistantName, {'NOUN', 'nomn', 'sing'} )
+        this.extendVocabulary( config.femaleAssistantNames, {'NOUN', 'nomn', 'sing'} )
+        this.extendVocabulary( config.maleAssistantNames, {'NOUN', 'nomn', 'sing'} )
 
         this.extendVocabulary( this.entities.vocabulary )
         this.extendVocabulary( this.entities.acronyms )
@@ -432,11 +440,5 @@ class Terminal():
             except: pass
         else:
             pass
-
-    #def updateVocabulary():
-    #    global terminals
-    #    for t in terminals:
-    #        t.updateVocabulary()
-
 
 #endregion

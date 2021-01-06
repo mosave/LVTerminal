@@ -166,7 +166,7 @@ async def processMessages( connection ):
                     if updater.update( package ) :
                         shared.isTerminated = True
                         await connection.send( MESSAGE( MSG_DISCONNECT, "Reboot after file update" ) )
-                        time.sleep( 10 )
+                        await asyncio.sleep( 10 )
                         restartClient()
                 except Exception as e:
                     printError( f'Ошибка при обновлении клиента: {e}' )
@@ -230,7 +230,7 @@ async def websockClient():
                             pass
 
                         printStatus()
-                        time.sleep( 0.1 )
+                        await asyncio.sleep( 0.1 )
 
         except KeyboardInterrupt:
             onCtrlC()

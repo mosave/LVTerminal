@@ -25,7 +25,7 @@ class AppealDetectorSkill(Skill):
         this.subscribe( TOPIC_ALL )
         this.savedTopic = TOPIC_DEFAULT
         this.waitUntil = 0
-        this.aNames = wordsToList(this.terminal.config.assistantName)
+        this.aNames = wordsToList(this.terminal.config.femaleAssistantNames + ' ' + this.terminal.config.maleAssistantNames)
 
 
     def onText( this ):
