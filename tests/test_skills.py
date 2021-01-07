@@ -155,8 +155,19 @@ def testMajorDoMo():
 def testOnOffSkill():
     logs.clear()
     print( '***** OnOffSkill() tests' )
+
+    onText( 'алиса включи свет в ванной' )
+    onText( 'алиса выключи свет слева' )
+
     onText( 'эй алиса слушай выключи весь свет!' )
-    onText( 'алиса свет!' )
+    onText( 'алиса, включи свет здесь и на кухне' )
+    onText( 'алиса, включи весь свет здесь и на кухне' )
+    onText( 'алиса, включи весь свет в зале' )
+    onText( 'алиса, выключи здесь свет' )
+    onText( 'алиса, выключи свет везде' )
+    onText( 'алиса, выключи свет во всех комнатах' )
+    onText( 'алиса, включи свет слева' )
+
     checkIfSaid( 'Поиск по шаблону работает' )
 
 
@@ -215,7 +226,7 @@ terminal.onConnect( messageQueue )
 
 #print( transcribeNumber(123123123,{'gent'}, 'хомяк') )
 
-testOnOffSkill()
+#testOnOffSkill()
 #testMajorDoMo()
 
 testAppealDetector()

@@ -30,10 +30,12 @@ class Terminal():
     def __init__( this, id ):
         this.id = id
         this.logDebug( f'Initializing terminal' )
+        this.entities = Entities()
         
         this.password = config.terminals[id]['password']
         this.name = config.terminals[id]['name']
-        this.defaultLocation = config.terminals[id]['location']
+        this.defaultLocation = this.entities.findLocation(config.terminals[id]['location'])
+
         this.autoUpdate = config.terminals[id]['autoupdate']
 
         this.clientVersion = ""
@@ -42,12 +44,12 @@ class Terminal():
         this.usingVocabulary = config.vocabularyMode
         this.vocabulary = set()
 
-        this.entities = Entities()
 
         this.parsedLocations = []
 
         this.lastActivity = time.time()
         this.appealPos = None
+        this.isAppealed = False
         # messages are local output messages buffer used while terminal is
         # disconnected
         this.messages = list()
@@ -83,7 +85,8 @@ class Terminal():
     def reset( this ):
         this.topic = TOPIC_DEFAULT
         this.topicParams = None
-        this.appealPos = -1
+        this.appealPos = None
+        this.isAppealed = False
         this.words = list()
 #endregion
 ### Say / Play #########################################################################
@@ -132,10 +135,6 @@ class Terminal():
     def locations( this ):
         """Список локаций, распознанные при анализе фразы либо локация, заданная в конфигурации терминала"""
         return ( this.parsedLocations if len( this.parsedLocations ) > 0 else [this.defaultLocation] )
-
-    @property
-    def isAppealed( this ) -> bool:
-        return this.appealPos != None
 
     @property
     def gender( this ):
@@ -209,8 +208,9 @@ class Terminal():
             this.logDebug( f'Вычищенный текст: "{text}"' )
 
         while True:
+            this.appealPos = None
+            this.isAppealed = False
             this.parsedLocations = []
-            wasAppealed = this.isAppealed
             this.newTopic = None
             this.newTopicParams = {}
             this.parsingStopped = False
@@ -250,7 +250,8 @@ class Terminal():
     def onPartialText( this, text:str ):
         """Основная точка входа для обработки частично распознанного фрагмента """
         this.originalText = ''
-
+        this.appealPos = None
+        this.isAppealed = False
         # Провести морфологический разбор слов текста
         this.text = normalizeWords( text )
         this.parsingStopped = False

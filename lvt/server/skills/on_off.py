@@ -27,12 +27,14 @@ class OnOffSkill(Skill):
         if not this.isAppealed : return
         turnOn = False
         ap = this.findWord('выключи')
+        if ap<0 : ap = this.findWord('выключать')
         if ap<0 : ap = this.findWord('отключи')
         if ap<0 : ap = this.findWord('выруби')
         if ap<0 : ap = this.findWord('погаси')
         if ap<0 : 
             turnOn = True
             ap = this.findWord('включи')
+        if ap<0 : ap = this.findWord('включать')
         if ap<0 : ap = this.findWord('подключи')
         if ap<0 : ap = this.findWord('вруби')
         if ap<0 : ap = this.findWord('зажги') >=0
@@ -71,6 +73,46 @@ class OnOffSkill(Skill):
            if d.location not in location : continue
            if ('on' if turnOn else 'off') not in d.methods : continue
            devs.append(d)
+        devsE = list()
+        if all :
+            #3. Обрабатывается шаблон "[включи|выключи] все [тип или название устройства]"
+            for d in devs :
+                names = d.type.names + d.names
+                for s in names :
+                    if this.findWordChainB(s) :
+                        devsE.append(d)
+                        break
+        else:
+            #4. Иначе выполняются поиск устройства по названию
+            for d in devs :
+                for s in d.names :
+                    if this.findWordChainB(s) : 
+                        devsE.append(d)
+                        break
+            if len(devsE)==0 and turnOn:
+                #5. Иначе при команде "включить" отбираются устройтва озвученного типа с признаком isDefault (такой будет хотя бы один)
+                for d in devs :
+                    if d.isDefault :
+                        for s in d.type.names :
+                            if this.findWordChainB(s) :
+                                devsE.append(d)
+                                break
+            if len(devsE)==0 and not turnOn:
+                #6. Иначе при команде "выключить" отбираются ВСЕ устройтва озвученного типа или названия
+                for d in devs :
+                    names = d.type.names + d.names
+                    for s in names :
+                        if this.findWordChainB(s) :
+                            devsE.append(d)
+                            break
+        if( len(devsE)<=0 ) :
+            return False
 
-        for device in devs:
-            pass
+
+        for d in devsE :
+            d.methods['on' if turnOn else 'off'].execute()
+
+        #s = [d.id for d in devsE]
+        #print( f'{location}:  {("включаю" if turnOn else "выключаю ")} {s}')
+        return True
+

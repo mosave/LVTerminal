@@ -17,43 +17,20 @@ class MajorDoMoSkill(Skill):
     config.mdSendRawCommands == True
     Кроме того в ответ на фразу "Обнови список устройств" заново загружает список устройств
     с сервера MajorDoMo (config.mdIntegration должен быть True)
-
-
     """
     def onLoad( this ):
         this.priority = 100
         this.subscribe( TOPIC_DEFAULT )
         this.extendVocabulary('обновить список устройств')
-        this.mdUpdateResult = 0
 
     def onText( this ):
         if this.isAppealed :
-            if this.config.mdIntegration and this.findWordChainB('обновить список устройств'):
-                this.stopParsing(ANIMATION_THINK)
-                this.say("Запуск обновления устройств ")
-
-                this.mdUpdateResult = 0
-                thread = threading.Thread( target=this.updateDevices() )
-                thread.daemon = False
-                thread.start()
-
-            elif this.config.mdSendRawCommands:
+            if this.config.mdSendRawCommands:
                 thread = threading.Thread( target=this.sendRawCommand() )
                 thread.daemon = False
                 thread.start()
                 this.stopParsing(ANIMATION_ACCEPT)
 
-
-
-    def onTimer( this ):
-        if this.mdUpdateResult==1:
-            this.stopParsing(ANIMATION_ACCEPT)
-            this.say('Устройства обновлены')
-            this.mdUpdateResult = 0
-        elif this.mdUpdateResult==2:
-            this.stopParsing(ANIMATION_CANCEL)
-            this.say('Ошибка при обновлении устройств')
-            this.mdUpdateResult = 0
 
 
     def updateDevices( this ):

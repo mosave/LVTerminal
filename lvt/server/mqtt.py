@@ -22,7 +22,7 @@ async def mqttClient():
             while True:
                 try:
                     (topic, data) = await asyncio.wait_for( queue.get(), timeout=10 )
-                    await mqttClient.publish(topic, data, qos=QOS_0)
+                    await client.publish(topic, data, qos=QOS_0)
                 except asyncio.TimeoutError:
                     await client.ping()
                 except KeyboardInterrupt as e:

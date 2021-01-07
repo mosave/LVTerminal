@@ -1,8 +1,11 @@
 import sys
 import time
+import threading
 from lvt.const import *
 from lvt.server.grammar import *
 from lvt.server.skill import Skill
+from lvt.server.entities import Entities
+from lvt.server.devices import Devices
 
 #Define base skill class
 class ServerConfigSkill(Skill):
@@ -14,6 +17,7 @@ class ServerConfigSkill(Skill):
         this.subscribe( TOPIC_DEFAULT )
         this.extendVocabulary("включи выключи используй режим распознавания со словарем, без словаря, с использованием, без использования");
         this.extendVocabulary("словари словарю")
+        this.mdUpdateResult = 0
 
     def onText( this ):
         if this.isAppealed :
@@ -41,4 +45,33 @@ class ServerConfigSkill(Skill):
                 else:
                     this.stopParsing( ANIMATION_CANCEL )
                     this.say("режим распознавания со словарем уже выключен")
+            elif this.findWordChainB('обновить список устройств'):
+                this.stopParsing(ANIMATION_THINK)
+                this.say("Запуск обновления устройств ")
 
+                this.mdUpdateResult = 0
+                thread = threading.Thread( target=this.updateDevices() )
+                thread.daemon = False
+                thread.start()
+
+    def onTimer( this ):
+        if this.mdUpdateResult==1:
+            this.stopParsing(ANIMATION_ACCEPT)
+            this.say('Устройства обновлены')
+            this.mdUpdateResult = 0
+        elif this.mdUpdateResult==2:
+            this.stopParsing(ANIMATION_CANCEL)
+            this.say('Ошибка при обновлении устройств')
+            this.mdUpdateResult = 0
+
+    def updateDevices( this ):
+        try:
+            Entities.initialize(this.config)
+            Devices.initialize(this.config)
+
+            if this.config.mdIntegration :
+                Devices.loadMajorDoMoDevices()
+            Devices.updateDefaultDevices()
+            this.mdUpdateResult = 1
+        except Exception as e:
+            this.mdUpdateResult = 2

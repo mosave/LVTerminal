@@ -21,7 +21,7 @@ class Microphone:
 
     def __init__( this ):
         this.rms = 50
-        this.rmsMax = 1000
+        this.channel = 0
         this.noiseLevel = 1000
         this.noiseThreshold = config.noiseThreshold
         this.triggerLevel = this.noiseLevel + this.noiseThreshold
@@ -98,10 +98,6 @@ class Microphone:
 
     @active.setter
     def active(this, newValue):
-        #if this._active and not newValue:
-        #    # Перезапускаем процедуру определения уровня шума
-        #    this.noiseLevel = this.rmsMax
-        #    this.rmsMax = 100
         this._active = newValue
 
     def _callback( this, data, frame_count, time_info, status):
@@ -120,34 +116,28 @@ class Microphone:
         data = np.fromstring( data, dtype='int16')
 
         # Раскидаем данные по каналам, преобразуя их обратно в поток байтов
-        rms = 0
-        rmsMax = 0
-        rmsMaxI = 0
-        channel = 0
+        rmsTarget = 2500
+        rmsDelta = 999999
+        rmsChannel = 0
         channels = [0]*this.channels
         channelRms = [0]*this.channels
         for ch in range(this.channels):
             channels[ch] = data[ch::this.channels].tobytes()
-            r = audioop.rms( channels[ch], this.sampleSize )
-            if r > rmsMax:
-                rmsMax = r
-                channel = ch
-            channelRms[ch] = r
-            rms += r
+            channelRms[ch] = audioop.rms( channels[ch], this.sampleSize )
+
+            delta = abs( channelRms[ch] -rmsTarget )
+            if delta < rmsDelta:
+                rmsDelta = delta
+                rmsChannel = ch
 
         if isinstance( config.channelSelection, int ) :
-            channel = config.channelSelection if config.channelSelection<this.channels else 0
-            this.rms = channelRms[channel]
+            this.channel = config.channelSelection if config.channelSelection<this.channels else 0
+            this.rms = channelRms[this.channel]
         elif config.channelSelection == "rms" :
-            this.rms = channelRms[channel]
-            pass
-        elif config.channelSelection == "join"  :
-            this.rms = channelRms[channel]
-            #this.rms = int(rms / this.channels)
-            pass
+            this.channel = rmsChannel
+            this.rms = channelRms[this.channel]
 
-        if this.rms > this.rmsMax : this.rmsMax = this.rms
-        this.buffer.append( channels[channel] )
+        this.buffer.append( channels[this.channel] )
 
         if this.active :
             if this.rms + this.noiseThreshold > this.noiseLevel :
@@ -166,9 +156,9 @@ class Microphone:
             p = 0
             voiceFrames = 0
             totalFrames = 0
-            while p+vadFrameSize <= len(channels[channel]):
+            while p+vadFrameSize <= len(channels[this.channel]):
                 totalFrames += 1
-                if this.vad.is_speech( channels[channel][p:p+vadFrameSize], config.sampleRate ): voiceFrames += 1
+                if this.vad.is_speech( channels[this.channel][p:p+vadFrameSize], config.sampleRate ): voiceFrames += 1
                 p += vadFrameSize
 
             isVoice = (totalFrames>0) and ((voiceFrames*100/totalFrames)>=config.vadConfidence)

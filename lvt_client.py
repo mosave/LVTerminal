@@ -75,7 +75,7 @@ def printStatus():
     face = 'O_O' if microphone.active else '-_-'
     face = f'x{face}x' if microphone.muted else f'({face})'
 
-    sys.__stdout__.write( f'[{lastAnimation:^10}] {face} {rms:>5} [{graph}]  \r' )
+    sys.__stdout__.write( f'[{lastAnimation:^10}] {face} CH:{microphone.channel} RMS:{microphone.rms:>5} [{graph}]  \r' )
 #endregion
 
 ### play() #############################################################################

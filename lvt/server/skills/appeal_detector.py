@@ -68,6 +68,8 @@ class AppealDetectorSkill(Skill):
 
 
     def detectAppeals( this ):
+        if this.isAppealed :
+            return True
         aPos = None
         # Получить список имен ассистента
         for aName in this.aNames: # Встречается ли в фразе имя ассистента?
@@ -78,9 +80,7 @@ class AppealDetectorSkill(Skill):
                 if this.terminal.appeal=='алиша' : this.terminal.appeal='алиса'
                 break
 
-        this.terminal.appealPos = aPos
-
-        if aPos<0 : return False
+        if aPos==None or aPos<0 : return False
 
         # Обращение вида "Эй, ассистент" 
         if aPos > 0 : 
@@ -101,6 +101,7 @@ class AppealDetectorSkill(Skill):
                 this.deleteWord(aPos+1)
 
         this.terminal.appealPos = aPos
+        this.terminal.isAppealed = True
         return True
 
     def onTopicChange( this, newTopic: str, params = {} ):

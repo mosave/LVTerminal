@@ -91,7 +91,7 @@ class Device():
         this.methods = dict()
         this._typeName = ''
         this.type = deviceTypes[0]
-        this.location = ''
+        this._location = ''
         this.locationId = None
         this.isDefault = False
 
@@ -99,6 +99,14 @@ class Device():
     def name( this ) -> str:
         """Основное название типа устройств"""
         return this.names[0] if len(this.names)>0 else this.id
+
+    @property
+    def location( this ) -> str:
+        """Приведенная локация устройства"""
+        return this._location
+    @location.setter
+    def location( this, newLocation ):
+        this._location = Entities().findLocation(newLocation)
 
     @property 
     def typeName( this ) :
@@ -186,9 +194,9 @@ class Devices():
             if isinstance( names,str ) : names = [names]
             device.names = names
             device.typeName = p.getValue( section,'type','' )
-            l = p.getValue( section,'Location','' )
-            device.location = entities.findLocation( l )
-            if l != '' and device.location == None:
+            device.location = p.getValue( section,'Location','' )
+
+            if device.location == None:
                 raise Exception( f'Устройство {id}: неверное значение параметра location: "{l}"' )
 
             device.isDefault = bool( p.getValue( section,'Default','0' ) == '1' )
@@ -274,7 +282,7 @@ class Devices():
 
                 device.typeName = d['DeviceType']
                 device.locationId = d['LocationId']
-                device.location = entities.findLocation( d['Location'] )
+                device.location = d['Location']
                 mdMethods = {'on':'turnOn',
                              'off': 'turnOff',
                              'open':'open',

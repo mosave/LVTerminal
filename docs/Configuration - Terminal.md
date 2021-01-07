@@ -18,7 +18,8 @@ raspi-config, включить spi
 pip3 install webrtcvad
 
 
-
+Save sound levels
+sudo alsactl --file=/var/lib/alsa/asound.state store
 
 
 1. Install as a service

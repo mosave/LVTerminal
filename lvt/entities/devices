@@ -18,14 +18,16 @@ Type="Свет"
 Location="Зал"
 Default = 1
 
-On= MQTT "Common/OMG/433" '{"value":12219937,"protocol":1,"length":24,"delay":362}'
-Off= MQTT "Common/OMG/433" '{"value":12219936,"protocol":1,"length":24,"delay":362}'
+On= MQTT "Common/OMG/to433" '{"value":12219937,"protocol":1,"length":24,"delay":362}'
+Off= MQTT "Common/OMG/to433" '{"value":12219936,"protocol":1,"length":24,"delay":362}'
 
 [onoffRight]
 Name="Свет справа"
 Type="Свет"
 Location="Зал"
 Default = 1
+On= GET "http://md:80/objects/?object=onoffRight&op=m&m=turnOn"
+Off= GET "http://md:80/objects/?object=onoffRight&op=m&m=turnOff"
 
 
 
@@ -34,8 +36,6 @@ Name="Камин"
 Type="Обогрев"
 Location="Зал"
 
-On= MQTT "Common/OMG/433" '{"value":12219937,"protocol":1,"length":24,"delay":362}'
-Off= MQTT "Common/OMG/433" '{"value":12219936,"protocol":1,"length":24,"delay":362}'
 
 Телевизор
 Кондиционер Кондей
