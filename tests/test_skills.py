@@ -152,6 +152,12 @@ def testMajorDoMo():
     onText( 'Мажордом, включи свет в зале' )
     #checkIfSaid( transcribeDate(datetime.datetime.today()) )
 
+def testOnOffSkill():
+    logs.clear()
+    print( '***** OnOffSkill() tests' )
+    onText( 'эй алиса слушай выключи весь свет!' )
+    onText( 'алиса свет!' )
+    checkIfSaid( 'Поиск по шаблону работает' )
 
 
 config = Config( 'lvt_server.cfg' )
@@ -209,11 +215,8 @@ terminal.onConnect( messageQueue )
 
 #print( transcribeNumber(123123123,{'gent'}, 'хомяк') )
 
-
-testMajorDoMo()
-
-testTimeTeller()
-
+testOnOffSkill()
+#testMajorDoMo()
 
 testAppealDetector()
 testFindWordChain()
@@ -223,6 +226,7 @@ testLocationExtractor()
 testParrotMode()
 testServerConfig()
 testYesNo()
+testTimeTeller()
 
 
 terminal.onDisconnect()

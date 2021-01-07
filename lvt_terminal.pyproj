@@ -51,6 +51,7 @@
     <Compile Include="lvt\server\skills\location_detector.py" />
     <Compile Include="lvt\server\skills\majordomo.py" />
     <Compile Include="lvt\server\skills\one_word_commands.py" />
+    <Compile Include="lvt\server\skills\on_off.py" />
     <Compile Include="lvt\server\skills\server_config.py" />
     <Compile Include="lvt\server\skills\time_teller.py" />
     <Compile Include="lvt\server\skills\yes_no.py" />

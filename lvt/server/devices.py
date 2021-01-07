@@ -301,15 +301,19 @@ class Devices():
         dtypes = set()
         for d in devices.values(): dtypes.add( d.type.name )
 
+        # Для каждого типа устройств:
         for type in dtypes :
             devs = [d for d in devices.values() if d.type.name == type]
             locs = dict()
+            # Просмотреть location'ы и проверить, есть ли в них устройства "по умолчанию"
             for d in devs :
-                # Оставить isDefault только у одного устройства
                 if d.location not in locs.keys() : locs[d.location] = False
                 if d.isDefault : 
-                    if locs[d.location] : d.isDefault = False
+                    ## Оставить isDefault только у одного устройства
+                    #if locs[d.location] : d.isDefault = False
                     locs[d.location] = True
+
+            # Если в локации нет устройств "по умолчанию" - делаем таковым первый попавшийся.
             for d in devs :
                 if not locs[d.location] :
                     d.isDefault = True

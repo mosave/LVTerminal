@@ -2,6 +2,7 @@ import sys
 import time
 import datetime
 import json
+from numpy import random
 from lvt.const import *
 from lvt.logger import *
 from lvt.protocol import *
@@ -91,6 +92,10 @@ class Terminal():
         """Проговорить сообщение на терминал. 
           Текст сообщения так же дублируется командой "Text"
         """
+
+        if isinstance(text, list) :
+            text = text[random.randint(len(text))]
+
         this.sendMessage( MSG_TEXT, text )
         this.sendMessage( MSG_MUTE )
         this.logDebug( f'Say "{text}"' )
@@ -314,6 +319,8 @@ class Terminal():
         this.extendVocabulary( this.name )
         this.extendVocabulary( config.femaleAssistantNames, {'NOUN', 'nomn', 'sing'} )
         this.extendVocabulary( config.maleAssistantNames, {'NOUN', 'nomn', 'sing'} )
+
+        this.extendVocabulary( 'эй слушай' )
 
         this.extendVocabulary( this.entities.vocabulary )
         this.extendVocabulary( this.entities.acronyms )

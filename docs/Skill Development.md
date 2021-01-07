@@ -40,8 +40,11 @@
  * appeal
  * appealPos
  * location
+ * parsedLocations
  * entities
  * words
+ * text
+ * originalText
  * topic
 
 ### Методы базового класса Skill:

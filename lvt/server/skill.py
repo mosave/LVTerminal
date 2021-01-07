@@ -2,8 +2,9 @@ import sys
 import importlib
 from lvt.const import *
 from lvt.logger import *
-from lvt.server.config import Config
 from lvt.server.grammar import *
+from lvt.server.config import Config
+from lvt.server.entities import Entities
 
 class Skill:
     """Базовый класс скиллов
@@ -87,7 +88,9 @@ class Skill:
     @property
     def location( this ): return this.terminal.location
     @property
-    def entities( this ): return this.terminal.entities
+    def locations( this ): return this.terminal.locations
+    @property
+    def entities( this ) -> Entities: return this.terminal.entities
 
     @property
     def words( this ): return this.terminal.words
