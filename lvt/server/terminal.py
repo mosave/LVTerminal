@@ -326,6 +326,12 @@ class Terminal():
         this.extendVocabulary( this.entities.vocabulary )
         this.extendVocabulary( this.entities.acronyms )
         this.extendVocabulary( this.entities.locations )
+        devices = Devices()
+        for dt in devices.deviceTypes:
+            this.extendVocabulary( dt.names )
+        for d in devices.devices.values():
+            this.extendVocabulary( d.names )
+        
         for skill in this.skills:
             this.vocabulary.update( skill.vocabulary )
 

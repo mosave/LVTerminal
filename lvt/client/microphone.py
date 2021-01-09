@@ -20,11 +20,9 @@ class Microphone:
         config = gConfig
 
     def __init__( this ):
-        this.rms = 50
+        this._rms = [50]*16
         this.channel = 0
-        this.noiseLevel = 1000
-        this.noiseThreshold = config.noiseThreshold
-        this.triggerLevel = this.noiseLevel + this.noiseThreshold
+        this._noiseLevel = [1000]*16
 
         this.vad = webrtcvad.Vad(config.vadSelectivity)
         this.buffer = []
@@ -93,6 +91,22 @@ class Microphone:
         this._muted = mute
 
     @property
+    def rms(this)->int:
+        return this._rms[this.channel]
+
+    @property 
+    def noiseLevel(this)->int:
+        return this._noiseLevel[this.channel]
+
+    @property 
+    def noiseThreshold(this)->int:
+        return config.noiseThreshold
+
+    @property
+    def triggerLevel(this)->int :
+        return this._noiseLevel[this.channel] + this.noiseThreshold
+
+    @property
     def active(this)->bool:
         return this._active
 
@@ -116,42 +130,33 @@ class Microphone:
         data = np.fromstring( data, dtype='int16')
 
         # Раскидаем данные по каналам, преобразуя их обратно в поток байтов
-        rmsTarget = 2500
+        rmsTarget = 1500
         rmsDelta = 999999
         rmsChannel = 0
         channels = [0]*this.channels
-        channelRms = [0]*this.channels
+        this._rms = [0]*this.channels
         for ch in range(this.channels):
             channels[ch] = data[ch::this.channels].tobytes()
-            channelRms[ch] = audioop.rms( channels[ch], this.sampleSize )
+            this._rms[ch] = audioop.rms( channels[ch], this.sampleSize )
 
-            delta = abs( channelRms[ch] -rmsTarget )
+            delta = abs( this._rms[ch] - rmsTarget )
             if delta < rmsDelta:
                 rmsDelta = delta
                 rmsChannel = ch
 
-        if isinstance( config.channelSelection, int ) :
-            this.channel = config.channelSelection if config.channelSelection<this.channels else 0
-            this.rms = channelRms[this.channel]
-        elif config.channelSelection == "rms" :
-            this.channel = rmsChannel
-            this.rms = channelRms[this.channel]
-
-        this.buffer.append( channels[this.channel] )
-
-        if this.active :
-            if this.rms + this.noiseThreshold > this.noiseLevel :
-                this.noiseLevel = this.rms
-        else:
-            if this.rms + this.noiseThreshold < this.noiseLevel :
-                this.noiseLevel = this.rms + int( this.noiseThreshold / 4 )
-
-        if this.noiseLevel<0 : 
-            this.noiseLevel = 0
-
-        this.triggerLevel = this.noiseLevel + this.noiseThreshold
+        this.buffer.append( channels )
 
         if not this.active :
+            for ch in range(this.channels) :
+                if this._rms[ch] + this.noiseThreshold < this._noiseLevel[ch] :
+                    this._noiseLevel[ch] = this._rms[ch] + int( this.noiseThreshold / 4 )
+
+            if isinstance( config.channelSelection, int ) :
+                this.channel = config.channelSelection if config.channelSelection<this.channels else 0
+            elif config.channelSelection == "rms" :
+                this.channel = rmsChannel
+
+
             vadFrameSize = int(config.sampleRate*this.sampleSize/1000 * VAD_FRAME)
             p = 0
             voiceFrames = 0
@@ -165,6 +170,10 @@ class Microphone:
 
             if isVoice and (this.rms > this.triggerLevel) :
                 this.active = True
+        else:
+            for ch in range(this.channels) :
+                if this._rms[ch] + this.noiseThreshold > this._noiseLevel[ch] :
+                    this._noiseLevel[ch] = this._rms[ch]
 
         return None, pyaudio.paContinue
 
@@ -177,7 +186,7 @@ class Microphone:
 
         # Если в буфере есть данные - возвращаем их
         if len( this.buffer ) > 0: 
-            data = this.buffer[0]
+            data = this.buffer[0][this.channel]
             this.buffer.pop( 0 )
             return data
         else:

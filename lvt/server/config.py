@@ -32,6 +32,8 @@ class Config:
         this.sampleRate = p.getIntValue( section, 'SampleRate',8000 )
         if this.sampleRate not in [8000,16000]: raise Exception("Invalid SampleRate specified")
 
+        this.storeAudio = bool(p.getValue(section,'StoreAudio','0') != '0')
+
         this.recognitionThreads = p.getIntValue( section, 'RecognitionThreads',os.cpu_count() )
         if( this.recognitionThreads < 1 ): this.recognitionThreads = 1
 

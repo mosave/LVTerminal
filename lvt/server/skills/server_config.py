@@ -72,6 +72,7 @@ class ServerConfigSkill(Skill):
             if this.config.mdIntegration :
                 Devices.loadMajorDoMoDevices()
             Devices.updateDefaultDevices()
+            this.terminal.updateVocabulary()
             this.mdUpdateResult = 1
         except Exception as e:
             this.mdUpdateResult = 2

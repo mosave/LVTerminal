@@ -9,6 +9,8 @@ import websockets
 import concurrent.futures
 import logging
 import time
+import wave
+import datetime
 
 from vosk import Model, SpkModel, KaldiRecognizer, SetLogLevel
 from lvt.const import *
@@ -92,6 +94,7 @@ async def websockServer( connection, path ):
     vocabulary = ''
     messageQueue = list()
     lastTickedOn = time.time()
+    waveChunks = []
     def sendDatagram( data ):
         messageQueue.append( data )
 
@@ -185,9 +188,24 @@ async def websockServer( connection, path ):
                     break
             else: # Получен байт-массив
                 if terminal == None : break
+                if config.storeAudio :
+                    waveChunks.append(message)
 
                 completed = await loop.run_in_executor( pool, processChunk, message, terminal, recognizer, spkRecognizer, ( vocabulary != '' ) )
-                if completed: sendMessage( MSG_IDLE )
+                if completed: 
+                    if config.storeAudio :
+                        tms = datetime.datetime.today().strftime('%Y%m%d_%H%M%S')
+                        fn = os.path.join( ROOT_DIR, f'logs/{terminal.id}_{tms}.wav')
+                        print(f'{fn} : {len(waveChunks)} chunks')
+                        wav = wave.open(fn,'w')
+                        wav.setnchannels(1)
+                        wav.setsampwidth(2)
+                        wav.setframerate(config.sampleRate)
+                        for chunk in waveChunks:
+                            wav.writeframesraw( chunk )
+                        wav.close()
+                        waveChunks.clear()
+                    sendMessage( MSG_IDLE )
 
         sendMessage( MSG_DISCONNECT )
         # send pending messages before disconnecting

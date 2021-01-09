@@ -3,10 +3,11 @@
 .vs/
 *.sln
 
-*.log
-*.log.20*
-*.skb
+logs/
+!logs/logs.txt
+
 /*.cfg
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
