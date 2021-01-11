@@ -68,23 +68,19 @@ class Config:
             pass
         elif( this.ttsEngine.lower().strip() == TTS_RHVOICE.lower() ):
             this.ttsEngine = TTS_RHVOICE
+
             section = TTS_RHVOICE
-            this.rhvMaleVoice = p.getValue( section, 'MaleVoice', 'Aleksandr+Alan' )
-            this.rhvFemaleVoice = p.getValue( section, 'FemaleVoice', 'Anna+CLB' )
             this.rhvDataPath = p.getValue( section, 'data_path', None )
             this.rhvConfigPath = p.getValue( section, 'config_path', None )
-            this.rhvParams = p.getValues( section )
-            if( this.rhvParams != None ):
-                for key in this.rhvParams: 
-                    try: 
-                        this.rhvParams[key] = int( this.rhvParams[key] )
-                    except:
-                        try:
-                            this.rhvParams[key] = float( this.rhvParams[key] )
-                        except:
-                            pass
+
+            this.rhvParamsMale = this.loadRHVoiceParams( "RHVoiceMale", p )
+            this.rhvParamsFemale = this.loadRHVoiceParams( "RHVoiceFemale", p )
+
+            if this.rhvParamsMale == None and this.rhvParamsFemale == None :
+                raise Exception('В конфигурации обязательно должна быть определена хотя бы одна из секций [RHVoiceMale] или [RHVoiceFemale]') 
+
         else:
-            raise Exception( 'Invalid voice engine specified' )
+            raise Exception( 'Неверное значение параметра TTSEngine' )
 
         ### MQTT client
         section = 'MQTT'
@@ -105,16 +101,18 @@ class Config:
         this.terminals = dict()
         for section in p.sections :
             if section.lower().startswith("terminal|") :
-                id = p.getValue(section,'ID','')
+                id = p.getValue(section,'ID','').strip().lower()
                 pwd = p.getValue(section,'Password','')
                 if id=='' or pwd=='':
-                    raise Exception( 'Terminal ID and Password are mandatory')
+                    raise Exception( 'Необходимо задать значения параметров ID и Password')
                 this.terminals[id] = {
                     'password': pwd,
                     'name': p.getValue(section,'Name',id),
                     'location': p.getValue(section,'Location',''),
-                    'autoupdate': bool(p.getValue(section,'AutoUpdate','0') != '0')
+                    'autoupdate': p.getIntValue(section,'AutoUpdate',1)
                 }
+                if this.terminals[id]['autoupdate'] not in [0,1,2] :
+                    raise Exception( 'Неверное значение параметра "AutoUpdate"')
         ### Skills
         this.skills = dict()
         for section in p.sections :
@@ -123,6 +121,20 @@ class Config:
                 cfg['enable'] = bool(p.getValue(section,'Enable','1')!='0')
                 this.skills[section.split('|')[0].lower()] = cfg
 
+    def loadRHVoiceParams( this, section: str, p: ConfigParser ) :
+        rhvParams = p.getValues( section )
+        if( rhvParams != None ):
+            for key in rhvParams: 
+                try: 
+                    rhvParams[key] = int( rhvParams[key] )
+                except:
+                    try:
+                        rhvParams[key] = float( rhvParams[key] )
+                    except:
+                        pass
+            if 'voice' not in rhvParams or str(rhvParams['voice']).strip()=='':
+                raise Exception(f'Не определен параметр Voice="" в секции {section}')
+        return rhvParams
 
 #endregion
 

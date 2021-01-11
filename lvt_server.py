@@ -170,14 +170,8 @@ async def websockServer( connection, path ):
                     terminal = Terminal.authorize( id, password, version )
                     if terminal != None:
                         terminal.onConnect( messageQueue )
-                        if terminal.autoUpdate and version != VERSION :
-                            if terminal.id == 'respeaker4' :
-                                terminal.updateClient()
-                            else:
-                                # Уведомить об устаревании версии и спросить об
-                                # обновлении.
-                                pass
-
+                        if terminal.autoUpdate==2 and version != VERSION :
+                            terminal.updateClient()
                     else:
                         print( 'Not authorized. Disconnecting' )
                         sendMessage( MSG_TEXT,'Wrong terminal Id or password' )
@@ -194,10 +188,9 @@ async def websockServer( connection, path ):
                 completed = await loop.run_in_executor( pool, processChunk, message, terminal, recognizer, spkRecognizer, ( vocabulary != '' ) )
                 if completed: 
                     if config.storeAudio :
-                        tms = datetime.datetime.today().strftime('%Y%m%d_%H%M%S')
-                        fn = os.path.join( ROOT_DIR, f'logs/{terminal.id}_{tms}.wav')
+                        fn = datetime.datetime.today().strftime(f'{terminal.id}_%Y%m%d_%H%M%S.wav')
                         print(f'{fn} : {len(waveChunks)} chunks')
-                        wav = wave.open(fn,'w')
+                        wav = wave.open(os.path.join( ROOT_DIR, 'logs',fn),'w')
                         wav.setnchannels(1)
                         wav.setsampwidth(2)
                         wav.setframerate(config.sampleRate)

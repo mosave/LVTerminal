@@ -118,14 +118,14 @@ class Skill:
         parses = parseWord( word )
         for p in parses:
             if ( tags == None ) or tags in p.tag: 
-                return p.normal_form.replace( 'ё', 'e' )
+                return p.normal_form#.replace( 'ё', 'e' )
         return ''
 
     def getNormalForm( this, index: int, tags=None ) -> str:
         """Возвращает нормальную форму слова в фразе с учетом морфологических признаков"""
         for p in this.words[index]:
             if ( tags == None ) or tags in p.tag: 
-               return p.normal_form.replace( 'ё', 'e' )
+               return p.normal_form#.replace( 'ё', 'e' )
         return ''
 
     def conformToAppeal( this, word: str ) -> str:
@@ -139,7 +139,8 @@ class Skill:
 
         nf = this.getNormalFormOf( word, tags )
         for p in this.terminal.words[index]:
-            if ( tags == None or tags in p.tag ) and ( p.normal_form.replace( 'ё', 'e' ) == nf ): 
+            #if ( tags == None or tags in p.tag ) and ( p.normal_form.replace( 'ё', 'e' ) == nf ): 
+            if ( tags == None or tags in p.tag ) and ( p.normal_form == nf ): 
                 return True
         return False
 
@@ -155,7 +156,8 @@ class Skill:
         nf = this.getNormalFormOf( word,tags )
         for index in range( len( this.terminal.words ) ):
             for p in this.terminal.words[index]:
-                if ( tags == None or tags in p.tag ) and p.normal_form.replace( 'ё', 'e' ) == nf: 
+                #if ( tags == None or tags in p.tag ) and p.normal_form.replace( 'ё', 'e' ) == nf: 
+                if ( tags == None or tags in p.tag ) and p.normal_form == nf: 
                     return index
         return -1
 

@@ -1,25 +1,58 @@
 Update all
 
-Install respeaker drivers: 
-https://github.com/SeeedDocument/Seeed-WiKi/blob/master/docs/ReSpeaker_4_Mic_Array_for_Raspberry_Pi.md
+Мой выбор - raspbian.
+1. Записываем флешку с помощью Raspberry Pi Imager
+2. На FAT раздел коаируем два файла:
+  * wpa_supplicant.conf. Конфигурация WiFi. 
+    Необходимо поправить значение параметров (кавычки обязательны)
+    ssid="Имя WiFi сети"
+    psk="Пароль к WIFI сети"
+
+  * пустой файл с именем ssh - включение SSH доступа
+3. Вставляем флешку в RaspberryPi и включаем ее. На роутере смотрим, какой адрес получила RPi 
+   и подключаемся к нему с помощью любого ssh клиента (I love PuTTY). 
+   Пользователь "pi", пароль по умолчанию "raspberry"
+4. меняем пароль для пользователя pi и root:
+   passwd
+   sudo passwd
+5. raspi-config:
+ * set host name
+ * time zone
+ * locale: en_GB.UTF8 + ru_RU.CP1251 + ru_RU.UTF-8 + ....
+ * keyboard
+ * enable SPI
+ * enable I2C
+ * expand file system
+6. sudo apt-get update
+   sudo apt-get upgrade
+   sudo apt-get autoremove
+   sudo apt-get autoclean
+
+7. Устанавливаем драйвера Respeaker: 
+   https://github.com/SeeedDocument/Seeed-WiKi/blob/master/docs/ReSpeaker_4_Mic_Array_for_Raspberry_Pi.md
+ * git clone https://github.com/respeaker/seeed-voicecard.git
+ * cd seeed-voicecard
+ * sudo ./install.sh
+ * sudo reboot
+  
+8. Устанавливаем Python3 и необходимые для запуска терминального клиента библиотеки:
+
+ * sudo apt-get install python3-pip
+ * sudo pip3 install websockets
+ * sudo apt-get install python3-pyaudio
+ * sudo pip3 install webrtcvad
+ * sudo apt-get install python3-numpy
+ * sudo apt-get install python3-spidev
+ * sudo apt-get install python3-gpiozero
+
+9. Устанавливаем клиент терминала
 
 
-sudo apt install python3-pip
+9. Проверяем и настраиваем уровень звука с микрофонов.
+ * alsamixer
+ * Сохранить текущие настройки громкости:
+   sudo alsactl --file=/var/lib/alsa/asound.state store
 
-sudo pip3 install websockets
-sudo apt-get install python3-pyaudio
-sudo pip3 install webrtcvad
-sudo apt install python3-numpy
-sudo apt-get install python3-spidev
-sudo apt-get install python3-gpiozero
-
-raspi-config, �������� spi
-
-pip3 install webrtcvad
-
-
-Save sound levels
-sudo alsactl --file=/var/lib/alsa/asound.state store
 
 
 1. Install as a service

@@ -15,7 +15,7 @@ class ServerConfigSkill(Skill):
     def onLoad( this ):
         this.priority = 5000
         this.subscribe( TOPIC_DEFAULT )
-        this.extendVocabulary("включи выключи используй режим распознавания со словарем, без словаря, с использованием, без использования");
+        this.extendVocabulary("включи выключи используй режим распознавания со словарём, без словаря, с использованием, без использования");
         this.extendVocabulary("словари словарю")
         this.mdUpdateResult = 0
 
@@ -30,21 +30,21 @@ class ServerConfigSkill(Skill):
             if iOn>=0 and iOn<iDict  or  iOff>=0 and iOff<iNoDict :
                 if this.terminal.vocabularyMode:
                     this.stopParsing( ANIMATION_CANCEL )
-                    this.say("режим распознавания со словарем уже включен")
+                    this.say("режим распознавания со словарём уже включен")
                 else:
                     this.terminal.vocabularyMode = True
                     this.terminal.usingVocabulary = True
                     this.stopParsing( ANIMATION_ACCEPT )
-                    this.say("Включаю режим распознавания со словарем")
+                    this.say("Включаю режим распознавания со словарём")
             elif iOff>=0 and iOff<iDict  or  iOn>=0 and iOn<iNoDict :
                 if this.terminal.vocabularyMode:
                     this.terminal.vocabularyMode = False
                     this.terminal.usingVocabulary = False
                     this.stopParsing( ANIMATION_ACCEPT )
-                    this.say("Выключаю режим распознавания со словарем")
+                    this.say("Выключаю режим распознавания со словарём")
                 else:
                     this.stopParsing( ANIMATION_CANCEL )
-                    this.say("режим распознавания со словарем уже выключен")
+                    this.say("режим распознавания со словарём уже выключен")
             elif this.findWordChainB('обновить список устройств'):
                 this.stopParsing(ANIMATION_THINK)
                 this.say("Запуск обновления устройств ")

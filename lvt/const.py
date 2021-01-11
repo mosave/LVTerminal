@@ -10,7 +10,7 @@ LOGLEVEL_INFO = 2
 LOGLEVEL_DEBUG = 3
 LOGLEVEL_VERBOSE = 9
 
-VERSION = "0.0.14"
+VERSION = "0.0.16"
 
 # Animation effect names
 ANIMATION_NONE = "None"

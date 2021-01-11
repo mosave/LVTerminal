@@ -27,6 +27,7 @@ class Microphone:
         this.vad = webrtcvad.Vad(config.vadSelectivity)
         this.buffer = []
         this._muted = False
+        this.ignoreFirstFrame = False
         this._active = False
         this.audioStream = None
         this.channels = 1
@@ -87,8 +88,8 @@ class Microphone:
 
     @muted.setter
     def muted(this, mute ) :
-        if( mute or this._muted) and len(this.buffer)>0 : this.buffer.clear()
         this._muted = mute
+        if mute : this.ignoreFirstFrame = True
 
     @property
     def rms(this)->int:
@@ -112,13 +113,16 @@ class Microphone:
 
     @active.setter
     def active(this, newValue):
+        if( this._active and not newValue) : this.buffer.clear()
         this._active = newValue
 
     def _callback( this, data, frame_count, time_info, status):
         # Если микрофон выключен - ничего не делаем
         if this.muted :
-            # .. и даже почистим выходную очередь
-            if len(this.buffer)>0 : this.buffer.clear()
+            return None, pyaudio.paContinue
+        # А еще игнорируем первый фрейм после unmute:
+        if this.ignoreFirstFrame :
+            this.ignoreFirstFrame = False
             return None, pyaudio.paContinue
 
         # Контролируем размер буфера. В режиме ожидания 1с, в активном режиме 5с

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import sys
 import time
+import datetime
 import os
 import io
 import json
@@ -80,26 +81,37 @@ def printStatus():
 
 ### play() #############################################################################
 #region
-def play( data, onPlayed=None ):
+def play( data ):
+    global microphone
+    global shared
     # Asynchronously play wave from memory by with BytesIO via
     # audioOutputStream
-    try: 
+    unmute = False
+    try:
+        muteUnmute = shared.muteWhileSpeaking and not microphone.muted
+        if muteUnmute : microphone.muted = True
+
         audio = pyaudio.PyAudio()
+
         with wave.open( io.BytesIO( data ), 'rb' ) as wav:
             # Get sample length in seconds
-            waveLen = len( data ) / ( wav.getnchannels() * wav.getsampwidth() * wav.getframerate() )
-            audioStream = audio.open( format=pyaudio.get_format_from_width( wav.getsampwidth() ),
+            framesPerBuffer = int(len( data ) / ( wav.getnchannels() * wav.getsampwidth() ))
+            waveLen = framesPerBuffer / wav.getframerate()
+            audioStream = audio.open( 
+                format=pyaudio.get_format_from_width( wav.getsampwidth() ),
                 channels=wav.getnchannels(),
                 rate=wav.getframerate(),
                 output=True,
-                output_device_index=config.audioOutputDevice )
+                output_device_index=config.audioOutputDevice,
+                frames_per_buffer = framesPerBuffer,
+                )
             audioStream.start_stream()
             # Get absolute time when data playing finished
             stopTime = time.time() + waveLen + 0.3
-            audioStream.write( wav.readframes( wav.getnframes() ) )
+            frames = wav.readframes( wav.getnframes() )
+            audioStream.write( frames )
             # Wait until complete
             while time.time() < stopTime : time.sleep( 0.2 )
-
     except Exception as e:
         print( f'Exception playing audio: {e}' )
     finally:
@@ -107,7 +119,8 @@ def play( data, onPlayed=None ):
         except:pass
         try: audio.terminate() 
         except:pass
-        shared.messageProcessingPaused = False
+        if muteUnmute : microphone.muted = False
+
 #endregion
 
 ### processMessages() ##################################################################
@@ -124,65 +137,67 @@ async def processMessages( connection ):
         await connection.send( MSG_STATUS )
         pingAreadySent = True
 
-    while not shared.messageProcessingPaused:
-        message = None
-        try:
-            message = await asyncio.wait_for( connection.recv(), timeout=0.05 )
-        except asyncio.TimeoutError:
-            return
-        if message == None or len( message ) == 0 : return
-        lastMessageReceived = t
-        pingAreadySent = False
+    message = None
+    try:
+        message = await asyncio.wait_for( connection.recv(), timeout=0.05 )
+    except asyncio.TimeoutError:
+        return
+    if message == None or len( message ) == 0 : return
+    lastMessageReceived = t
+    pingAreadySent = False
 
-        m,p = parseMessage( message )
-        if m == MSG_STATUS:
-            if p != None : shared.serverStatus = p
-        elif m == MSG_CONFIG:
-            if p != None : shared.serverConfig = p
-        elif m == MSG_IDLE: 
-            microphone.active = False
-        elif m == MSG_DISCONNECT:
-            shared.isConnected = True
-        elif m == MSG_TEXT:
-            if p != None :
-                print()
-                print( p )
-        elif m == MSG_MUTE: 
-            microphone.muted = True
-            animator.muted = True
-        elif m == MSG_UNMUTE: 
-            microphone.muted = False
-            animator.muted = False
-        elif m == MSG_ANIMATE:
-            if p == None : p = ANIMATE_NONE
-            if animator != None and p in ANIMATION_ALL:
-                animator.animate( p )
-            lastAnimation = p
-        elif m == MSG_UPDATE:
-            if p != None: 
-                try:
-                    package = json.loads( p )
-                    updater = Updater()
-                    if updater.update( package ) :
-                        shared.isTerminated = True
-                        await connection.send( MESSAGE( MSG_DISCONNECT, "Reboot after file update" ) )
-                        await asyncio.sleep( 10 )
-                        restartClient()
-                except Exception as e:
-                    printError( f'Ошибка при обновлении клиента: {e}' )
-        elif m == MSG_REBOOT:
-            print( 'Device reboot is not yet implemented, resarting client instead' )
-            await connection.send( MESSAGE( MSG_DISCONNECT, "Reboot by server request" ) )
-            restartClient()
+    m,p = parseMessage( message )
+    if isinstance(m, str) : print(m)
+    if m == MSG_STATUS:
+        if p != None : shared.serverStatus = p
+    elif m == MSG_CONFIG:
+        if p != None : shared.serverConfig = p
+    elif m == MSG_IDLE: 
+        microphone.active = False
+    elif m == MSG_DISCONNECT:
+        shared.isConnected = True
+    elif m == MSG_TEXT:
+        if p != None :
+            print()
+            print( p )
+    elif m == MSG_MUTE: 
+        microphone.muted = True
+        animator.muted = True
+    elif m == MSG_UNMUTE: 
+        microphone.muted = False
+        animator.muted = False
+    elif m == MSG_MUTE_WHILE_SPEAK_ON:
+        pass
+    elif m == MSG_MUTE_WHILE_SPEAK_OFF: 
+        pass
+    elif m == MSG_ANIMATE:
+        if p == None : p = ANIMATE_NONE
+        if animator != None and p in ANIMATION_ALL:
+            animator.animate( p )
+        lastAnimation = p
+    elif m == MSG_UPDATE:
+        if p != None: 
+            try:
+                package = json.loads( p )
+                updater = Updater()
+                if updater.update( package ) :
+                    shared.isTerminated = True
+                    await connection.send( MESSAGE( MSG_DISCONNECT, "Reboot after file update" ) )
+                    restartClient()
+            except Exception as e:
+                printError( f'Ошибка при обновлении клиента: {e}' )
+    elif m == MSG_REBOOT:
+        print( 'Перезагрузка устройства еще не реализована. Перезапускаю клиент...' )
+        await connection.send( MESSAGE( MSG_DISCONNECT, "Reboot by server request" ) )
+        restartClient()
             
-        elif not isinstance( message,str ) : # Wave data to play
-            shared.messageProcessingPaused = True
-            thread = threading.Thread( target=play, args=[message] )
-            thread.daemon = False
-            thread.start()
-        else:
-            print( f'Unknown message received: "{m}"' )
-            pass
+    elif not isinstance( message,str ) : # Wave data to play
+        thread = threading.Thread( target=play, args=[message] )
+        thread.daemon = False
+        thread.start()
+    else:
+        print( f'Unknown message received: "{m}"' )
+        pass
 #endregion
 
 ### websockClient() ####################################################################
@@ -269,7 +284,19 @@ def onCtrlC():
 def restartClient():
     """  Make Python re-compile and re-run app """
     print( 'Перезапуск...' )
-    os.execl( sys.executable, f'"{format(sys.executable)}"', *sys.argv )
+    attempt = 1
+    while True :
+        try:
+            print(f'Unformatted: "{sys.executable}", formatted:   "{format(sys.executable)}"')
+            os.execl( sys.executable, f'"{format(sys.executable)}"', *sys.argv )
+            return
+        except Exception as e:
+            if attempt>=10 : raise e
+            print(f'Ошибка: {e}')
+            time.sleep(3)
+            attempt += 1
+            print(f'Перезапуск, попытка {attempt}...')
+  
 #endregion
 
 ### Main program #######################################################################
@@ -290,7 +317,7 @@ if __name__ == '__main__':
     #shared.volume = 75
     shared.serverStatus = '{"Terminal":""}'
     shared.serverConfig = '{}'
-    shared.messageProcessingPaused = False
+    shared.muteWhileSpeaking = False
     logFileName = None
     logger = None
     quiet = False

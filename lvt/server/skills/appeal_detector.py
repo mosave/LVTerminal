@@ -49,9 +49,9 @@ class AppealDetectorSkill(Skill):
                 this.changeTopic(TOPIC_WAIT_COMMAND)
                 this.stopParsing()
             elif  this.findWordChainB('ты здесь') or \
-                this.findWordChainB('ты живой') :
+                this.findWordChainB('ты * живой') :
                 this.stopParsing(ANIMATION_ACCEPT)
-                this.say(['да, конечно', 'куда же я денусь', 'пока все еще да','живее всех живых'] )
+                this.say(['да, конечно', 'куда же я денусь', 'пока всё еще да','живее всех живых'] )
             elif this.findWordChainB('меня слышишь') :
                 this.stopParsing(ANIMATION_ACCEPT)
                 this.say(['ну конечно слышу', 'да, не '+this.conformToAppeal('глухая'), 'слышу-слышу', 'само-собой'] )

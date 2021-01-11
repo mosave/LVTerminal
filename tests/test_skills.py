@@ -25,7 +25,7 @@ from lvt.server.speaker import Speaker
 from lvt.server.skill import Skill
 
 def abort(msg:str):
-    print(f'>>> Тест не прошел: {msg}')
+    print(f'>>> Тест не прошёл: {msg}')
     sys.exit()
 
 def onText( text:str, controlPhrase : str=None ):
@@ -60,7 +60,7 @@ def checkIfSaid(phrase):
     phrase = normalizeWords(phrase)
     for m in logs :
         if m.startswith('D') and m.find('Say')>0 and normalizeWords(m).find(phrase)>0 : return True
-    abort(f'Терминал не произнес ключевую фразу "{phrase}"')
+    abort(f'Терминал не произнёс ключевую фразу "{phrase}"')
 
 
 def testAppealDetector():
@@ -68,7 +68,7 @@ def testAppealDetector():
     print( '***** AppealDetectorSkill tests' )
     onText( 'слушай, мажордом, сделай что-нибудь!', 'мажордом сделай что-нибудь' )
     onText( 'слушай, алиса...' )
-    if( terminal.topic != 'WaitCommand') : abort('Терминал не перешел в режим ожидания команды')
+    if( terminal.topic != 'WaitCommand') : abort('Терминал не перешёл в режим ожидания команды')
     onText( 'сделай уже что нибудь!', 'алиса сделай уже что нибудь' )
     if( terminal.topic != TOPIC_DEFAULT) : abort('Терминал не вернулся в нормальный режим')
 
@@ -94,7 +94,7 @@ def testParrotMode():
     print( '***** ParrotModeSkill tests' )
     onText( 'слушай мажордом повторяй за мной' )
     checkIfSaid('я буду повторять')
-    if( terminal.topic != 'ParrotMode') : abort('Терминал не перешел в режим попугая')
+    if( terminal.topic != 'ParrotMode') : abort('Терминал не перешёл в режим попугая')
     onText( 'Ехал грека через реку' )
     checkIfSaid('ехал грека через реку')
     onText( 'На мели мы лениво налима ловили' )
@@ -114,11 +114,11 @@ def testParrotMode():
 def testServerConfig():
     logs.clear()
     print( '***** ServerConfigSkill tests' )
-    onText( 'слушай мажордом выключи режим распознавания со словарем' )
-    onText( 'слушай мажордом включи режим распознавания со словарем' )
-    checkIfSaid( 'Включаю режим распознавания со словарем' )
+    onText( 'слушай мажордом выключи режим распознавания со словарём' )
+    onText( 'слушай мажордом включи режим распознавания со словарём' )
+    checkIfSaid( 'Включаю режим распознавания со словарём' )
     onText( 'слушай мажордом включи режим распознавания без словаря' )
-    checkIfSaid( 'Выключаю режим распознавания со словарем' )
+    checkIfSaid( 'Выключаю режим распознавания со словарём' )
 
 def testYesNo():
     logs.clear()
@@ -177,6 +177,7 @@ config.logLevel = logging.DEBUG
 config.printLevel = logging.DEBUG
 
 # hack - allow debug skill under no conditions:
+if 'debugskill' not in config.skills : config.skills['debugskill'] = {'enable':True}
 config.skills['debugskill']['enable']=True
 
 logs = list()
@@ -196,7 +197,7 @@ Speaker.initialize( config )
 
 messageQueue = list()
 
-terminal = Terminal.authorize( 'test', 'Password', 'testscript' )
+terminal = Terminal.authorize( 'PC', 'Password', 'testscript' )
 terminal.onConnect( messageQueue )
 
 #print( transcribeDate(datetime.datetime.today()) )

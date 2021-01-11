@@ -14,7 +14,7 @@ class Config:
         if len( this.serverAddress.strip() ) == 0:
             raise Exception( "Lite Voice Terminal Server address was not specified" )
         this.serverPort = p.getIntValue( '', "ServerPort", 2700 )
-        this.terminalId = p.getValue( '', "TerminalId", '' ).replace( ' ','' )
+        this.terminalId = p.getValue( '', "TerminalId", '' ).replace( ' ','' ).lower()
         if len( this.terminalId ) <= 0 :
             raise Exception( "TerminalId should be specified" )
 
