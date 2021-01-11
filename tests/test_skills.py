@@ -15,6 +15,7 @@ sys.path.append(os.path.abspath( os.path.join( os.path.dirname( __file__ ),'../'
 from lvt.const import *
 from lvt.protocol import *
 from lvt.logger import *
+from lvt.config_parser import ConfigParser
 from lvt.server.grammar import *
 from lvt.server.config import Config 
 from lvt.server.mqtt import MQTT
@@ -51,7 +52,14 @@ def onText( text:str, controlPhrase : str=None ):
     if errors >0 : 
         abort(f'Обнаружены ошибки: {errors}')
     if controlPhrase != None :
-        if terminal.text.find(normalizeWords(controlPhrase)) <0 :
+        controlPhrase = normalizeWords(controlPhrase)
+        found = False
+        if terminal.text.find(controlPhrase) >=0 : found = True
+        for m in logs :
+            if normalizeWords(m).find(controlPhrase)>0 : 
+                found = True
+                break
+        if not found:
             abort(f'Не обнаружена контрольная фраза "{controlPhrase}"')
 
     print()
@@ -61,6 +69,10 @@ def checkIfSaid(phrase):
     for m in logs :
         if m.startswith('D') and m.find('Say')>0 and normalizeWords(m).find(phrase)>0 : return True
     abort(f'Терминал не произнёс ключевую фразу "{phrase}"')
+
+    for m in logs :
+        if normalizeWords(m).find(phrase)>0 : return True
+    abort(f'В журнале не найдена ключевая запись "{phrase}"')
 
 
 def testAppealDetector():
@@ -83,10 +95,10 @@ def testOneWordCommandSkill():
     print( '***** OneWordCommandSkill tests' )
     onText( 'алиса, свет!', 'алиса включи свет')
 
-def testLocationExtractor():
+def testLocationDetector():
     logs.clear()
-    print( '***** LocationExtractorSkill tests' )
-    onText( 'слушай мажордом включи свет на кухне и в туалете', 'включи свет' )
+    print( '***** LocationDetectorSkill tests' )
+    onText( 'слушай мажордом включи свет на кухне и в туалете' )
     if ', '.join( terminal.locations ) != 'кухня, туалет' : abort('Неправильно извлечены локации')
 
 def testParrotMode():
@@ -100,12 +112,12 @@ def testParrotMode():
     onText( 'На мели мы лениво налима ловили' )
     checkIfSaid( 'На мели мы лениво налима ловили' )
 
-    onText( 'Включи режим распознавания со словарем' )
-    onText( 'Включи режим распознавания со словарем' )
+    onText( 'Включи режим распознавания со словарём' )
+    onText( 'Включи режим распознавания со словарём' )
     checkIfSaid( 'уже включен' )
 
     onText( 'Включи режим распознавания без словаря' )
-    checkIfSaid( 'Выключаю режим распознавания со словарем' )
+    checkIfSaid( 'Выключаю режим распознавания со словарём' )
 
     onText( 'Перестань попугайничать' )
     checkIfSaid('режим попугая выключен')
@@ -170,7 +182,7 @@ def testOnOffSkill():
 
     checkIfSaid( 'Поиск по шаблону работает' )
 
-CONFIG_DIR =  os.path.join( ROOT_DIR, 'config.default' )
+ConfigParser.setConfigDir( os.path.join( ROOT_DIR, 'config.default' ) )
 
 config = Config()
 config.logFileName = "logs/test_skills.log"
@@ -235,7 +247,7 @@ testAppealDetector()
 testFindWordChain()
 testAcronym()
 testOneWordCommandSkill()
-testLocationExtractor()
+testLocationDetector()
 testParrotMode()
 testServerConfig()
 testYesNo()

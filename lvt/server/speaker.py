@@ -44,18 +44,18 @@ class Speaker():
         global diffAccuracy
         dir = os.path.join( 'lvt','speakers' )
         speakers = list()
-        files = os.listdir( os.path.join( ROOT_DIR, dir ) )
-        for file in files:
-            path = os.path.join( dir, file )
-            if os.path.isfile( path ) and file.lower().endswith( '.cfg' ):
-                try: 
-                    speakerId = os.path.splitext( file )[0].lower()
-                    configParser = ConfigParser( path )
-                    if configParser.getValue('','Enable','1') == '1':
-                        speakers.append( Speaker( speakerId, configParser ) )
-                    configParser = None
-                except Exception as e:
-                    printError( f'Exception loading  "{file}" : {e}' )
+        #files = os.listdir( os.path.join( ROOT_DIR, dir ) )
+        #for file in files:
+        #    path = os.path.join( dir, file )
+        #    if os.path.isfile( path ) and file.lower().endswith( '.cfg' ):
+        #        try: 
+        #            speakerId = os.path.splitext( file )[0].lower()
+        #            configParser = ConfigParser( path )
+        #            if configParser.getValue('','Enable','1') == '1':
+        #                speakers.append( Speaker( speakerId, configParser ) )
+        #            configParser = None
+        #        except Exception as e:
+        #            printError( f'Exception loading  "{file}" : {e}' )
         for i in range(0,len(speakers)-1):
             for j in range(i+1,len(speakers)):
                 d = Speaker.getSimilarity(speakers[i].signature, speakers[j].signature)

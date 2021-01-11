@@ -106,10 +106,10 @@ def play( data ):
                 )
             audioStream.start_stream()
             # Get absolute time when data playing finished
-            stopTime = time.time() + waveLen + 0.3
             frames = wav.readframes( wav.getnframes() )
             audioStream.write( frames )
             # Wait until complete
+            stopTime = time.time() + waveLen + 0.5
             while time.time() < stopTime : time.sleep( 0.2 )
     except Exception as e:
         print( f'Exception playing audio: {e}' )
@@ -146,7 +146,7 @@ async def processMessages( connection ):
     pingAreadySent = False
 
     m,p = parseMessage( message )
-    if isinstance(m, str) : print(m)
+    #if isinstance(m, str) : print(m)
     if m == MSG_STATUS:
         if p != None : shared.serverStatus = p
     elif m == MSG_CONFIG:
@@ -191,9 +191,10 @@ async def processMessages( connection ):
         restartClient()
             
     elif not isinstance( message,str ) : # Wave data to play
-        thread = threading.Thread( target=play, args=[message] )
-        thread.daemon = False
-        thread.start()
+        play(message)
+        #thread = threading.Thread( target=play, args=[message] )
+        #thread.daemon = False
+        #thread.start()
     else:
         print( f'Unknown message received: "{m}"' )
         pass

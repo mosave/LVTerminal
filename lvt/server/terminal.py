@@ -321,7 +321,7 @@ class Terminal():
     def updateVocabulary( this ) -> str:
         this.vocabulary = set()
 
-        this.extendVocabulary( this.name )
+        #this.extendVocabulary( this.name )
         this.extendVocabulary( config.femaleAssistantNames, {'NOUN', 'nomn', 'sing'} )
         this.extendVocabulary( config.maleAssistantNames, {'NOUN', 'nomn', 'sing'} )
 

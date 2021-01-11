@@ -2,8 +2,7 @@ import os
 
 # Program start directory
 #ROOT_DIR = os.path.abspath( os.curdir )
-ROOT_DIR = ""
-CONFIG_DIR = ""
+ROOT_DIR = os.path.abspath( os.path.join( os.path.dirname( __file__ ),'../' ) )
 
 LOGLEVEL_NONE = 0
 LOGLEVEL_ERROR = 1
@@ -39,13 +38,5 @@ DEVICE_ACTIONS = frozenset({'none','get','post','mqtt'})
 DEVICE_SOURCES = frozenset({'config','majordomo'})
 
 
-def setRootDir( rootDir ) :
-    global ROOT_DIR
-    global CONFIG_DIR
-    ROOT_DIR = rootDir
-    CONFIG_DIR = os.path.join( ROOT_DIR,'config' )
-
-
-setRootDir( os.path.abspath( os.path.join( os.path.dirname( __file__ ),'../' ) ) )
 
 

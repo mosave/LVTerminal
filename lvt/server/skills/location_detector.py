@@ -31,11 +31,12 @@ class LocationsDetectorSkill(Skill):
                 il = badIndex if badIndex<len(locations) else 0
                 location = locations[il]
 
-                (index, l) = this.findWordChain('в '+location)
-                if index<0 : (index, l) = this.findWordChain('у '+location)
-                if index<0 : (index, l) = this.findWordChain('на '+location)
-                if index<0 : (index, l) = this.findWordChain('около '+location)
-                if index<0 : (index, l) = this.findWordChain(location)
+                (index, l) = this.findWordChain(location)
+                if index>0 :
+                    nf = this.getNormalForm( index-1 )
+                    if nf=="в" or nf=="у" or nf=="на" or  nf=="около" :
+                        index -= 1
+                        l += 1
 
                 if index >=0:
                     if index>0 and this.isWord( index-1, None, {'CONJ'} ) :# Союз

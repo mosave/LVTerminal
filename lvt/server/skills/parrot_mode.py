@@ -1,6 +1,7 @@
 import sys
 import time
 from lvt.const import *
+from lvt.protocol import *
 from lvt.server.grammar import *
 from lvt.server.skill import Skill
 
@@ -15,7 +16,7 @@ class ParrotModeSkill(Skill):
         this.priority = 1000
         this.remindOn = 0
         this.extendVocabulary("повторяй за мной, включи, переключись в режим попугая");
-        this.extendVocabulary("выключи режим попугая, перестань повторять, перестань попугайничать");
+        this.extendVocabulary("выключи режим попугая, перестань повторять");
 
     def onText( this ):
         if this.topic == TOPIC_PARROT_MODE:
@@ -30,8 +31,7 @@ class ParrotModeSkill(Skill):
             iStop = this.findWord( 'перестань' )
             iRepeat = this.findWord( 'повторять' )
             iParrot = this.findWord( 'попугай' )
-            iBeParrot = this.findWord( 'попугайничать',{'INFN'} )
-            if iOff>=0 and iParrot>0  or  iStop>=0 and ( iRepeat>=0 or iBeParrot>=0 ) :
+            if iOff>=0 and iParrot>0  or  iStop>=0 and iRepeat>=0 :
                 this.stopParsing(ANIMATION_ACCEPT)
                 this.changeTopic( TOPIC_DEFAULT )
             elif iOn>=0 and iOn<iDict  or  iOff>=0 and iOff<iNoDict :

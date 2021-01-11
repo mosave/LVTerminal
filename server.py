@@ -248,7 +248,6 @@ def onCtrlC():
 print()
 print( f'Lite Voice Terminal Server v{VERSION}' )
 
-logFileName = None
 
 config = Config()
 
@@ -257,9 +256,6 @@ for arg in sys.argv[1:]:
     if ( a == '-h' ) or ( a == '--help' ) or ( a == '/?' ) :
         showHelp()
         exit( 0 )
-    elif a.startswith( "-l" ) or a.startswith( "-log" ):
-        b = arg.split( '=',2 )
-        config.logFileName = b[1] if len( b ) == 2 else "logs/server.log"
     else:
         printError( f'Invalid command line argument: "{arg}"' )
 

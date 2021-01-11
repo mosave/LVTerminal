@@ -4,6 +4,8 @@ import shlex
 from shutil import copyfile
 from lvt.const import *
 
+CONFIG_DIR = os.path.join( ROOT_DIR,'config' )
+
 iLine = 0
 iSection = 1
 iVarName = 2
@@ -19,6 +21,7 @@ class ConfigParser:
                 [ Line number, Section Name, Variable Name, Value, Value 2, .....  ]
     """
     def __init__( this, fileName:str, allowKeysOnly=False ):
+        global CONFIG_DIR
         this.fileName = fileName
 
         with open( os.path.join( CONFIG_DIR, fileName), "r", encoding='utf-8' ) as f:
@@ -143,8 +146,14 @@ class ConfigParser:
                 values[name] = ' '.join(values[name])
         return values
 
+    def setConfigDir( gConfigDir ):
+        global CONFIG_DIR
+        CONFIG_DIR = gConfigDir
+
+
     def checkConfigFiles( files: list() ) :
         defaultConfigDir = os.path.join( ROOT_DIR ,'config.default' )
+        if defaultConfigDir == CONFIG_DIR : return
         for fn in files :
             if not os.path.exists( os.path.join( CONFIG_DIR, fn ) ) :
                 print(f'Файл ./config/{fn} не найден. Копирую ./config.default/{fn}')
