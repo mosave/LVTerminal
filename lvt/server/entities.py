@@ -69,9 +69,9 @@ class Entities():
         global acronyms
         global locations
 
-        vocabulary = Entities.load( 'vocabulary' )
         acronyms = Entities.load( 'acronyms' )
         locations = Entities.load( 'locations' )
+        vocabulary = Entities.load( 'vocabulary' )
         
         config = gConfig
 
@@ -80,7 +80,7 @@ class Entities():
 
     def load( entityFileName ):
         entities = list()
-        p = ConfigParser( os.path.join( 'lvt','entities', entityFileName ) )
+        p = ConfigParser( entityFileName )
         for v in p.values:
             entity = list()
             for i in range( 2,len( v ) ):

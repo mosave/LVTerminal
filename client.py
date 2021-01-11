@@ -36,7 +36,6 @@ def showHelp():
     print( " -h | --help                    Вывод этой подсказки" )
     print( " -d | --devices                 Показать список аудио устройств" )
     print( " -q | --quiet                   Не отображать уровень звука в консоли" )
-    print( " -l[=<file>] | --log[=<file>]   Расположение файла журнала (имеет больший приоритет чем соответствующий параметр в файле настроек)" )
 
 def showDevices():
     """List audio deivces to use in config"""
@@ -304,12 +303,8 @@ def restartClient():
 if __name__ == '__main__':
     print()
     print( f'Lite Voice Terminal Client v{VERSION}' )
-    configFileName = os.path.splitext( os.path.basename( __file__ ) )[0] + '.cfg'
-    if not os.path.exists(os.path.join( ROOT_DIR, configFileName)) :
-        print(f'Используйте "docs/{configFileName}" в качестве шаблона для создания файла настроек')
-        exit(1)
 
-    config = Config( configFileName )
+    config = Config()
 
     shared = multiprocessing.Manager().Namespace()
     shared.isTerminated = False
@@ -318,7 +313,6 @@ if __name__ == '__main__':
     shared.serverStatus = '{"Terminal":""}'
     shared.serverConfig = '{}'
     shared.muteWhileSpeaking = False
-    logFileName = None
     logger = None
     quiet = False
 
@@ -332,9 +326,6 @@ if __name__ == '__main__':
             exit( 0 )
         elif ( a == '-q' ) or ( a == '--quiet' ) :
             shared.quiet = True
-        elif a.startswith( "-l" ) or a.startswith( "-log" ):
-            b = arg.split( '=',2 )
-            config.logFileName = b[1] if len( b ) == 2 else "logs/client.log"
 
         else:
             printError( f'Неизвестный параметр: "{arg}"' )

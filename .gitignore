@@ -6,7 +6,8 @@
 logs/
 !logs/readme.md
 
-/*.cfg
+config/
+!config/readme.md
 
 
 # Byte-compiled / optimized / DLL files

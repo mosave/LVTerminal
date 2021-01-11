@@ -1,6 +1,7 @@
 import sys
 import os
 import shlex
+from shutil import copyfile
 from lvt.const import *
 
 iLine = 0
@@ -20,7 +21,7 @@ class ConfigParser:
     def __init__( this, fileName:str, allowKeysOnly=False ):
         this.fileName = fileName
 
-        with open( os.path.join( ROOT_DIR, fileName), "r", encoding='utf-8' ) as f:
+        with open( os.path.join( CONFIG_DIR, fileName), "r", encoding='utf-8' ) as f:
             lines = list( f.readlines() )
         this.sections = set()
         this.values = []
@@ -141,3 +142,13 @@ class ConfigParser:
             if isinstance(values[name], list):
                 values[name] = ' '.join(values[name])
         return values
+
+    def checkConfigFiles( files: list() ) :
+        defaultConfigDir = os.path.join( ROOT_DIR ,'config.default' )
+        for fn in files :
+            if not os.path.exists( os.path.join( CONFIG_DIR, fn ) ) :
+                print(f'Файл ./config/{fn} не найден. Копирую ./config.default/{fn}')
+                copyfile(os.path.join( defaultConfigDir,fn ), os.path.join( CONFIG_DIR,fn ))
+       
+
+

@@ -27,7 +27,7 @@ if __name__ == '__main__':
 
     AlsaSupressor.disableWarnings()
 
-    config = Config( 'lvt_client.cfg' )
+    config = Config()
 
     shared = multiprocessing.Manager().Namespace()
     shared.isTerminated = False

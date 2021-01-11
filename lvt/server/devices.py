@@ -186,7 +186,7 @@ class Devices():
             ['open', 'close'] ) )
         entities = Entities()
         devices = dict()
-        p = ConfigParser( os.path.join( 'lvt','entities', 'devices' ) )
+        p = ConfigParser( 'devices' )
         for section in p.sections:
             id = section.split( '|' )[0]
             device = Device( id )

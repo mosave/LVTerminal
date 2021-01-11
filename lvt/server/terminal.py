@@ -353,7 +353,7 @@ class Terminal():
                     packageFile( os.path.join( dir, file ) )
 
         package = []
-        packageFile( 'lvt_client.py' )
+        packageFile( 'client.py' )
         packageDirectory( 'lvt' )
         packageDirectory( os.path.join( 'lvt','client' ) )
         this.sendMessage( MSG_UPDATE, json.dumps( package, ensure_ascii=False ) )

@@ -14,8 +14,12 @@ class Config:
 
 ### __init__  ##########################################################################
 #region
-    def __init__( this, fileName ):
-        p = ConfigParser( fileName )
+    def __init__( this ):
+        ConfigParser.checkConfigFiles( [
+            'server.cfg',
+            'acronyms', 'locations', 'vocabulary', 'devices', 'persons'
+            ])
+        p = ConfigParser( 'server.cfg' )
         section = 'LVTServer'
         ### Network configuration
         this.serverAddress = p.getValue( section, 'ServerAddress','0.0.0.0' )

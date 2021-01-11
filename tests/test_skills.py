@@ -170,8 +170,9 @@ def testOnOffSkill():
 
     checkIfSaid( 'Поиск по шаблону работает' )
 
+CONFIG_DIR =  os.path.join( ROOT_DIR, 'config.default' )
 
-config = Config( 'lvt_server.cfg' )
+config = Config()
 config.logFileName = "logs/test_skills.log"
 config.logLevel = logging.DEBUG
 config.printLevel = logging.DEBUG
@@ -197,7 +198,7 @@ Speaker.initialize( config )
 
 messageQueue = list()
 
-terminal = Terminal.authorize( 'PC', 'Password', 'testscript' )
+terminal = Terminal.authorize( 'test', 'TestPassword', 'testscript' )
 terminal.onConnect( messageQueue )
 
 #print( transcribeDate(datetime.datetime.today()) )

@@ -13,7 +13,7 @@ from lvt.server.config import Config
 from lvt.server.skill import Skill
 from lvt.server.skills.yes_no import YesNoParams
 
-config = Config( 'lvt_server.cfg' )
+config = Config()
 config.logFileName = "logs/test2.log"
 config.logLevel = logging.DEBUG
 config.printLevel = logging.DEBUG
