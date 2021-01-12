@@ -19,10 +19,13 @@ class AlsaSupressor():
         global errorHandler
 
         try: 
-            asoundLib = cdll.LoadLibrary('libasound.so.2')
+            asoundLib = cdll.LoadLibrary('libasound.so.2.0.0')
         except: 
-            try: asoundLib = cdll.LoadLibrary('libasound.so')
-            except: asoundLib = None
+            try: 
+                asoundLib = cdll.LoadLibrary('libasound.so.2')
+            except: 
+                try: asoundLib = cdll.LoadLibrary('libasound.so')
+                except: asoundLib = None
 
         if asoundLib != None: 
             try:

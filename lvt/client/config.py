@@ -4,10 +4,13 @@ import os
 import pyaudio
 from lvt.const import *
 from lvt.config_parser import ConfigParser
+from lvt.alsa_supressor import AlsaSupressor
 
 class Config:
     """LVT Client Configuration"""
     def __init__( this ):
+        AlsaSupressor.disableWarnings()
+
         ConfigParser.checkConfigFiles( ['client.cfg'])
 
         p = ConfigParser( 'client.cfg' )

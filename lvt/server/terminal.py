@@ -100,20 +100,19 @@ class Terminal():
             text = text[random.randint(len(text))]
 
         #this.sendMessage( MSG_TEXT, text )
-        #this.sendMessage( MSG_MUTE )
+
         this.logDebug( f'Say "{text}"' )
         if( config.ttsEngine == TTS_RHVOICE ):
             if rhvoiceTTS != None :
                 rhvParams = config.rhvParamsMale if this.gender=='masc' else config.rhvParamsFemale
                 if rhvParams == None : rhvParams = config.rhvParamsMale 
                 if rhvParams == None : rhvParams = config.rhvParamsFemale
-
-                waveData = rhvoiceTTS.get( text, 
+                # https://pypi.org/project/rhvoice-wrapper/
+                wav = rhvoiceTTS.get( text, 
                     voice= rhvParams['voice'],
                     format_='wav', 
                     sets=rhvParams, )
-                this.sendDatagram( waveData )
-        #this.sendMessage( MSG_UNMUTE )
+                this.sendDatagram( wav )
 
 
     def play( this, waveFileName: str ):

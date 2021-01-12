@@ -17,6 +17,7 @@ import contextlib
 from lvt.const import *
 from lvt.protocol import *
 from lvt.logger import *
+from lvt.alsa_supressor import AlsaSupressor
 from lvt.client.microphone import Microphone
 from lvt.client.config import Config
 from lvt.client.updater import Updater
@@ -75,50 +76,69 @@ def printStatus():
     face = 'O_O' if microphone.active else '-_-'
     face = f'x{face}x' if microphone.muted else f'({face})'
 
-    sys.__stdout__.write( f'[{lastAnimation:^10}] {face} CH:{microphone.channel} RMS:{microphone.rms:>5} [{graph}]  \r' )
+    sys.__stdout__.write( f'[{animator.animation:^10}] {face} CH:{microphone.channel} RMS:{microphone.rms:>5} [{graph}]  \r' )
 #endregion
 
 ### play() #############################################################################
 #region
-def play( data ):
+async def play( data ):
     global microphone
     global shared
+    global config
     # Asynchronously play wave from memory by with BytesIO via
     # audioOutputStream
     unmute = False
+    waveLen = 0
     try:
         muteUnmute = shared.muteWhileSpeaking and not microphone.muted
-        if muteUnmute : microphone.muted = True
+        muteUnmute = True
+        if muteUnmute : 
+            microphone.muted = True
+            animator.muted = True
 
         audio = pyaudio.PyAudio()
 
+        fn = datetime.datetime.today().strftime(f'{config.terminalId}_%Y%m%d_%H%M%S_play.wav')
+        f = open(os.path.join( ROOT_DIR, 'logs',fn),'wb')
+        f.write(data)
+        f.close()
+
         with wave.open( io.BytesIO( data ), 'rb' ) as wav:
-            # Get sample length in seconds
-            framesPerBuffer = int(len( data ) / ( wav.getnchannels() * wav.getsampwidth() ))
-            waveLen = framesPerBuffer / wav.getframerate()
+            # Hack to workaround invalid number of frames in WAV header.
+            # Measure number of frames: 
+            nFrames = int(len(data) / wav.getsampwidth() / wav.getnchannels() + 65)
+            # Read ALL frames in memory:
+            frames = wav.readframes(nFrames)
+            # and calculate actual number of frames read...
+            nFrames = int(len(frames)/wav.getsampwidth()/wav.getnchannels())
+            # Calculate wav length in seconds
+            waveLen = nFrames / wav.getframerate() + 0.3
+
             audioStream = audio.open( 
                 format=pyaudio.get_format_from_width( wav.getsampwidth() ),
                 channels=wav.getnchannels(),
                 rate=wav.getframerate(),
                 output=True,
                 output_device_index=config.audioOutputDevice,
-                frames_per_buffer = framesPerBuffer,
+                frames_per_buffer = nFrames, # !!!!!!!
                 )
-            audioStream.start_stream()
-            # Get absolute time when data playing finished
-            frames = wav.readframes( wav.getnframes() )
+            startTime = time.time()
             audioStream.write( frames )
-            # Wait until complete
-            stopTime = time.time() + waveLen + 0.5
-            while time.time() < stopTime : time.sleep( 0.2 )
+
+            # Wait until sound played complete
+            while time.time() < startTime + waveLen : await asyncio.sleep( 0.2 )
     except Exception as e:
         print( f'Exception playing audio: {e}' )
     finally:
+        try: self._stream.stop_stream()
+        except: pass
         try: audioStream.close()
         except:pass
         try: audio.terminate() 
         except:pass
-        if muteUnmute : microphone.muted = False
+        if muteUnmute : 
+            microphone.muted = False
+            animator.muted = False
 
 #endregion
 
@@ -127,7 +147,6 @@ def play( data ):
 async def processMessages( connection ):
     global lastMessageReceived
     global pingAreadySent
-    global lastAnimation
 
     t = time.time()
 
@@ -173,7 +192,6 @@ async def processMessages( connection ):
         if p == None : p = ANIMATE_NONE
         if animator != None and p in ANIMATION_ALL:
             animator.animate( p )
-        lastAnimation = p
     elif m == MSG_UPDATE:
         if p != None: 
             try:
@@ -191,7 +209,7 @@ async def processMessages( connection ):
         restartClient()
             
     elif not isinstance( message,str ) : # Wave data to play
-        play(message)
+        await play(message)
         #thread = threading.Thread( target=play, args=[message] )
         #thread.daemon = False
         #thread.start()
@@ -205,7 +223,6 @@ async def processMessages( connection ):
 async def websockClient():
     global lastMessageReceived
     global pingAreadySent
-    global lastAnimation
     global microphone
 
     print( "Запуск Websock сервиса" )
@@ -221,7 +238,6 @@ async def websockClient():
 
     uri = f'{protocol}://{config.serverAddress}:{config.serverPort}'
     print( f'Сервер: {uri}' )
-    lastAnimation = ANIMATION_NONE
 
     while not shared.isTerminated:
         try:
@@ -287,8 +303,10 @@ def restartClient():
     attempt = 1
     while True :
         try:
-            print(f'Unformatted: "{sys.executable}", formatted:   "{format(sys.executable)}"')
-            os.execl( sys.executable, f'"{format(sys.executable)}"', *sys.argv )
+            fn = os.path.join( ROOT_DIR, 'client.py')
+            #print(f'"{format(fn)}" {sys.argv}')
+            #os.execl( sys.executable, f'"{format(sys.executable)}"', *sys.argv )
+            os.execl( fn, *sys.argv )
             return
         except Exception as e:
             if attempt>=10 : raise e
@@ -304,6 +322,8 @@ def restartClient():
 if __name__ == '__main__':
     print()
     print( f'Lite Voice Terminal Client v{VERSION}' )
+
+    AlsaSupressor.disableWarnings()
 
     config = Config()
 

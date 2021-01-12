@@ -31,36 +31,38 @@ class Animator:
         """Wake up and listening
         Returns effect lock status: True if should not be interrupted
         """
-        if restart : print( 'Animation: Awake' )
+        #if restart : print( 'Animation: Awake' )
         return False
 
     def animationThink( this, restart:bool )->bool:
         """Thinking
         Returns effect lock status: True if should not be interrupted
         """
-        if restart : print( 'Animation: Thinking' )
+        #if restart : print( 'Animation: Thinking' )
         return False
 
     def animationAccept( this, restart:bool )->bool:
         """Accepted, play and back to current animation
         Returns effect lock status: True if should not be interrupted
         """
-        if restart : print( 'Animation: Confirmed' )
-        return False
+        #if restart : print( 'Animation: Confirmed' )
+        this.timeout = 1
+        return restart
 
 
     def animationCancel( this, restart:bool )->bool:
         """Cancelled / Ignoring, play and back to current animation
         Returns effect lock status: True if should not be interrupted
         """
-        if restart : print( 'Animation: Cancelled' )
-        return False
+        #if restart : print( 'Animation: Cancelled' )
+        this.timeout = 1
+        return restart
 
     def animationNone( this, restart:bool )->bool:
         """standby animation
         Returns effect lock status: True if should not be interrupted
         """
-        if restart : print( 'Animation: Off' )
+        #if restart : print( 'Animation: Off' )
         return False
 
     def off( this )->bool:
