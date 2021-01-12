@@ -1,6 +1,7 @@
 import sys
 import time
 from lvt.const import *
+from lvt.protocol import *
 from lvt.server.grammar import *
 from lvt.server.skill import Skill
 
@@ -34,6 +35,7 @@ class AppealDetectorSkill(Skill):
             # Добавить в начало команды обращение, если нужно
             if not this.detectAppeals(): this.insertWords(0,'слушай '+this.appeal)
             # И перезапустить распознавание без топика
+            this.terminal.sendMessage(MSG_MUTE_WHILE_SPEAK_OFF)
             this.changeTopic(TOPIC_DEFAULT)
             this.restartParsing()
             return
@@ -45,6 +47,7 @@ class AppealDetectorSkill(Skill):
                 this.terminal.animate(ANIMATION_AWAKE)
             # В случае если фраза содержит только обращение - переходим в ожидание команды
             if len(this.words)==1 :
+                this.terminal.sendMessage(MSG_MUTE_WHILE_SPEAK_ON)
                 this.savedTopic = this.topic
                 this.changeTopic(TOPIC_WAIT_COMMAND)
                 this.stopParsing()

@@ -58,7 +58,9 @@ class OnOffSkill(Skill):
             if this.turnOnOff( location, turnOn, all ) : result = True
 
         if result :
+            this.terminal.text = ''
             this.stopParsing(ANIMATION_ACCEPT)
+            this.say('Включаю!' if turnOn else 'Выключаю!')
         else :
             # restore original text if not processed:
             this.terminal.text = _text

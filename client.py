@@ -85,32 +85,27 @@ async def play( data ):
     global microphone
     global shared
     global config
-    # Asynchronously play wave from memory by with BytesIO via
-    # audioOutputStream
-    unmute = False
-    waveLen = 0
-    try:
-        muteUnmute = shared.muteWhileSpeaking and not microphone.muted
-        muteUnmute = True
-        if muteUnmute : 
-            microphone.muted = True
-            animator.muted = True
 
+    muteUnmute = shared.muteWhileSpeaking and not microphone.muted
+    if muteUnmute : 
+        microphone.muted = True
+        animator.muted = True
+    try:
         audio = pyaudio.PyAudio()
 
-        fn = datetime.datetime.today().strftime(f'{config.terminalId}_%Y%m%d_%H%M%S_play.wav')
-        f = open(os.path.join( ROOT_DIR, 'logs',fn),'wb')
-        f.write(data)
-        f.close()
+        #fn = datetime.datetime.today().strftime(f'{config.terminalId}_%Y%m%d_%H%M%S_play.wav')
+        #f = open(os.path.join( ROOT_DIR, 'logs',fn),'wb')
+        #f.write(data)
+        #f.close()
 
         with wave.open( io.BytesIO( data ), 'rb' ) as wav:
-            # Hack to workaround invalid number of frames in WAV header.
             # Measure number of frames: 
             nFrames = int(len(data) / wav.getsampwidth() / wav.getnchannels() + 65)
             # Read ALL frames in memory:
             frames = wav.readframes(nFrames)
             # and calculate actual number of frames read...
             nFrames = int(len(frames)/wav.getsampwidth()/wav.getnchannels())
+
             # Calculate wav length in seconds
             waveLen = nFrames / wav.getframerate() + 0.3
 
@@ -120,25 +115,27 @@ async def play( data ):
                 rate=wav.getframerate(),
                 output=True,
                 output_device_index=config.audioOutputDevice,
-                frames_per_buffer = nFrames, # !!!!!!!
-                )
+                frames_per_buffer = nFrames - 16 #!!! Dirty hack to workaround RPi cracking noise
+            )
+            audioStream.start_stream()
             startTime = time.time()
             audioStream.write( frames )
 
-            # Wait until sound played complete
+            # Wait until played
             while time.time() < startTime + waveLen : await asyncio.sleep( 0.2 )
     except Exception as e:
         print( f'Exception playing audio: {e}' )
     finally:
-        try: self._stream.stop_stream()
+        try: audioStream.stop_stream()
         except: pass
         try: audioStream.close()
         except:pass
         try: audio.terminate() 
         except:pass
-        if muteUnmute : 
-            microphone.muted = False
-            animator.muted = False
+
+    if muteUnmute : 
+        microphone.muted = False
+        animator.muted = False
 
 #endregion
 
@@ -185,9 +182,9 @@ async def processMessages( connection ):
         microphone.muted = False
         animator.muted = False
     elif m == MSG_MUTE_WHILE_SPEAK_ON:
-        pass
-    elif m == MSG_MUTE_WHILE_SPEAK_OFF: 
-        pass
+        shared.muteWhileSpeaking = True
+    elif m == MSG_MUTE_WHILE_SPEAK_OFF:
+        shared.muteWhileSpeaking = False
     elif m == MSG_ANIMATE:
         if p == None : p = ANIMATE_NONE
         if animator != None and p in ANIMATION_ALL:
@@ -210,9 +207,6 @@ async def processMessages( connection ):
             
     elif not isinstance( message,str ) : # Wave data to play
         await play(message)
-        #thread = threading.Thread( target=play, args=[message] )
-        #thread.daemon = False
-        #thread.start()
     else:
         print( f'Unknown message received: "{m}"' )
         pass
