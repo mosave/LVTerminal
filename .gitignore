@@ -3,10 +3,10 @@
 .vs/
 *.sln
 
-logs/
+logs/*
 !logs/readme.md
 
-config/
+config/*
 !config/readme.md
 
 
