@@ -181,10 +181,8 @@ async def processMessages( connection ):
     elif m == MSG_UNMUTE: 
         microphone.muted = False
         animator.muted = False
-    elif m == MSG_MUTE_WHILE_SPEAK_ON:
-        shared.muteWhileSpeaking = True
-    elif m == MSG_MUTE_WHILE_SPEAK_OFF:
-        shared.muteWhileSpeaking = False
+    elif m == MSG_MWS:
+        shared.muteWhileSpeaking = (p == '1')
     elif m == MSG_ANIMATE:
         if p == None : p = ANIMATE_NONE
         if animator != None and p in ANIMATION_ALL:

@@ -1,3 +1,4 @@
+***
 Update all
 
 Мой выбор - raspbian.
@@ -45,17 +46,30 @@ Update all
  * sudo apt-get install python3-spidev
  * sudo apt-get install python3-gpiozero
 
-9. Устанавливаем клиент терминала
+9. Копируем LVTerminal на RPi. Для работы клиента необходимы следующие файлы:
+ * client.py
+ * lvt/*
+ * lvt/client/*
+ * config/client.cfg  (в качестве шаблона можно использовать config.default/client.cfg)
+ * logs/
 
+10. Добиваемся чтобы клиент запускался, подключался к серверу и "слышал" звук
+ * ./client.py --help    # подсказка по параметрам командной строки
+ * ./client.py --devices # получить список аудиоустройств, которые при необходимости можно задавать 
+   в параметрах AudioInputDevice и AudioOutputDevice
 
-9. Проверяем и настраиваем уровень звука с микрофонов.
- * alsamixer
- * Сохранить текущие настройки громкости:
-   sudo alsactl --file=/var/lib/alsa/asound.state store
+9. Проверяем и настраиваем уровень звука с микрофонов:
+ * Для объективного контроля можно в server.cfg выставить параметр StoreAudio = 1
+   Это приведет к тому, что в каталоге logs будут сохраняться все звуковые фрагменты, полученные от клиентов.
+ * В одной терминальной сессии запускаем client, в другой alsamixer и подбираем уровень микрофона "оптимальным" образом,
+   то есть уровень звука (SNR) при нормальной громкости речи находится в диапазоне от 500-2000 а сохраняемый 
+   при этом звук при прослушивании хорошо слышен и не имеет искажений
+ * Если в client.cfg параметр 
+ * Сохранить текущие настройки громкости и загрузить их:
+   sudo alsactl --file=/home/pi/asound.state store
+   sudo alsactl --file=/home/pi/asound.state restore
 
-
-
-1. Install as a service
+10. Запуск терминального клиента как сервиса
 
 sudo cp lvt_client /etc/init.d
 chmod 755 /etc/init.d/lvt_client

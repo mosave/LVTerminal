@@ -180,13 +180,17 @@ async def websockServer( connection, path ):
                 else:
                     printError( f'Unknown message: "{message}"' )
                     break
-            else: # Получен байт-массив
-                if terminal == None : break
-                if config.storeAudio :
-                    waveChunks.append(message)
+            # Получен аудиофрагмент приемлемой длины и терминал авторизован и 
+            elif terminal != None and len(message)>=4000 and len(message)<=64000 :
+                # Сохраняем аудиофрагмен для отчетности:
+                if config.storeAudio : waveChunks.append(message)
 
                 completed = await loop.run_in_executor( pool, processChunk, message, terminal, recognizer, spkRecognizer, ( vocabulary != '' ) )
                 if completed: 
+                    # Переводим терминал в режим ожидания
+                    sendMessage( MSG_IDLE )
+
+                    # И сохраняем распознанный голос (для настройки)
                     if config.storeAudio :
                         fn = datetime.datetime.today().strftime(f'{terminal.id}_%Y%m%d_%H%M%S.wav')
                         print(f'{fn} : {len(waveChunks)} chunks')
@@ -198,7 +202,6 @@ async def websockServer( connection, path ):
                             wav.writeframesraw( chunk )
                         wav.close()
                         waveChunks.clear()
-                    sendMessage( MSG_IDLE )
 
         sendMessage( MSG_DISCONNECT )
         # send pending messages before disconnecting

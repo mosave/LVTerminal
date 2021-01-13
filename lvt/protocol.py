@@ -26,9 +26,9 @@ MSG_ANIMATE = "Animate" # None|Awake|Think|Accept|Cancel
 MSG_MUTE = "Mute"
 MSG_UNMUTE = "Unmute"               
 
-# Server => Terminal: выключить/включить микрофон
-MSG_MUTE_WHILE_SPEAK_ON = "MuteWhileSpeakOn"
-MSG_MUTE_WHILE_SPEAK_OFF = "MuteWhileSpeakOff"
+# Server => Terminal: управление микрофоном при возспроизведении звука
+# Параметры: 0 (не выключать микрофон) или 1 (выключать микрофон)
+MSG_MWS = "MWS"# 0 | 1
 
 
 # Server => Terminal: terminal client update package
@@ -52,8 +52,7 @@ MSG_TERMINAL = "Terminal"# <TerminalId> <Password> <Version>
 MSG_ALL = { \
     MSG_IDLE, MSG_STATUS, MSG_CONFIG, MSG_DISCONNECT, MSG_TERMINAL, \
     MSG_TEXT, MSG_ANIMATE, MSG_UPDATE, \
-    MSG_MUTE, MSG_UNMUTE, \
-    MSG_MUTE_WHILE_SPEAK_ON, MSG_MUTE_WHILE_SPEAK_OFF \
+    MSG_MUTE, MSG_UNMUTE, MSG_MWS \
     }
 
 def split2( s: str ):

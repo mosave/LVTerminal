@@ -11,6 +11,8 @@ from lvt.logger import *
 VAD_FRAME = 20 # ms
 # Обрабатываем звук полусекундными интервалами
 CHUNKS_PER_SECOND = 2
+# "идеальное" значение громкости в алгоритме выбора канала "rms"
+RMS_TARGET = 1500
 
 config = None
 
@@ -134,7 +136,6 @@ class Microphone:
         data = np.fromstring( data, dtype='int16')
 
         # Раскидаем данные по каналам, преобразуя их обратно в поток байтов
-        rmsTarget = 1500
         rmsDelta = 999999
         rmsChannel = 0
         channels = [0]*this.channels
@@ -143,7 +144,7 @@ class Microphone:
             channels[ch] = data[ch::this.channels].tobytes()
             this._rms[ch] = audioop.rms( channels[ch], this.sampleSize )
 
-            delta = abs( this._rms[ch] - rmsTarget )
+            delta = abs( this._rms[ch] - RMS_TARGET )
             if delta < rmsDelta:
                 rmsDelta = delta
                 rmsChannel = ch

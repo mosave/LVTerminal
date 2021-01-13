@@ -13,12 +13,17 @@ class OneWordCommandSkill(Skill):
     def onLoad( this ):
         this.priority = 9700
         this.subscribe( TOPIC_DEFAULT )
-        this.extendVocabulary("свет");
+        this.extendVocabulary("свет", "время");
 
     def onText( this ):
         if this.isAppealed and this.appealPos + 2 == len( this.words ):
             if this.isWord( this.appealPos + 1, 'свет', {'NOUN','nomn'} ):
                 this.insertWords( this.appealPos + 1,'включи' )
+                this.stopParsing()
+                this.restartParsing()
+            elif this.isWord( this.appealPos + 1, 'время', {'NOUN','nomn'} ):
+                this.deleteWord( this.appealPos + 1 )
+                this.insertWords( this.appealPos + 1,'сколько времени' )
                 this.stopParsing()
                 this.restartParsing()
 

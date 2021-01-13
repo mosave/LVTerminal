@@ -15,45 +15,45 @@ class ParrotModeSkill(Skill):
         this.subscribe( TOPIC_DEFAULT,TOPIC_PARROT_MODE )
         this.priority = 1000
         this.remindOn = 0
-        this.extendVocabulary("повторяй за мной, включи, переключись в режим попугая");
-        this.extendVocabulary("выключи режим попугая, перестань повторять");
+        this.extendVocabulary( "повторяй за мной, включи, переключись в режим попугая" )
+        this.extendVocabulary( "выключи режим попугая, перестань повторять" )
 
     def onText( this ):
         if this.topic == TOPIC_PARROT_MODE:
             this.remindOn = time.time() + REMINDER_TIMEOUT
             iOff = this.findWord( 'выключи' )
             iOn = this.findWord( 'включи' )
-            if iOn<0 : iOn = this.findWord( 'переключись' )
+            if iOn < 0 : iOn = this.findWord( 'переключись' )
             iRecognize = this.findWord( 'распознавание' )
             (iNoDict,_) = this.findWordChain( 'без словаря' )
-            iDict = this.findWord( 'словарь' ) if iNoDict<0 else -1
+            iDict = this.findWord( 'словарь' ) if iNoDict < 0 else -1
 
             iStop = this.findWord( 'перестань' )
             iRepeat = this.findWord( 'повторять' )
             iParrot = this.findWord( 'попугай' )
-            if iOff>=0 and iParrot>0  or  iStop>=0 and iRepeat>=0 :
-                this.stopParsing(ANIMATION_ACCEPT)
+            if iOff >= 0 and iParrot > 0 or iStop >= 0 and iRepeat >= 0 :
+                this.stopParsing( ANIMATION_ACCEPT )
                 this.changeTopic( TOPIC_DEFAULT )
-            elif iOn>=0 and iOn<iDict  or  iOff>=0 and iOff<iNoDict :
+            elif iOn >= 0 and iOn < iDict or iOff >= 0 and iOff < iNoDict :
                 if this.terminal.usingVocabulary:
-                    this.stopParsing(ANIMATION_CANCEL)
+                    this.stopParsing( ANIMATION_CANCEL )
                     s = "Режим распознавания со словарём уже включен"
                 else:
-                    this.stopParsing(ANIMATION_ACCEPT)
+                    this.stopParsing( ANIMATION_ACCEPT )
                     this.terminal.usingVocabulary = True
                     s = "Включаю режим распознавания со словарём"
-                this.animate(ANIMATION_AWAKE)
-                this.say(s)
-            elif iOff>=0 and  iOff<iDict  or  iOn>=0 and iOn<iNoDict :
+                this.animate( ANIMATION_AWAKE )
+                this.say( s )
+            elif iOff >= 0 and iOff < iDict or iOn >= 0 and iOn < iNoDict :
                 if this.terminal.usingVocabulary:
-                    this.stopParsing(ANIMATION_ACCEPT)
+                    this.stopParsing( ANIMATION_ACCEPT )
                     this.terminal.usingVocabulary = False
                     s = "Выключаю режим распознавания со словарём"
                 else:
-                    this.stopParsing(ANIMATION_CANCEL)
+                    this.stopParsing( ANIMATION_CANCEL )
                     s = "Режим распознавания со словарём уже выключен"
-                this.animate(ANIMATION_AWAKE)
-                this.say(s)
+                this.animate( ANIMATION_AWAKE )
+                this.say( s )
             else:
                 this.say( this.terminal.originalText )
 
@@ -64,14 +64,13 @@ class ParrotModeSkill(Skill):
                     this.findWordChainB( 'перейди в режим попугая' ) or \
                     this.findWordChainB( 'повторяй за мной' ) :
                     this.changeTopic( TOPIC_PARROT_MODE )
-                    this.stopParsing(ANIMATION_ACCEPT)
+                    this.stopParsing( ANIMATION_ACCEPT )
 
-    def onTopicChange( this, newTopic: str, params = {} ):
-        if this.topic==TOPIC_DEFAULT and newTopic == TOPIC_PARROT_MODE :
-            this.terminal.sendMessage( MSG_MUTE_WHILE_SPEAK_ON )
-            this.animate(ANIMATION_AWAKE)
-            this.say( 'Окей, говорите и я буду повторять всё, что услышу!. '+
-                      'Для завершения скажите: "перестань за мной повторять"' )
+    def onTopicChange( this, newTopic: str, params={} ):
+        if this.topic == TOPIC_DEFAULT and newTopic == TOPIC_PARROT_MODE :
+            this.terminal.sendMessage( MSG_MWS, '1' )
+            this.animate( ANIMATION_AWAKE )
+            this.say( 'Окей, говорите и я буду повторять всё, что услышу!. ' + 'Для завершения скажите: "перестань за мной повторять"' )
             this.terminal.usingVocabulary = False
             this.say( f'Активен режим распознавания без словаря.' )
             # Задаем время проговаривания напоминания
@@ -82,7 +81,7 @@ class ParrotModeSkill(Skill):
             if this.terminal.usingVocabulary != this.terminal.vocabularyMode :
                 s = "со словарем" if this.terminal.vocabularyMode  else "без словаря"
                 this.say( f'Режим распознавания {s} активирован' )
-            this.terminal.sendMessage( MSG_MUTE_WHILE_SPEAK_OFF )
+            this.terminal.sendMessage(MSG_MWS, '0')
        
     def onTimer( this ):
         if( this.topic == TOPIC_PARROT_MODE ):
