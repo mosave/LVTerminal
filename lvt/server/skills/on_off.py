@@ -69,7 +69,6 @@ class OnOffSkill(Skill):
 
 
     def turnOnOff( this, location: str, turnOn, all) -> bool:
-        print(f'location(s): {location}')
         devices = Devices()
         devs = list()
         # Отфильтровать устройства по локации и наличию метода on/off
