@@ -2,6 +2,7 @@
 .vs
 .vs/
 *.sln
+*.skb
 
 logs/*
 !logs/readme.md

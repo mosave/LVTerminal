@@ -71,7 +71,7 @@ Update all
 
 10. Запуск терминального клиента как сервиса
 
-sudo cp lvt_client /etc/init.d
+sudo cp ./scripts/lvt_client /etc/init.d
 chmod 755 /etc/init.d/lvt_client
 
 Create symbolic link to start service:
