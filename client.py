@@ -355,6 +355,7 @@ if __name__ == '__main__':
         from lvt.client.animator_apa102 import APA102Animator
         animator = APA102Animator( config,shared )
         animator.start()
+        animator.animate(ANIMATION_THINK)
     else:
         animator = None
 

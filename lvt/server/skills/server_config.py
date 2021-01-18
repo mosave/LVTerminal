@@ -2,6 +2,7 @@ import sys
 import time
 import threading
 from lvt.const import *
+from lvt.protocol import *
 from lvt.server.grammar import *
 from lvt.server.skill import Skill
 from lvt.server.entities import Entities
@@ -16,6 +17,7 @@ class ServerConfigSkill(Skill):
         this.priority = 5000
         this.subscribe( TOPIC_DEFAULT )
         this.extendVocabulary("включи выключи используй режим распознавания со словарём, без словаря, с использованием, без использования");
+        this.extendVocabulary("перезапусти запусти перезагрузи загрузи терминал");
         this.extendVocabulary("словари словарю")
         this.mdUpdateResult = 0
 
@@ -53,6 +55,13 @@ class ServerConfigSkill(Skill):
                 thread = threading.Thread( target=this.updateDevices() )
                 thread.daemon = False
                 thread.start()
+
+            # Хак: в словаре малой модели отсутствуют слова "перезагрузи" и "перезапусти"
+            elif this.findWordChainB('перезагрузи терминал') or this.findWordChainB('перезапусти терминал') or \
+                this.findWordChainB('загрузи терминал') or this.findWordChainB('запусти терминал') :
+                this.stopParsing(ANIMATION_THINK)
+                this.say("Выполняется перезагрузка терминала")
+                this.terminal.sendMessage(MSG_REBOOT)
 
     def onTimer( this ):
         if this.mdUpdateResult==1:
