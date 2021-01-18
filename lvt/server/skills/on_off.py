@@ -14,14 +14,15 @@ class OnOffSkill(Skill):
     1. Определяется действие: включить либо выключить
     2. Отфильтровываются устройства имеющие метод "on" или "off" соответственно
     3. Обрабатывается шаблон "[включи|выключи] все [тип или название устройства]"
-    4. Иначе выполняются поиск устройства по названию
-    5. Иначе при команде "включить" отбираются устройтва озвученного типа с признаком isDefault (такой будет хотя бы один)
-    6. Иначе при команде "выключить" отбираются ВСЕ устройтва озвученного типа или названия
+    4. Иначе при команде "включить" :
+        4.1 Выполняются поиск устройства по названию
+        4.2 Иначе отбираются устройтва озвученного типа с признаком isDefault (такой будет хотя бы один)
+    5. Иначе при команде "выключить" отбираются ВСЕ устройтва озвученного типа или названия
     """
     def onLoad( this ):
         this.priority = 3000
         this.subscribe( TOPIC_DEFAULT )
-        this.extendVocabulary('включи выключи подключи отключи вруби выруби зажги погаси весь все полностью')
+        this.extendVocabulary('включи выключи подключи отключи зажги погаси весь все полностью')
 
     def onText( this ):
         if not this.isAppealed : return
@@ -67,12 +68,13 @@ class OnOffSkill(Skill):
 
 
 
-    def turnOnOff( this, location: list, turnOn, all) -> bool:
+    def turnOnOff( this, location: str, turnOn, all) -> bool:
+        print(f'location(s): {location}')
         devices = Devices()
         devs = list()
         # Отфильтровать устройства по локации и наличию метода on/off
         for d in devices.devices.values() :
-           if d.location not in location : continue
+           if location not in d.location : continue
            if ('on' if turnOn else 'off') not in d.methods : continue
            devs.append(d)
         devsE = list()
@@ -84,33 +86,43 @@ class OnOffSkill(Skill):
                     if this.findWordChainB(s) :
                         devsE.append(d)
                         break
-        else:
-            #4. Иначе выполняются поиск устройства по названию
+            #print(f'#3: {len(devsE)}')
+        #4. Иначе при команде "включить":
+        if len(devsE)==0 and turnOn:
+            # 4.1 Выполняются поиск устройства по названию
             for d in devs :
                 for s in d.names :
                     if this.findWordChainB(s) : 
                         devsE.append(d)
-                        break
-            if len(devsE)==0 and turnOn:
-                #5. Иначе при команде "включить" отбираются устройтва озвученного типа с признаком isDefault (такой будет хотя бы один)
+                        break # in d.names
+            #print(f'#4.1: {len(devsE)}')
+
+            # 4.2 Иначе отбираются устройтва озвученного типа с признаком isDefault 
+            # Такой будет хотя бы один для каждого типа
+            if len(devsE)==0:
                 for d in devs :
                     if d.isDefault :
                         for s in d.type.names :
                             if this.findWordChainB(s) :
                                 devsE.append(d)
-                                break
-            if len(devsE)==0 and not turnOn:
-                #6. Иначе при команде "выключить" отбираются ВСЕ устройтва озвученного типа или названия
-                for d in devs :
-                    names = d.type.names + d.names
-                    for s in names :
-                        if this.findWordChainB(s) :
-                            devsE.append(d)
-                            break
+                                break # in d.type.names
+            #print(f'#4.2: {len(devsE)}')
+
+        # 5. Иначе при команде "выключить" отбираются ВСЕ устройтва озвученного типа или названия
+        if len(devsE)==0 and not turnOn:
+            for d in devs :
+                names = d.type.names + d.names
+                for s in names :
+                    if this.findWordChainB(s) :
+                        devsE.append(d)
+                        break # in names
+            #print(f'#5: {len(devsE)}')
+
+        # Ни одного устройства не подобрано - возвращаем false
         if( len(devsE)<=0 ) :
             return False
 
-
+        # Найдено одно или больше устройств - выполнфем действие:
         for d in devsE :
             d.methods['on' if turnOn else 'off'].execute()
 

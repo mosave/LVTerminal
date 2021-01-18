@@ -13,11 +13,15 @@ class LocationsDetectorSkill(Skill):
     def onLoad( this ):
         this.priority = 9900
         this.subscribe( TOPIC_ALL )
-        this.extendVocabulary('в у на около и или здесь')
+        this.extendVocabulary('в у на под за около и или здесь во всех комнатах всём доме квартире')
 
     def onText( this ):
         (index, l) = this.findWordChain('везде')
-        if index<0 : (index, l) = this.findWordChain('во всех комнатах ')
+        if index<0 : (index, l) = this.findWordChain('во всех комнатах')
+        if index<0 : (index, l) = this.findWordChain('во всём доме')
+        if index<0 : (index, l) = this.findWordChain('во всей квартире')
+        if index<0 : (index, l) = this.findWordChain('в доме')
+        if index<0 : (index, l) = this.findWordChain('в квартире')
         if index>=0 :
             this.deleteWord(index, l)
             for locations in this.entities.locations :
@@ -34,7 +38,7 @@ class LocationsDetectorSkill(Skill):
                 (index, l) = this.findWordChain(location)
                 if index>0 :
                     nf = this.getNormalForm( index-1 )
-                    if nf=="в" or nf=="у" or nf=="на" or  nf=="около" :
+                    if nf=="в" or nf=="у" or nf=="на" or nf=="за" or nf=="под" or nf=="около" :
                         index -= 1
                         l += 1
 

@@ -100,6 +100,19 @@ class Device():
         """Основное название типа устройств"""
         return this.names[0] if len(this.names)>0 else this.id
 
+    def addName(this, name: str) -> bool:
+        """Добавляет имя дважды, с коротким союзом и без него - хак для режима распознавания со словарем"""
+        result = False
+        if name.strip()=='' : return result
+        name2 = name.replace(' в ',' ').replace(' у ',' ')
+        if name not in this.names :
+            this.names.append(name)
+            result = True
+
+        if name2.strip()!='' and name2!=name and name2 not in this.names: 
+            this.names.append(name2)
+            result = True
+        return 
     @property
     def location( this ) -> str:
         """Приведенная локация устройства"""
@@ -173,10 +186,10 @@ class Devices():
         #    [''], \
         #    ['on', 'off'] ) )
         deviceTypes.append( DeviceType( \
-            ['свет', 'освещение', 'подсветка', 'светильник', 'лампа'], \
+            ['свет', 'освещение'], \
             ['on', 'off'] ) )
         deviceTypes.append( DeviceType( \
-            ['обогрев','нагреватель','тёплый пол','камин'], \
+            ['обогрев','нагреватель','тёплый пол'], \
             ['on', 'off'] ) )
         deviceTypes.append( DeviceType( \
             ['дверь','ворота'], \
@@ -272,13 +285,11 @@ class Devices():
 
                 device = Device( id,'majordomo' )
 
-                if name not in device.names : 
-                    device.names.append(name)
+                device.addName(name)
 
                 names = prasesToList(normalizePhrases(d['AltTitles']))
                 for name in names :
-                    if name and name not in device.names : 
-                        device.names.append(name)
+                    device.addName(name)
 
                 device.typeName = d['DeviceType']
                 device.locationId = d['LocationId']
@@ -319,11 +330,13 @@ class Devices():
                 if d.isDefault : 
                     ## Оставить isDefault только у одного устройства
                     #if locs[d.location] : d.isDefault = False
+                    # print(f'Default device for {d.location} is {d.names}')
                     locs[d.location] = True
 
             # Если в локации нет устройств "по умолчанию" - делаем таковым первый попавшийся.
             for d in devs :
                 if not locs[d.location] :
+                    # print(f'Making device {d.names} default for location {d.location}')
                     d.isDefault = True
                     locs[d.location] = True
 #endregion
