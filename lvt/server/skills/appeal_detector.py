@@ -45,19 +45,19 @@ class AppealDetectorSkill(Skill):
         if this.detectAppeals():
             if this.topic == TOPIC_DEFAULT :
                 this.terminal.animate( ANIMATION_AWAKE )
-            # В случае если фраза содержит только обращение - переходим в ожидание команды
-            if len( this.words ) == 1 :
-                this.terminal.sendMessage( MSG_MWS, '1' )
-                this.savedTopic = this.topic
-                this.changeTopic( TOPIC_WAIT_COMMAND )
-                this.stopParsing()
-            elif  this.findWordChainB( 'ты здесь' ) or \
-                this.findWordChainB( 'ты * живой' ) :
-                this.stopParsing( ANIMATION_ACCEPT )
-                this.say( ['да, конечно', 'куда же я денусь', 'пока всё еще да','живее всех живых'] )
-            elif this.findWordChainB( 'меня слышишь' ) :
-                this.stopParsing( ANIMATION_ACCEPT )
-                this.say( ['ну конечно слышу', 'да, не ' + this.conformToAppeal( 'глухая' ), 'слышу-слышу', 'само-собой'] )
+                # В случае если фраза содержит только обращение - переходим в ожидание команды
+                if len( this.words ) == 1 :
+                    this.terminal.sendMessage( MSG_MWS, '1' )
+                    this.savedTopic = this.topic
+                    this.changeTopic( TOPIC_WAIT_COMMAND )
+                    this.stopParsing()
+                elif  this.findWordChainB( 'ты здесь' ) or \
+                    this.findWordChainB( 'ты * живой' ) :
+                    this.stopParsing( ANIMATION_ACCEPT )
+                    this.say( ['да, конечно', 'куда же я денусь', 'пока всё еще да','живее всех живых'] )
+                elif this.findWordChainB( 'меня слышишь' ) :
+                    this.stopParsing( ANIMATION_ACCEPT )
+                    this.say( ['ну конечно слышу', 'да, не ' + this.conformToAppeal( 'глухая' ), 'слышу-слышу', 'само-собой'] )
 
     def onPartialText( this ):
         # В процессе распознавания текста:
