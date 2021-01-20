@@ -49,7 +49,7 @@ class ServerConfigSkill(Skill):
                     this.say("режим распознавания со словарём уже выключен")
             elif this.findWordChainB('обновить список устройств'):
                 this.stopParsing(ANIMATION_THINK)
-                this.say("Запуск обновления устройств ")
+                this.say("Обновление списка устройств...")
 
                 this.mdUpdateResult = 0
                 thread = threading.Thread( target=this.updateDevices() )

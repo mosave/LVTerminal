@@ -8,11 +8,10 @@ import numpy as np
 from lvt.const import *
 from lvt.logger import *
 # Допустимые значения - 10, 20 или 30 мс
-VAD_FRAME = 20 # ms
+VAD_FRAME = 30 # ms
 # Обрабатываем звук полусекундными интервалами
 CHUNKS_PER_SECOND = 2
 # "идеальное" значение громкости в алгоритме выбора канала "rms"
-RMS_TARGET = 2500
 
 config = None
 
@@ -33,6 +32,7 @@ class Microphone:
         this._active = False
         this.audioStream = None
         this.channels = 1
+        this.vadLevel = 0
 
         # Init audio subsystem
         this.audio = pyaudio.PyAudio()
@@ -127,8 +127,8 @@ class Microphone:
             this.ignoreFirstFrame = False
             return None, pyaudio.paContinue
 
-        # Контролируем размер буфера. В режиме ожидания 1с, в активном режиме 5с
-        maxBufferSize = int(CHUNKS_PER_SECOND*10 if this.active else CHUNKS_PER_SECOND*2)
+        # Контролируем размер буфера. В режиме ожидания 1с, в активном режиме 2с
+        maxBufferSize = int(CHUNKS_PER_SECOND * (2 if this.active else 1) )
 
         while len(this.buffer)>maxBufferSize : this.buffer.pop(0)
 
@@ -144,7 +144,7 @@ class Microphone:
             channels[ch] = data[ch::this.channels].tobytes()
             this._rms[ch] = audioop.rms( channels[ch], this.sampleSize )
 
-            delta = abs( this._rms[ch] - RMS_TARGET )
+            delta = abs( this._rms[ch] - config.targetRMS )
             if delta < rmsDelta:
                 rmsDelta = delta
                 rmsChannel = ch
@@ -171,10 +171,13 @@ class Microphone:
                 if this.vad.is_speech( channels[this.channel][p:p+vadFrameSize], config.sampleRate ): voiceFrames += 1
                 p += vadFrameSize
 
-            isVoice = (totalFrames>0) and ((voiceFrames*100/totalFrames)>=config.vadConfidence)
+            this.vadLevel = int(voiceFrames*100/totalFrames)
+            isVoice = (totalFrames>0) and (this.vadLevel>=config.vadConfidence)
 
             if isVoice and (this.rms > this.triggerLevel) :
+                logDebug(f'Microphone activated using channel #{this.channel} (RMS {this.rms} of {this.triggerLevel}, VAD {this.vadLevel} ')
                 this.active = True
+
         else:
             for ch in range(this.channels) :
                 if this._rms[ch] + this.noiseThreshold > this._noiseLevel[ch] :

@@ -56,13 +56,13 @@ def printStatus():
     global quiet
     if quiet : return
 
-    width = 48
+    width = 38
     scale = 5000
     rms = microphone.rms
     if rms > scale : rms = scale
     graph = ''
     for i in range( 0,int( rms * width / scale ) + 1 ): graph += '='
-    graph = f'{graph:50}'
+    graph = f'{graph:40}'
 
     pL = int( microphone.noiseLevel * width / scale )
     pL = 1 if pL < 1 else width if pL > width else pL
@@ -76,7 +76,7 @@ def printStatus():
     face = 'O_O' if microphone.active else '-_-'
     face = f'x{face}x' if microphone.muted else f'({face})'
 
-    sys.__stdout__.write( f'[{animator.animation:^10}] {face} CH:{microphone.channel} RMS:{microphone.rms:>5} [{graph}]  \r' )
+    sys.__stdout__.write( f'[{animator.animation:^10}] {face} CH:{microphone.channel} RMS:{microphone.rms:>5} VAD:{microphone.vadLevel:>3} [{graph}]  \r' )
 #endregion
 
 ### play() #############################################################################
