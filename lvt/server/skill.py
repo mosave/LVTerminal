@@ -82,6 +82,8 @@ class Skill:
     @property
     def isAppealed( this ): return this.terminal.isAppealed
     @property
+    def lastAppealed( this ): return this.terminal.lastAppealed
+    @property
     def appealPos( this ): return this.terminal.appealPos
     @property
     def appeal( this ): return this.terminal.appeal

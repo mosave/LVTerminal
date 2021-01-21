@@ -1,5 +1,6 @@
 import sys
 import time
+import datetime
 from lvt.const import *
 from lvt.protocol import *
 from lvt.server.grammar import *
@@ -78,9 +79,10 @@ class AppealDetectorSkill(Skill):
         for aName in this.aNames: # Встречается ли в фразе имя ассистента?
             aPos = this.findWord( aName, {'NOUN','nomn','sing'} )
             if aPos >= 0 : 
-                # Сохраняем на будущее как обратились к ассистенту
+                # Сохраняем на будущее как и когда обратились к ассистенту
                 this.terminal.appeal = this.getNormalForm( aPos, {'NOUN','nomn','sing'} )
                 if this.terminal.appeal == 'алиша' : this.terminal.appeal = 'алиса'
+                this.terminal.lastAppealed = datetime.datetime.now()
                 break
 
         if aPos == None or aPos < 0 : return False

@@ -119,7 +119,7 @@ class Microphone:
         this._active = newValue
 
     def _callback( this, data, frame_count, time_info, status):
-        # Если микрофон выключен - ничего не делаем
+        # Если микрофон замьючен - ничего не делаем
         if this.muted :
             return None, pyaudio.paContinue
         # А еще игнорируем первый фрейм после unmute:

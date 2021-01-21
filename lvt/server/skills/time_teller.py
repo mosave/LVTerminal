@@ -15,7 +15,7 @@ class TellTheTimeSkill(Skill):
     def onLoad( this ):
         this.priority = 1000
         this.subscribe( TOPIC_DEFAULT )
-        this.extendVocabulary('сколько, времени, который час, какой сегодня день недели, скажи, число, дата')
+        this.extendVocabulary('сколько, сейчас времени, который час, какой сегодня день недели, скажи, число, дата')
 
     def onText( this ):
         if this.isAppealed :

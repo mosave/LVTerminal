@@ -28,6 +28,7 @@ class Terminal():
 ### Terminal initialization ############################################################
 #region
     def __init__( this, id ):
+        global config
         this.id = id
         this.logDebug( f'Initializing terminal' )
         this.entities = Entities()
@@ -48,6 +49,7 @@ class Terminal():
         this.parsedLocations = []
 
         this.lastActivity = time.time()
+        this.lastAppealed = None
         this.appealPos = None
         this.isAppealed = False
         # messages are local output messages buffer used while terminal is
@@ -62,6 +64,7 @@ class Terminal():
         # Speaker() class instance for last recognized speaker (if any)
         this.speaker = None
 
+        this.sayOnConnect = None
         this.connectedOn = None
         this.disconnectedOn = None
 
@@ -186,7 +189,11 @@ class Terminal():
             this.reset()
 
         this.sendMessage( MSG_ANIMATE, ANIMATION_NONE )
-
+        if this.sayOnConnect :
+            this.sendMessage(MSG_MUTE)
+            this.say(this.sayOnConnect)
+            this.sendMessage(MSG_UNMUTE)
+            this.sayOnConnect = None
 
     def onDisconnect( this ):
         """Вызывается при (после) завершения сессии"""
@@ -351,11 +358,14 @@ class Terminal():
                 if file.endswith( '.py' ) : 
                     packageFile( os.path.join( dir, file ) )
 
+        this.say("Обновление терминала.")
+
         package = []
         packageFile( 'client.py' )
         packageDirectory( 'lvt' )
         packageDirectory( os.path.join( 'lvt','client' ) )
         this.sendMessage( MSG_UPDATE, json.dumps( package, ensure_ascii=False ) )
+        this.sayOnConnect = 'Терминал обновлен.'
 
 #endregion
 ### Log wrappers #######################################################################
@@ -412,6 +422,9 @@ class Terminal():
             this.messageQueue.append( data )
         else:
             this.messages.append( data )
+    def reboot(this, sayOnConnect: str = None):
+        this.sendMessage(MSG_REBOOT)
+        this.sayOnConnect = sayOnConnect
 
 #endregion
 ### Static methods #####################################################################
