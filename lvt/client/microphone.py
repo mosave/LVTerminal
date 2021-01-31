@@ -22,6 +22,7 @@ class Microphone:
 
     def __init__( this ):
         this._rms = [50]*16
+        this._max = [50]*16
         this.channel = 0
         this._noiseLevel = [1000]*16
 
@@ -136,18 +137,43 @@ class Microphone:
         data = np.fromstring( data, dtype='int16')
 
         # Раскидаем данные по каналам, преобразуя их обратно в поток байтов
-        rmsDelta = 999999
-        rmsChannel = 0
+        # Вариант 1: "RMS близкий к заданному"
+        #rmsDelta = 999999
+        #rmsChannel = 0
+
+        # Вариант 2: "наибольший RMS, но без искажений".
+        chBest = -1
+        rmsBest = 0
+        chGood = -1
+        rmsGood = 100000
+
         channels = [0]*this.channels
         this._rms = [0]*this.channels
+        this._max = [0]*this.channels
         for ch in range(this.channels):
             channels[ch] = data[ch::this.channels].tobytes()
             this._rms[ch] = audioop.rms( channels[ch], this.sampleSize )
+            #Return the maximum peak-peak value in the sound fragment.
+            this._max[ch] = audioop.maxpp( channels[ch], this.sampleSize )
+            #Return the maximum of the absolute value of all samples in a fragment.
+            #this._max[ch] = audioop.max( channels[ch], this.sampleSize )
+            #Search fragment for a slice of length length samples (not bytes!) with maximum energy, 
+            # i.e., return i for which rms(fragment[i*2:(i+length)*2]) is maximal
+            # audioop.findmax(fragment, length)
 
-            delta = abs( this._rms[ch] - config.targetRMS )
-            if delta < rmsDelta:
-                rmsDelta = delta
-                rmsChannel = ch
+            # Вариант 1: "RMS близкий к заданному"
+            #delta = abs( this._rms[ch] - config.targetRMS )
+            #if delta < rmsDelta:
+            #    rmsDelta = delta
+            #    rmsChannel = ch
+
+            # Вариант 2: "наибольший RMS, но без искажений".
+            if (this._rms[ch]<5000) and (rmsBest<this._rms[ch]) and (this._max[ch]<64000) :
+                rmsBest = this._rms[ch]
+                chBest = ch
+            if (rmsGood>this._rms[ch]) :
+                rmsGood = this._rms[ch]
+                chGood = ch
 
         this.buffer.append( channels )
 
@@ -158,9 +184,12 @@ class Microphone:
 
             if isinstance( config.channelSelection, int ) :
                 this.channel = config.channelSelection if config.channelSelection<this.channels else 0
+            # Вариант 1: "RMS близкий к заданному"
+            #elif config.channelSelection == "rms" :
+            #    this.channel = rmsChannel
+            # Вариант 2: "наибольший RMS, но без искажений"
             elif config.channelSelection == "rms" :
-                this.channel = rmsChannel
-
+                this.channel = chBest if chBest>=0 else chGood
 
             vadFrameSize = int(config.sampleRate*this.sampleSize/1000 * VAD_FRAME)
             p = 0
@@ -175,7 +204,6 @@ class Microphone:
             isVoice = (totalFrames>0) and (this.vadLevel>=config.vadConfidence)
 
             if isVoice and (this.rms > this.triggerLevel) :
-                logDebug(f'Microphone activated using channel #{this.channel} (RMS {this.rms} of {this.triggerLevel}, VAD {this.vadLevel} ')
                 this.active = True
 
         else:

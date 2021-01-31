@@ -166,6 +166,11 @@ class Config:
         s = normalizeWords(this.femaleAssistantNames + this.maleAssistantNames )
         js += f'"AssistantNames":"{s}",'
         js += f'"VoiceEngine":"{this.ttsEngine}",'
+        js += f'"LogLevel":"{this.logLevel}",'
+        js += f'"PrintLevel":"{this.printLevel}",'
+        js += f'"VocabularyMode":"{this.vocabularyMode}",'
+        js += f'"StoreAudio":"{this.storeAudio}",'
+        #js += f'"":"{this.}",'
         if terminals != None :
             activeTerminals = 0
             for t in terminals: activeTerminals+= 1 if t.isActive else 0

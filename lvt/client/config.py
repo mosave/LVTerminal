@@ -54,8 +54,6 @@ class Config:
         try: this.channelSelection = int(this.channelSelection)
         except:pass
 
-        this.targetRMS = p.getIntValue( '', "TargetRMS", 2500 )
-
         if isinstance(this.channelSelection, int) and (this.channelSelection<0 or this.channelSelection>15) or \
            isinstance(this.channelSelection, str) and this.channelSelection not in ['rms'] : 
             raise Exception( "Invalid ChannelSelection value specified" )

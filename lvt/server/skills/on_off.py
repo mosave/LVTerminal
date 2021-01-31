@@ -17,7 +17,9 @@ class OnOffSkill(Skill):
     4. Иначе при команде "включить" :
         4.1 Выполняются поиск устройства по названию
         4.2 Иначе отбираются устройтва озвученного типа с признаком isDefault (такой будет хотя бы один)
-    5. Иначе при команде "выключить" отбираются ВСЕ устройтва озвученного типа или названия
+    5. Иначе при команде "выключить"
+        5.1 Выполняются поиск устройства по названию
+        5.2 Иначе отбираются ВСЕ устройтва озвученного типа
     """
     def onLoad( this ):
         this.priority = 3000
@@ -107,15 +109,26 @@ class OnOffSkill(Skill):
                                 break # in d.type.names
             #print(f'#4.2: {len(devsE)}')
 
-        # 5. Иначе при команде "выключить" отбираются ВСЕ устройтва озвученного типа или названия
+        #
+
+        # 5.1 Иначе при команде "выключить" отбираются устройтва по названию
         if len(devsE)==0 and not turnOn:
             for d in devs :
-                names = d.type.names + d.names
-                for s in names :
-                    if this.findWordChainB(s) :
+                for s in d.names :
+                    if this.findWordChainB(s) : 
                         devsE.append(d)
-                        break # in names
-            #print(f'#5: {len(devsE)}')
+                        break # in d.names
+            #print(f'#5.1: {len(devsE)}')
+
+            # 5.2 Иначе при команде "выключить" отбираются ВСЕ устройтва озвученного типа
+            if len(devsE)==0:
+                for d in devs :
+                    #names = d.type.names + d.names
+                    for s in d.type.names :
+                        if this.findWordChainB(s) :
+                            devsE.append(d)
+                            break # in names
+                #print(f'#5.2: {len(devsE)}')
 
         # Ни одного устройства не подобрано - возвращаем false
         if( len(devsE)<=0 ) :

@@ -78,7 +78,6 @@ def parseMessage( message ) :
     if m in MSG_ALL: return (m, p)
     return (None, None) 
 
-
 def MESSAGE( msg: str, p1: str=None, p2: str=None, p3: str=None ) -> str:
     """Конструирует LVT сообщение из команды и параметров"""
     if msg not in MSG_ALL: raise Exception( f'Invalid message "{msg}"' )

@@ -189,6 +189,7 @@ class Terminal():
             this.reset()
 
         this.sendMessage( MSG_ANIMATE, ANIMATION_NONE )
+        this.sendMessage( MSG_CONFIG, config.getJson() )
         if this.sayOnConnect :
             this.sendMessage(MSG_MUTE)
             this.say(this.sayOnConnect)

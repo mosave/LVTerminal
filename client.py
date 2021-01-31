@@ -164,9 +164,15 @@ async def processMessages( connection ):
     m,p = parseMessage( message )
     #if isinstance(m, str) : print(m)
     if m == MSG_STATUS:
-        if p != None : shared.serverStatus = p
+        try:
+            if p != None : shared.serverStatus = json.loads(p)
+        except:
+            pass
     elif m == MSG_CONFIG:
-        if p != None : shared.serverConfig = p
+        try:
+            if p != None : shared.serverConfig = json.loads(p)
+        except:
+            pass
     elif m == MSG_IDLE: 
         microphone.active = False
     elif m == MSG_DISCONNECT:
@@ -242,14 +248,24 @@ async def websockClient():
                     shared.isConnected = True
                     print( 'Сервис запущен. Нажмите Ctrl-C для выхода' )
                     await connection.send( MESSAGE( MSG_TERMINAL, config.terminalId, config.password, VERSION ) )
-
+                    _active = False
                     while not shared.isTerminated and shared.isConnected:
                         await processMessages( connection )
                         if microphone.active : 
+                            try:
+                                if not _active and shared.serverConfig['StoreAudio']=='True' :
+                                    for ch in range(microphone.channels):
+                                        await connection.send(MESSAGE(MSG_TEXT,f'CH#{ch}: RMS {microphone._rms[ch]} MAX {microphone._max[ch]}'))
+                                    await connection.send(MESSAGE(MSG_TEXT,f'Selecting CH#{microphone.channel}, VAD:{microphone.vadLevel}'))
+                            except Exception as e:
+                                print( f'{e}' )
+                                pass
+                            _active = True
                             data = microphone.read()
                             if data != None : await connection.send( data )
 
                         else:
+                            _active = False
                             pass
 
                         printStatus()

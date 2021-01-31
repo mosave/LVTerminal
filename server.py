@@ -165,6 +165,7 @@ async def websockServer( connection, path ):
                     sendMessage( MSG_CONFIG, config.getJson() )
                 elif m == MSG_TEXT:
                     if terminal == None : break
+                    log(f'[{terminal.id}] {p}')
                 elif m == MSG_TERMINAL :
                     id, password, version = split3( p )
                     terminal = Terminal.authorize( id, password, version )
@@ -182,7 +183,7 @@ async def websockServer( connection, path ):
                     break
             # Получен аудиофрагмент приемлемой длины и терминал авторизован и 
             elif terminal != None and len(message)>=4000 and len(message)<=64000 :
-                # Сохраняем аудиофрагмен для отчетности:
+                # Сохраняем аудиофрагмент для отчетности:
                 if config.storeAudio : waveChunks.append(message)
 
                 completed = await loop.run_in_executor( pool, processChunk, message, terminal, recognizer, spkRecognizer, ( vocabulary != '' ) )
