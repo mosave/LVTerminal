@@ -91,7 +91,6 @@ class Microphone:
 
     @muted.setter
     def muted(this, mute ) :
-        print(f'muted {mute}')
         this._muted = mute
         if mute : this.ignoreFirstFrame = True
 
@@ -117,7 +116,6 @@ class Microphone:
 
     @active.setter
     def active(this, newValue):
-        print(f'active {newValue}')
         if( this._active and not newValue) : this.buffer.clear()
         this._active = newValue
 
@@ -209,8 +207,6 @@ class Microphone:
                 this.active = True
 
         else:
-            print('chunk')
-
             for ch in range(this.channels) :
                 if this._rms[ch] + this.noiseThreshold > this._noiseLevel[ch] :
                     this._noiseLevel[ch] = this._rms[ch]

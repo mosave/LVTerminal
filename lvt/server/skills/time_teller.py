@@ -22,8 +22,8 @@ class TellTheTimeSkill(Skill):
             if this.findWordChainB('сколько * времени') or \
                 this.findWordChainB('который * час'):
                 this.stopParsing(ANIMATION_ACCEPT)
-
-                this.say( transcribeTime(  datetime.datetime.today() ) )
+                s = transcribeTime(  datetime.datetime.today() ).replace('часа', 'часа́')
+                this.say( s )
 
             elif this.findWordChainB('какой сегодня день') or \
                 this.findWordChainB('какой день недели') or \

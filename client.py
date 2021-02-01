@@ -251,8 +251,6 @@ async def websockClient():
                         await processMessages( connection )
                         if microphone.active : 
                             try:
-                                if not _active : print('just activated')
-
                                 if not _active and shared.serverConfig['StoreAudio']=='True' :
                                     for ch in range(microphone.channels):
                                         await connection.send(MESSAGE(MSG_TEXT,f'CH#{ch}: RMS {microphone._rms[ch]} MAX {microphone._max[ch]}'))
@@ -266,7 +264,6 @@ async def websockClient():
                                 await connection.send( data )
 
                         else:
-                            if _active : print('just deactivated')
                             _active = False
                             pass
 
