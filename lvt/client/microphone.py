@@ -91,6 +91,7 @@ class Microphone:
 
     @muted.setter
     def muted(this, mute ) :
+        if this._muted != mute: this.buffer.clear()
         this._muted = mute
         if mute : this.ignoreFirstFrame = True
 
@@ -122,6 +123,7 @@ class Microphone:
     def _callback( this, data, frame_count, time_info, status):
         # Если микрофон замьючен - ничего не делаем
         if this.muted :
+            this.buffer.clear()
             return None, pyaudio.paContinue
         # А еще игнорируем первый фрейм после unmute:
         if this.ignoreFirstFrame :

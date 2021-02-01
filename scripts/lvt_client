@@ -11,7 +11,7 @@
 ### END INIT INFO
 
 DIR=/home/pi/LVTerminal
-DAEMON=$DIR/client.py
+DAEMON=$DIR/client.sh
 DAEMON_NAME=lvt_client
 
 DAEMON_OPTS="-q" 

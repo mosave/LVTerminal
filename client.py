@@ -81,7 +81,7 @@ def printStatus():
 
 ### play() #############################################################################
 #region
-async def play( data ):
+def play( data ):
     global microphone
     global shared
     global config
@@ -91,8 +91,8 @@ async def play( data ):
         microphone.muted = True
         animator.muted = True
     try:
-        audio = pyaudio.PyAudio()
 
+        audio = pyaudio.PyAudio()
         #fn = datetime.datetime.today().strftime(f'{config.terminalId}_%Y%m%d_%H%M%S_play.wav')
         #f = open(os.path.join( ROOT_DIR, 'logs',fn),'wb')
         #f.write(data)
@@ -122,7 +122,7 @@ async def play( data ):
             audioStream.write( frames )
 
             # Wait until played
-            while time.time() < startTime + waveLen : await asyncio.sleep( 0.2 )
+            while time.time() < startTime + waveLen : time.sleep( 0.2 )
     except Exception as e:
         print( f'Exception playing audio: {e}' )
     finally:
@@ -210,7 +210,7 @@ async def processMessages( connection ):
         restartClient()
             
     elif not isinstance( message,str ) : # Wave data to play
-        await play(message)
+        play(message)
     else:
         print( f'Unknown message received: "{m}"' )
         pass
@@ -262,7 +262,8 @@ async def websockClient():
                                 pass
                             _active = True
                             data = microphone.read()
-                            if data != None : await connection.send( data )
+                            if not microphone.muted and data != None : 
+                                await connection.send( data )
 
                         else:
                             _active = False
@@ -306,6 +307,13 @@ def onCtrlC():
     except: pass
 
 def restartClient():
+    """  Перезапуск клиента в надежде что он запущен из скрипта в цикле """
+    print( 'Перезапуск...' )
+    global shared
+    shared.isTerminated = True
+    shared.exitCode = 42 # перезапуск
+
+def restartClientZZZ():
     """  Make Python re-compile and re-run app """
     print( 'Перезапуск...' )
     attempt = 1
@@ -337,8 +345,8 @@ if __name__ == '__main__':
 
     shared = multiprocessing.Manager().Namespace()
     shared.isTerminated = False
+    shared.exitCode = 0
     shared.isConnected = False
-    #shared.volume = 75
     shared.serverStatus = '{"Terminal":""}'
     shared.serverConfig = '{}'
     shared.muteWhileSpeaking = False
@@ -394,5 +402,9 @@ if __name__ == '__main__':
             printError( f'Unhandled exception: {e}' )
 
     if animator != None : del( animator )
-    print( 'Завершение работы' )
+    if shared.exitCode == 42 :
+        print( 'Перезапуск' )
+        sys.exit(shared.exitCode)
+    else:
+        print( 'Завершение работы' )
 #endregion

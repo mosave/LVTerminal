@@ -236,7 +236,7 @@ def showHelp():
     print( " -l[=<file>] | --log[=<file>]   overwrite log file location defined in config file " )
 
 #endregion
-### onCtrlC ############################################################################
+### onCtrlC/ restart ###################################################################
 #region
 def onCtrlC():
     Terminal.dispose()
@@ -244,6 +244,14 @@ def onCtrlC():
     loop.stop()
     print()
     print( "Terminating..." )
+def restart():
+    Terminal.dispose()
+    Speaker.dispose()
+    loop.stop()
+    print()
+    print( "Restarting..." )
+    sys.exit(42)
+
 #endregion
 ### Main program #######################################################################
 #region
@@ -319,4 +327,5 @@ except KeyboardInterrupt:
     onCtrlC()
 except Exception as e: 
     printError( f'Exception in main terminal loop {e}' )
+
 #endregion
