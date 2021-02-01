@@ -4,7 +4,6 @@
 MSG_IDLE = "Idle"
 
 # Server => Terminal: Принудительный перевод терминала в активный режим
-# Terminal => Server: Терминал переключился в активный режим
 MSG_WAKEUP = "Wakeup"
 
 # Terminal => Server: Запрос состояния терминала на стороне сервера
@@ -30,11 +29,6 @@ MSG_ANIMATE = "Animate" # None|Awake|Think|Accept|Cancel
 MSG_MUTE = "Mute"
 MSG_UNMUTE = "Unmute"               
 
-# Server => Terminal: управление микрофоном при возспроизведении звука
-# Параметры: 0 (не выключать микрофон) или 1 (выключать микрофон)
-MSG_MWS = "MWS"# 0 | 1
-
-
 # Server => Terminal: terminal client update package
 MSG_UPDATE = "Update" # <client update JSON package>
 # Update package is JSON data:
@@ -54,9 +48,9 @@ MSG_TERMINAL = "Terminal"# <TerminalId> <Password> <Version>
 
 # All available commands
 MSG_ALL = { \
-    MSG_IDLE, MSG_WAKEUP, MSG_STATUS, MSG_CONFIG, MSG_DISCONNECT, MSG_TERMINAL, MSG_REBOOT, \
+    MSG_IDLE, MSG_STATUS, MSG_CONFIG, MSG_DISCONNECT, MSG_TERMINAL, MSG_REBOOT, \
     MSG_TEXT, MSG_ANIMATE, MSG_UPDATE, \
-    MSG_MUTE, MSG_UNMUTE, MSG_MWS \
+    MSG_MUTE, MSG_UNMUTE, \
     }
 
 def split2( s: str ):

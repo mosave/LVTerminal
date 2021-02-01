@@ -68,7 +68,6 @@ class ParrotModeSkill(Skill):
 
     def onTopicChange( this, newTopic: str, params={} ):
         if this.topic == TOPIC_DEFAULT and newTopic == TOPIC_PARROT_MODE :
-            this.terminal.sendMessage( MSG_MWS, '1' )
             this.animate( ANIMATION_AWAKE )
             this.say( 'Окей, говорите и я буду повторять всё, что услышу!. ' + 'Для завершения скажите: "перестань за мной повторять"' )
             this.terminal.usingVocabulary = False
@@ -81,7 +80,6 @@ class ParrotModeSkill(Skill):
             if this.terminal.usingVocabulary != this.terminal.vocabularyMode :
                 s = "со словарем" if this.terminal.vocabularyMode  else "без словаря"
                 this.say( f'Режим распознавания {s} активирован' )
-            this.terminal.sendMessage(MSG_MWS, '0')
        
     def onTimer( this ):
         if( this.topic == TOPIC_PARROT_MODE ):

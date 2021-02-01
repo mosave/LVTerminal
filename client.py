@@ -22,7 +22,6 @@ from lvt.client.microphone import Microphone
 from lvt.client.config import Config
 from lvt.client.updater import Updater
 
-quiet = False
 config = None
 shared = None
 microphone = None
@@ -53,8 +52,8 @@ def showDevices():
 ### printStatus() ######################################################################
 #region
 def printStatus():
-    global quiet
-    if quiet : return
+    global shared
+    if shared.quiet : return
 
     width = 38
     scale = 5000
@@ -85,8 +84,7 @@ def play( data ):
     global microphone
     global shared
     global config
-
-    muteUnmute = shared.muteWhileSpeaking and not microphone.muted
+    muteUnmute = not microphone.muted
     if muteUnmute : 
         microphone.muted = True
         animator.muted = True
@@ -173,6 +171,8 @@ async def processMessages( connection ):
             if p != None : shared.serverConfig = json.loads(p)
         except:
             pass
+    elif m == MSG_WAKEUP: 
+        microphone.active = True
     elif m == MSG_IDLE: 
         microphone.active = False
     elif m == MSG_DISCONNECT:
@@ -187,8 +187,6 @@ async def processMessages( connection ):
     elif m == MSG_UNMUTE: 
         microphone.muted = False
         animator.muted = False
-    elif m == MSG_MWS:
-        shared.muteWhileSpeaking = (p == '1')
     elif m == MSG_ANIMATE:
         if p == None : p = ANIMATE_NONE
         if animator != None and p in ANIMATION_ALL:
@@ -253,6 +251,8 @@ async def websockClient():
                         await processMessages( connection )
                         if microphone.active : 
                             try:
+                                if not _active : print('just activated')
+
                                 if not _active and shared.serverConfig['StoreAudio']=='True' :
                                     for ch in range(microphone.channels):
                                         await connection.send(MESSAGE(MSG_TEXT,f'CH#{ch}: RMS {microphone._rms[ch]} MAX {microphone._max[ch]}'))
@@ -266,6 +266,7 @@ async def websockClient():
                                 await connection.send( data )
 
                         else:
+                            if _active : print('just deactivated')
                             _active = False
                             pass
 
@@ -344,14 +345,14 @@ if __name__ == '__main__':
     config = Config()
 
     shared = multiprocessing.Manager().Namespace()
+    shared.quiet = False
     shared.isTerminated = False
     shared.exitCode = 0
     shared.isConnected = False
     shared.serverStatus = '{"Terminal":""}'
     shared.serverConfig = '{}'
-    shared.muteWhileSpeaking = False
-    logger = None
-    quiet = False
+    Logger.initialize( config )
+
 
     for arg in sys.argv[1:]:
         a = arg.strip().lower()
@@ -367,7 +368,6 @@ if __name__ == '__main__':
         else:
             printError( f'Неизвестный параметр: "{arg}"' )
 
-    Logger.initialize( config )
     Microphone.initialize( config )
     Updater.initialize( config, shared )
 

@@ -36,7 +36,6 @@ class AppealDetectorSkill(Skill):
             # Добавить в начало команды обращение, если нужно
             if not this.detectAppeals(): this.insertWords( 0,'слушай ' + this.appeal )
             # И перезапустить распознавание без топика
-            this.terminal.sendMessage( MSG_MWS, '0' )
             this.changeTopic( TOPIC_DEFAULT )
             this.restartParsing()
             return
@@ -48,7 +47,6 @@ class AppealDetectorSkill(Skill):
                 this.terminal.animate( ANIMATION_AWAKE )
                 # В случае если фраза содержит только обращение - переходим в ожидание команды
                 if len( this.words ) == 1 :
-                    this.terminal.sendMessage( MSG_MWS, '1' )
                     this.savedTopic = this.topic
                     this.changeTopic( TOPIC_WAIT_COMMAND )
                     this.stopParsing()

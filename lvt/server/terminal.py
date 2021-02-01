@@ -115,7 +115,9 @@ class Terminal():
                     voice= rhvParams['voice'],
                     format_='wav', 
                     sets=rhvParams, )
+                #this.sendMessage(MSG_MUTE)
                 this.sendDatagram( wav )
+                #this.sendMessage(MSG_UNMUTE)
 
 
     def play( this, waveFileName: str ):
