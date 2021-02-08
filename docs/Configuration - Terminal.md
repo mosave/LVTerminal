@@ -29,8 +29,12 @@ Update all
    sudo apt-get autoremove
    sudo apt-get autoclean
 
-7. Устанавливаем драйвера Respeaker: 
+7. Устанавливаем драйвера Respeaker2: 
+   https://github.com/SeeedDocument/Seeed-WiKi/blob/master/docs/Respeaker_2_Mics_Pi_HAT.md
+
+   ... или Respeaker4:
    https://github.com/SeeedDocument/Seeed-WiKi/blob/master/docs/ReSpeaker_4_Mic_Array_for_Raspberry_Pi.md
+
  * git clone https://github.com/respeaker/seeed-voicecard.git
  * cd seeed-voicecard
  * sudo ./install.sh
