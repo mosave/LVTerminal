@@ -58,8 +58,8 @@ class Config:
            isinstance(this.channelSelection, str) and this.channelSelection not in ['rms'] : 
             raise Exception( "Invalid ChannelSelection value specified" )
            
-        this.animator = p.getValue( '', "Animator",'' ).strip().lower()
-        if this.animator not in ['apa102','text',''] : raise Exception( "Invalid Animator specified" )
+        this.animator = p.getValue( '', "Animator",'text' ).strip().lower()
+        if this.animator not in ['apa102','text'] : raise Exception( "Invalid Animator specified" )
         if this.animator=='apa102' :
             n = p.getIntValue('','APA102LEDCount',3)
             this.apa102LedCount = 1 if n<1 else 127 if n>127 else n
@@ -70,6 +70,7 @@ class Config:
                 except: n=-1
                 if (n>=0) and (n<this.apa102LedCount) : 
                     this.apa102MuteLeds.add(n)
+
 
 
     def getAudioDevice( this, deviceIndex, isInput:bool ):

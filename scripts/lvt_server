@@ -11,7 +11,7 @@
 ### END INIT INFO
 
 DIR=/home/pi/LVTerminal
-DAEMON=$DIR/server.py
+DAEMON=$DIR/server.sh
 DAEMON_NAME=lvt_server
 
 # -l=lvt/server.log

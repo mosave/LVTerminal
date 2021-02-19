@@ -65,7 +65,7 @@ class APA102Animator(Animator):
             this.pxThink.append(this.pxThink[0])
             this.pxThink.pop(0)
 
-        this.timeout = 0.1
+        this.timeout = 1.5/this.nPixels
         this.showRGB( this.pxThink )
         return False
 

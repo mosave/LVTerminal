@@ -86,7 +86,6 @@ class ServerConfigSkill(Skill):
         elif this.topic == TOPIC_DEFAULT and this.lastAppealed :
             if datetime.datetime.now() > this.lastAppealed + datetime.timedelta( seconds=10 ) and datetime.datetime.now() > this.nextVersionCheckOn :
                 this.nextVersionCheckOn = datetime.datetime.today() + datetime.timedelta( hours=32 )
-                print( f'next check: {this.nextVersionCheckOn}' )
                 if this.terminal.clientVersion != VERSION :
                     if this.terminal.autoUpdate == 2 :
                         this.terminal.updateClient()

@@ -29,40 +29,39 @@ Update all
    sudo apt-get autoremove
    sudo apt-get autoclean
 
-7. Устанавливаем драйвера Respeaker2: 
+7. sudo apt-get install htop mc p7zip git
+
+
+8. Устанавливаем драйвера Respeaker2: 
    https://github.com/SeeedDocument/Seeed-WiKi/blob/master/docs/Respeaker_2_Mics_Pi_HAT.md
 
    ... или Respeaker4:
    https://github.com/SeeedDocument/Seeed-WiKi/blob/master/docs/ReSpeaker_4_Mic_Array_for_Raspberry_Pi.md
 
- * git clone https://github.com/respeaker/seeed-voicecard.git
+ * -- git clone https://github.com/respeaker/seeed-voicecard.git
+ * git clone https://github.com/HinTak/seeed-voicecard.git
  * cd seeed-voicecard
- * sudo ./install.sh
+ * sudo ./install.sh 
  * sudo reboot
   
-8. Устанавливаем Python3 и необходимые библиотеки для запуска терминального клиента:
+9. Устанавливаем Python3 и необходимые библиотеки для запуска терминального клиента:
 
- * sudo apt-get install python3-pip
- * sudo pip3 install websockets
- * sudo apt-get install python3-pyaudio
- * sudo pip3 install webrtcvad
- * sudo apt-get install python3-numpy
- * sudo apt-get install python3-spidev
- * sudo apt-get install python3-gpiozero
+ * sudo apt-get install python3-pip python3-numpy python3-pyaudio python3-spidev python3-gpiozero -y
+ * sudo pip3 install websockets webrtcvad
 
-9. Копируем LVTerminal на RPi. Для работы клиента необходимы следующие файлы:
+10. Копируем LVTerminal на RPi. Для работы клиента необходимы следующие файлы:
  * client.py
  * lvt/*
  * lvt/client/*
  * config/client.cfg  (в качестве шаблона можно использовать config.default/client.cfg)
  * logs/
 
-10. Добиваемся чтобы клиент запускался, подключался к серверу и "слышал" звук
+11. Добиваемся чтобы клиент запускался, подключался к серверу и "слышал" звук
  * ./client.py --help    # подсказка по параметрам командной строки
  * ./client.py --devices # получить список аудиоустройств, которые при необходимости можно задавать 
    в параметрах AudioInputDevice и AudioOutputDevice
 
-9. Проверяем и настраиваем уровень звука с микрофонов:
+12. Проверяем и настраиваем уровень звука с микрофонов:
  * Для объективного контроля можно в server.cfg выставить параметр StoreAudio = 1
    Это приведет к тому, что в каталоге logs будут сохраняться все звуковые фрагменты, полученные от клиентов.
  * В одной терминальной сессии запускаем client, в другой alsamixer и подбираем уровень микрофона "оптимальным" образом,
@@ -74,13 +73,14 @@ Update all
  * Сохранить текущие настройки громкости и загрузить их:
    sudo alsactl --file=/home/pi/asound.state store
    sudo alsactl --file=/home/pi/asound.state restore
+   Восстановление настроек можно добавить в /etc/rc.local
 
-10. Запуск терминального клиента как сервиса
+13. Запуск терминального клиента как сервиса
 
 sudo cp ./scripts/lvt_client /etc/init.d
-chmod 755 /etc/init.d/lvt_client
+sudo chmod 755 /etc/init.d/lvt_client
 
-Create symbolic link to start service:
+#Create symbolic link to start service:
 sudo update-rc.d lvt_client defaults
 
 

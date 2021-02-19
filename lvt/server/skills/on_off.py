@@ -18,8 +18,9 @@ class OnOffSkill(Skill):
         4.1 Выполняются поиск устройства по названию
         4.2 Иначе отбираются устройтва озвученного типа с признаком isDefault (такой будет хотя бы один)
     5. Иначе при команде "выключить"
-        5.1 Выполняются поиск устройства по названию
-        5.2 Иначе отбираются ВСЕ устройтва озвученного типа
+        5.1 Иначе отбираются ВСЕ устройтва озвученного типа либо названия
+        //5.1 Выполняются поиск устройства по названию
+        //5.2 Иначе отбираются ВСЕ устройтва озвученного типа
     """
     def onLoad( this ):
         this.priority = 3000
@@ -73,6 +74,7 @@ class OnOffSkill(Skill):
     def turnOnOff( this, location: str, turnOn, all) -> bool:
         devices = Devices()
         devs = list()
+        this.logDebug(f'{location}')
         # Отфильтровать устройства по локации и наличию метода on/off
         for d in devices.devices.values() :
            if location not in d.location : continue
@@ -113,18 +115,18 @@ class OnOffSkill(Skill):
 
         # 5.1 Иначе при команде "выключить" отбираются устройтва по названию
         if len(devsE)==0 and not turnOn:
-            for d in devs :
-                for s in d.names :
-                    if this.findWordChainB(s) : 
-                        devsE.append(d)
-                        break # in d.names
-            #print(f'#5.1: {len(devsE)}')
+            #for d in devs :
+            #    for s in d.names :
+            #        if this.findWordChainB(s) : 
+            #            devsE.append(d)
+            #            break # in d.names
+            ##print(f'#5.1: {len(devsE)}')
 
-            # 5.2 Иначе при команде "выключить" отбираются ВСЕ устройтва озвученного типа
+            # 5.1 Иначе при команде "выключить" отбираются ВСЕ устройтва озвученного типа лбо названия
             if len(devsE)==0:
                 for d in devs :
-                    #names = d.type.names + d.names
-                    for s in d.type.names :
+                    names = d.type.names + d.names
+                    for s in names : #d.type.names :
                         if this.findWordChainB(s) :
                             devsE.append(d)
                             break # in names
