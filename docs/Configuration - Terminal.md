@@ -46,7 +46,7 @@ Update all
   
 9. Устанавливаем Python3 и необходимые библиотеки для запуска терминального клиента:
 
- * sudo apt-get install python3-pip python3-numpy python3-pyaudio python3-spidev python3-gpiozero -y
+ * sudo apt-get install python3 python3-pip python3-numpy python3-pyaudio python3-spidev python3-gpiozero -y
  * sudo pip3 install websockets webrtcvad
 
 10. Копируем LVTerminal на RPi. Для работы клиента необходимы следующие файлы:
