@@ -67,7 +67,7 @@ class Terminal():
         this.sayOnConnect = None
         this.connectedOn = None
         this.disconnectedOn = None
-
+        this.playAppealOffIfNotStopped = False
         this.logDebug( 'Loading skills' )
 
         this.allTopics = set()
@@ -250,7 +250,10 @@ class Terminal():
 
         if not this.parsingStopped : 
             this.logDebug( 'Анализ фразы завершен' )
-
+            if this.playAppealOffIfNotStopped :
+                this.playAppealOffIfNotStopped = False
+                this.play( 'appeal_off.wav' )
+        
         if this.topic == TOPIC_DEFAULT :
             this.usingVocabulary = this.vocabularyMode
 

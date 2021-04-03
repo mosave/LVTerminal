@@ -14,6 +14,13 @@ import websockets
 import threading
 import multiprocessing
 import contextlib
+#region leak troubleshooting:
+TRACE_MALLOC = False
+if TRACE_MALLOC :
+    import tracemalloc
+    import linecache
+    import gc
+#endregion
 from lvt.const import *
 from lvt.protocol import *
 from lvt.logger import *
@@ -51,35 +58,37 @@ def showDevices():
 
 ### printStatus() ######################################################################
 #region
-def printStatus():
+async def printStatusThread():
     global shared
-    if shared.quiet : return
+    global microphone
+    while not shared.isTerminated:
+        if not shared.quiet and microphone != None and animator!=None :
+            width = 38
+            scale = 5000
+            rms = microphone.rms
+            if rms > scale : rms = scale
+            graph = ''
+            for i in range( 0,int( rms * width / scale ) + 1 ): graph += '='
+            graph = f'{graph:40}'
 
-    width = 38
-    scale = 5000
-    rms = microphone.rms
-    if rms > scale : rms = scale
-    graph = ''
-    for i in range( 0,int( rms * width / scale ) + 1 ): graph += '='
-    graph = f'{graph:40}'
+            pL = int( microphone.noiseLevel * width / scale )
+            pL = 1 if pL < 1 else width if pL > width else pL
 
-    pL = int( microphone.noiseLevel * width / scale )
-    pL = 1 if pL < 1 else width if pL > width else pL
+            pR = int( microphone.triggerLevel * width / scale )
+            pR = 1 if pR < 1 else width if pR > width else pR
+            if pL >= pR : pR = pL + 1
 
-    pR = int( microphone.triggerLevel * width / scale )
-    pR = 1 if pR < 1 else width if pR > width else pR
-    if pL >= pR : pR = pL + 1
+            graph = graph[:pL] + '|' + graph[pL:pR] + '|' + graph[pR + 1:]
 
-    graph = graph[:pL] + '|' + graph[pL:pR] + '|' + graph[pR + 1:]
-
-    face = 'O_O' if microphone.active else '-_-'
-    face = f'x{face}x' if microphone.muted else f'({face})'
-    sys.__stdout__.write( f'[{animator.animation:^10}] {face} CH:{microphone.channel} RMS:{microphone.rms:>5} VAD:{microphone.vadLevel:>3} [{graph}]  \r' )
+            face = 'O_O' if microphone.active else '-_-'
+            face = f'x{face}x' if microphone.muted else f'({face})'
+            sys.__stdout__.write( f'[{animator.animation:^10}] {face} CH:{microphone.channel} RMS:{microphone.rms:>5} VAD:{microphone.vadLevel:>3} [{graph}]  \r' )
+            await asyncio.sleep(1)
 #endregion
 
 ### play() #############################################################################
 #region
-def play( data ):
+async def play( data ):
     global microphone
     global shared
     global config
@@ -119,7 +128,8 @@ def play( data ):
             audioStream.write( frames )
 
             # Wait until played
-            while time.time() < startTime + waveLen : time.sleep( 0.2 )
+            while time.time() < startTime + waveLen : 
+                await asyncio.sleep( 0.2 )
     except Exception as e:
         print( f'Exception playing audio: {e}' )
     finally:
@@ -136,141 +146,153 @@ def play( data ):
 
 #endregion
 
-### processMessages() ##################################################################
+### processMessage()? messageProcessorThread() #########################################
 #region
-async def processMessages( connection ):
-    global lastMessageReceived
-    global pingAreadySent
-
-    t = time.time()
-
-    # Ping server every 20 seconds
-    if ( t - lastMessageReceived > 20 ) and not pingAreadySent: 
-        await connection.send( MSG_STATUS )
-        pingAreadySent = True
-
-    message = None
+async def processMessage( message ):
     try:
-        message = await asyncio.wait_for( connection.recv(), timeout=0.05 )
-    except asyncio.TimeoutError:
-        return
-    if message == None or len( message ) == 0 : return
-    lastMessageReceived = t
-    pingAreadySent = False
-
-    m,p = parseMessage( message )
-    #if isinstance(m, str) : print(m)
-    if m == MSG_STATUS:
-        try:
-            if p != None : shared.serverStatus = json.loads(p)
-        except:
-            pass
-    elif m == MSG_CONFIG:
-        try:
-            if p != None : shared.serverConfig = json.loads(p)
-        except:
-            pass
-    elif m == MSG_WAKEUP: 
-        microphone.active = True
-    elif m == MSG_IDLE: 
-        microphone.active = False
-    elif m == MSG_DISCONNECT:
-        shared.isConnected = True
-    elif m == MSG_TEXT:
-        if p != None :
-            print()
-            print( p )
-    elif m == MSG_MUTE: 
-        microphone.muted = True
-        animator.muted = True
-    elif m == MSG_UNMUTE: 
-        microphone.muted = False
-        animator.muted = False
-    elif m == MSG_ANIMATE:
-        if p == None : p = ANIMATE_NONE
-        if animator != None and p in ANIMATION_ALL:
-            animator.animate( p )
-    elif m == MSG_UPDATE:
-        if p != None: 
+        m,p = parseMessage( message )
+        #if isinstance(m, str) : print(m)
+        if not isinstance( message,str ) : # Wave data to play
+            await play(message)
+        elif m == MSG_STATUS:
             try:
-                package = json.loads( p )
-                updater = Updater()
-                if updater.update( package ) :
-                    shared.isTerminated = True
-                    await connection.send( MESSAGE( MSG_DISCONNECT, "Reboot after file update" ) )
-                    restartClient()
-            except Exception as e:
-                printError( f'Ошибка при обновлении клиента: {e}' )
-    elif m == MSG_REBOOT:
-        print( 'Перезагрузка устройства еще не реализована. Перезапускаю клиент...' )
-        await connection.send( MESSAGE( MSG_DISCONNECT, "Reboot by server request" ) )
-        restartClient()
-            
-    elif not isinstance( message,str ) : # Wave data to play
-        play(message)
-    else:
-        print( f'Unknown message received: "{m}"' )
+                if p != None : shared.serverStatus = json.loads(p)
+            except:
+                pass
+        elif m == MSG_CONFIG:
+            try:
+                if p != None : shared.serverConfig = json.loads(p)
+            except:
+                pass
+        elif m == MSG_WAKEUP: 
+            microphone.active = True
+        elif m == MSG_IDLE: 
+            microphone.active = False
+        elif m == MSG_DISCONNECT:
+            shared.isConnected = True
+        elif m == MSG_TEXT:
+            if p != None :
+                print()
+                print( p )
+        elif m == MSG_MUTE: 
+            microphone.muted = True
+            animator.muted = True
+        elif m == MSG_UNMUTE: 
+            microphone.muted = False
+            animator.muted = False
+        elif m == MSG_ANIMATE:
+            if p == None : p = ANIMATE_NONE
+            if animator != None and p in ANIMATION_ALL:
+                animator.animate( p )
+        elif m == MSG_UPDATE:
+            if p != None: 
+                try:
+                    package = json.loads( p )
+                    updater = Updater()
+                    if updater.update( package ) :
+                        shared.isTerminated = True
+                        restartClient()
+                except Exception as e:
+                    printError( f'Ошибка при обновлении клиента: {e}' )
+        elif m == MSG_REBOOT:
+            print( 'Перезагрузка устройства еще не реализована. Перезапускаю клиент...' )
+            restartClient()
+        else:
+            print( f'Unknown message received: "{m}"' )
+            pass
+    except Exception as e:
+        print( f'Exception processing message "{message}": {e}' )
         pass
+
+async def messageProcessorThread( connection ):
+    async for message in connection:
+        await processMessage(message)
+#endregion
+
+### microphoneThread() #################################################################
+#region
+async def microphoneThread( connection ):
+    global shared
+    global microphone
+    with Microphone() as mic:
+        microphone = mic
+        await connection.send( MESSAGE( MSG_TERMINAL, config.terminalId, config.password, VERSION ) )
+        _active = False
+        while not shared.isTerminated:
+            #await processMessages( connection )
+            if microphone.active : 
+                try:
+                    if not _active and shared.serverConfig['StoreAudio']=='True' :
+                        for ch in range(microphone.channels):
+                            await connection.send(MESSAGE(MSG_TEXT,f'CH#{ch}: RMS {microphone._rms[ch]} MAX {microphone._max[ch]}'))
+                        await connection.send(MESSAGE(MSG_TEXT,f'Selecting CH#{microphone.channel}, VAD:{microphone.vadLevel}'))
+                except Exception as e:
+                    print( f'{e}' )
+                    pass
+                _active = True
+                data = microphone.read()
+                if not microphone.muted and data != None : 
+                    await connection.send( data )
+
+            else:
+                _active = False
+                pass
+
+            await asyncio.sleep( 0.2 )
+    microphone = None
+#endregion
+
+### tracemallocThread() ################################################################
+#region
+async def tracemallocThread():
+    global shared
+    tracemalloc.start(10)
+    while not shared.isTerminated:
+        gc.collect()
+        snapshot = tracemalloc.take_snapshot().filter_traces((
+            tracemalloc.Filter(True, "*asyncio*"),
+            #tracemalloc.Filter(False, "<unknown>"),
+        ))
+
+        top_stats = snapshot.statistics('traceback')
+        s ='Top10 memory usage\r\n'
+        for index, stat in enumerate(top_stats[:5], 1):
+            myCode = False
+            s = s + ("#%s: %s objects, %.1f KiB\r\n" % (index, stat.count, stat.size / 1024))
+            for frame in reversed(stat.traceback):
+                my = 'lvterminal' in  frame.filename.lower()
+                if my: myCode = True
+                if my or not myCode:
+                    s = s + ('%s#%s: %s \r\n'% (frame.filename, frame.lineno, linecache.getline(frame.filename, frame.lineno).strip()))
+        log(s)
+        await asyncio.sleep( 60 )
 #endregion
 
 ### websockClient() ####################################################################
 #region
-async def websockClient():
+async def websockClient( serverUrl, sslContext):
     global lastMessageReceived
     global pingAreadySent
     global microphone
 
-    print( "Запуск Websock сервиса" )
-
-    protocol = 'ws'
-    sslContext = None
-    if config.ssl :
-        protocol = 'wss'
-        if config.sslAllowAny : # Disable host name and SSL certificate validation
-            sslContext = ssl.SSLContext( ssl.PROTOCOL_TLS_CLIENT )
-            sslContext.check_hostname = False
-            sslContext.verify_mode = ssl.CERT_NONE
-
-    uri = f'{protocol}://{config.serverAddress}:{config.serverPort}'
-    print( f'Сервер: {uri}' )
-
+    log( "Запуск Websock сервиса" )
     while not shared.isTerminated:
         try:
             shared.isConnected = False
-            async with websockets.connect( uri, ssl=sslContext ) as connection:
-                with Microphone() as microphone:
-                    lastMessageReceived = time.time()
-                    pingAreadySent = False
+            async with websockets.connect( serverUrl, ssl=sslContext ) as connection:
+                shared.isConnected = True
+                tasks = [
+                    asyncio.ensure_future( messageProcessorThread(connection) ),
+                    asyncio.ensure_future( microphoneThread(connection) )
+                    ]
+                if TRACE_MALLOC:
+                    tasks.append( asyncio.ensure_future( tracemallocThread() ) )
+                if not shared.quiet :
+                    tasks.append( asyncio.ensure_future( printStatusThread() ) )
+                done, pending = await asyncio.wait( tasks, return_when=asyncio.FIRST_COMPLETED, )
+                for task in pending:
+                    task.cancel()
 
-                    shared.isConnected = True
-                    print( 'Сервис запущен. Нажмите Ctrl-C для выхода' )
-                    await connection.send( MESSAGE( MSG_TERMINAL, config.terminalId, config.password, VERSION ) )
-                    _active = False
-                    while not shared.isTerminated and shared.isConnected:
-                        await processMessages( connection )
-                        if microphone.active : 
-                            try:
-                                if not _active and shared.serverConfig['StoreAudio']=='True' :
-                                    for ch in range(microphone.channels):
-                                        await connection.send(MESSAGE(MSG_TEXT,f'CH#{ch}: RMS {microphone._rms[ch]} MAX {microphone._max[ch]}'))
-                                    await connection.send(MESSAGE(MSG_TEXT,f'Selecting CH#{microphone.channel}, VAD:{microphone.vadLevel}'))
-                            except Exception as e:
-                                print( f'{e}' )
-                                pass
-                            _active = True
-                            data = microphone.read()
-                            if not microphone.muted and data != None : 
-                                await connection.send( data )
-
-                        else:
-                            _active = False
-                            pass
-
-                        printStatus()
-                        await asyncio.sleep( 0.1 )
-
-        except KeyboardInterrupt:
-            onCtrlC()
         except Exception as e:
             shared.isConnected = False
             if isinstance( e, websockets.exceptions.ConnectionClosedOK ) :
@@ -282,10 +304,14 @@ async def websockClient():
                 try: await connection.send( MSG_DISCONNECT )
                 except:pass
                 await asyncio.sleep( 10 )
+        except:
+            shared.isConnected = False
+            onCtrlC()
         finally:
+            shared.isConnected = False
             pass
 
-    print( "Finishing Client thread" )
+    log( "Finishing Client thread" )
 #endregion
 
 ### onCtrlC(), restartClient ###########################################################
@@ -309,25 +335,6 @@ def restartClient():
     global shared
     shared.isTerminated = True
     shared.exitCode = 42 # перезапуск
-
-def restartClientZZZ():
-    """  Make Python re-compile and re-run app """
-    print( 'Перезапуск...' )
-    attempt = 1
-    while True :
-        try:
-            fn = os.path.join( ROOT_DIR, 'client.py')
-            #print(f'"{format(fn)}" {sys.argv}')
-            #os.execl( sys.executable, f'"{format(sys.executable)}"', *sys.argv )
-            os.execl( fn, *sys.argv )
-            return
-        except Exception as e:
-            if attempt>=10 : raise e
-            print(f'Ошибка: {e}')
-            time.sleep(3)
-            attempt += 1
-            print(f'Перезапуск, попытка {attempt}...')
-  
 #endregion
 
 ### Main program #######################################################################
@@ -383,10 +390,21 @@ if __name__ == '__main__':
     print( f'Устройство для захвата звука: #{config.audioInputDevice} "{config.audioInputName}"' )
     print( f'Устройтсво для вывода звука: #{config.audioOutputDevice} "{config.audioOutputName}"' )
 
+    protocol = 'ws'
+    sslContext = None
+    if config.ssl :
+        protocol = 'wss'
+        if config.sslAllowAny : # Disable host name and SSL certificate validation
+            sslContext = ssl.SSLContext( ssl.PROTOCOL_TLS_CLIENT )
+            sslContext.check_hostname = False
+            sslContext.verify_mode = ssl.CERT_NONE
+
+    url = f'{protocol}://{config.serverAddress}:{config.serverPort}'
+    log( f'Сервер URL: {url}' )
+
     try:
         loop = asyncio.get_event_loop()
-        loop.run_until_complete( websockClient() )
-
+        loop.run_until_complete( websockClient( url, sslContext) )
     except Exception as e:
         if isinstance( e, websockets.exceptions.ConnectionClosedOK ) :
             print( f'Disconnected' )
@@ -396,8 +414,16 @@ if __name__ == '__main__':
             onCtrlC()
         else:
             printError( f'Unhandled exception: {e}' )
+    except:
+        onCtrlC();
 
-    if animator != None : del( animator )
+    shared.isTerminated = True
+    time.sleep(0.5)
+
+    if animator != None : 
+        animator.off()
+        del( animator )
+
     if shared.exitCode == 42 :
         print( 'Перезапуск' )
         sys.exit(shared.exitCode)

@@ -100,10 +100,12 @@ class Animator:
                 #sleep 10ms
                 time.sleep(this.timeout)
         except KeyboardInterrupt as e:
-            pass
+            this.shared.isTerminated = True
         except Exception as e:
             logError( f'Exception in animator thread: {e} ')
-        this.off
+
+        try: this.off()
+        except: pass
 
     def animate( this, animation ):
         this.queue.put_nowait( animation )

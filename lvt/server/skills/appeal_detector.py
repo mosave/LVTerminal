@@ -35,6 +35,8 @@ class AppealDetectorSkill(Skill):
         if this.topic == TOPIC_WAIT_COMMAND:
             # Добавить в начало команды обращение, если нужно
             if not this.detectAppeals(): this.insertWords( 0,'слушай ' + this.appeal )
+            # Ставим галочку в терминале что в случае необнаружения команды озвучить appeal_off
+            this.terminal.playAppealOffIfNotStopped = True
             # И перезапустить распознавание без топика
             this.changeTopic( TOPIC_DEFAULT )
             this.restartParsing()
@@ -117,5 +119,6 @@ class AppealDetectorSkill(Skill):
                 this.animate( ANIMATION_CANCEL )
                 this.play( 'appeal_off.wav' )
                 this.changeTopic( this.savedTopic )
+                this.terminal.playAppealOffIfNotStopped = False
 
 

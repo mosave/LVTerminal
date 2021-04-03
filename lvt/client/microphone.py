@@ -132,7 +132,9 @@ class Microphone:
         # Контролируем размер буфера. В режиме ожидания 1с, в активном режиме 2с
         maxBufferSize = int(CHUNKS_PER_SECOND * (2 if this.active else 1) )
 
-        while len(this.buffer)>maxBufferSize : this.buffer.pop(0)
+        while len(this.buffer)>maxBufferSize : 
+            this.buffer[0] = None
+            this.buffer.pop(0)
 
         # Конвертим аудио в массив 16битных значений:
         data = np.fromstring( data, dtype='int16')
@@ -223,6 +225,7 @@ class Microphone:
         # Если в буфере есть данные - возвращаем их
         if len( this.buffer ) > 0: 
             data = this.buffer[0][this.channel]
+            this.buffer[0] = None
             this.buffer.pop( 0 )
             return data
         else:
