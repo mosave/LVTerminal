@@ -2,6 +2,7 @@ import sys
 import time
 import os
 import psutil
+import getopt
 from lvt.const import *
 from lvt.server.grammar import *
 from lvt.config_parser import ConfigParser
@@ -15,15 +16,23 @@ class Config:
 ### __init__  ##########################################################################
 #region
     def __init__( this ):
+        configName = "server.cfg"
+        for arg in sys.argv[1:]:
+            a = arg.strip().lower()
+            if ( a.startswith('--config=') ) :
+                configName = a.split('=')[1]
+
+
         ConfigParser.checkConfigFiles( [
             'server.cfg',
             'acronyms', 'locations', 'vocabulary', 'devices', 'persons'
             ])
-        p = ConfigParser( 'server.cfg' )
+        p = ConfigParser( configName )
         section = 'LVTServer'
         ### Network configuration
         this.serverAddress = p.getValue( section, 'ServerAddress','0.0.0.0' )
         this.serverPort = p.getIntValue( section, 'ServerPort',2700 )
+        this.apiServerPort = p.getIntValue( section, 'APIServerPort', 7999 )
         this.sslCertFile = p.getValue( section, 'SSLCertFile','' )
         this.sslKeyFile = p.getValue( section, 'SSLKeyFile','' )
 

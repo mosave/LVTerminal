@@ -65,6 +65,7 @@ class Terminal():
         this.speaker = None
 
         this.sayOnConnect = None
+        this.isConnected = False
         this.connectedOn = None
         this.disconnectedOn = None
         this.playAppealOffIfNotStopped = False
@@ -180,6 +181,7 @@ class Terminal():
           messageQueue is synchronous message output queue
         """
         this.log( f'Terminal connected, client version {this.clientVersion}' )
+        this.isConnected = True
         this.connectedOn = time.time()
         this.messageQueue = messageQueue
         # В случае, если предыдущая сессия закончилась недавно
@@ -201,6 +203,7 @@ class Terminal():
     def onDisconnect( this ):
         """Вызывается при (после) завершения сессии"""
         this.log( 'Terminal disconnected' )
+        this.isConnected = False
         this.disconnectedOn = time.time()
         this.messageQueue = None
 #endregion
@@ -441,6 +444,14 @@ class Terminal():
         for t in terminals :
             if t.id == terminalId and t.password == password: 
                 t.clientVersion = clientVersion
+                return( t )
+        return None
+
+    def find( terminalId:str ):
+        """Авторизация терминала по terminalId и паролю"""
+        terminalId = str( terminalId ).lower()
+        for t in terminals :
+            if t.id == terminalId :
                 return( t )
         return None
 

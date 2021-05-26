@@ -15,7 +15,7 @@ def logError( message: str ):
     """Вывод сообщения об ошибке на экран и в журнал"""
     if logWriter != None :
         logWriter.logMessage( logging.ERROR, message )
-    elif logging.ERROR >= config.printLevel:
+    elif logging.ERROR >= config.printLevel if (config!=None) else 0:
         print( message )
 
 def printError( message:str ):
@@ -26,7 +26,7 @@ def printDebug( message:str ):
     """Вывод отладочного сообщения на экран и в журнал"""
     if logWriter != None :
         logWriter.logMessage( logging.DEBUG, message )
-    elif logging.DEBUG >= config.printLevel:
+    elif logging.DEBUG >= config.printLevel if (config!=None) else 0:
         print( message )
 
 def logDebug( message: str ):

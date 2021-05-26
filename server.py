@@ -6,6 +6,7 @@ import asyncio
 import ssl
 import pathlib
 import websockets
+import socket
 import concurrent.futures
 import logging
 import time
@@ -226,6 +227,26 @@ async def websockServer( connection, path ):
         recognizer = None
         spkRecognizer = None
 #endregion
+
+### apiServer ######################################################################
+async def apiServer( reader, writer ):
+    data = await reader.read()
+    message = data.decode()
+    if isinstance( message, str ): # Получено строковое сообщение
+        m, termId, text = split3( message )
+        term =  Terminal.find( termId ) if termId else None
+
+        if m == MSG_API_SAY:
+            if (term!=None) and (term.isConnected) :
+                term.say( text )
+        elif m == MSG_API_ASK :
+            if (term!=None) and (term.isConnected) :
+                term.say( text )
+                term.onText( term.appeal )
+    writer.close()
+
+
+
 ### showHelp() #########################################################################
 #region
 def showHelp():
@@ -259,7 +280,6 @@ def restart():
 
 print()
 print( f'Lite Voice Terminal Server v{VERSION}' )
-
 
 config = Config()
 
@@ -315,12 +335,12 @@ spkModel = SpkModel( config.spkModel ) if config.spkModel != '' else None
 try:
     pool = concurrent.futures.ThreadPoolExecutor( config.recognitionThreads )
     lvtServer = websockets.serve( websockServer, config.serverAddress, config.serverPort, ssl=sslContext )
+    lvtApiServer = asyncio.start_server( apiServer, config.serverAddress, config.apiServerPort )
+    
     loop = asyncio.get_event_loop()
     if config.mqttServer != '' :
-        #t = asyncio.create_task(mqttClient())
         t = asyncio.ensure_future(mqttClient())
-        #asyncio.create_task( loop.run_in_executor( pool, mqttClient) )
-        pass
+    loop.run_until_complete( lvtApiServer )
     loop.run_until_complete( lvtServer )
     loop.run_forever()
 except KeyboardInterrupt:

@@ -9,11 +9,17 @@ from lvt.alsa_supressor import AlsaSupressor
 class Config:
     """LVT Client Configuration"""
     def __init__( this ):
+        configName = 'client.cfg'
+        for arg in sys.argv[1:]:
+            a = arg.strip().lower()
+            if ( a.startswith('--config=') ) :
+                configName = a.split('=')[1]
+
         AlsaSupressor.disableWarnings()
 
         ConfigParser.checkConfigFiles( ['client.cfg'])
 
-        p = ConfigParser( 'client.cfg' )
+        p = ConfigParser( configName )
 
         this.serverAddress = p.getValue( '', "serverAddress","" )
         if len( this.serverAddress.strip() ) == 0:
@@ -70,7 +76,6 @@ class Config:
                 except: n=-1
                 if (n>=0) and (n<this.apa102LedCount) : 
                     this.apa102MuteLeds.add(n)
-
 
 
     def getAudioDevice( this, deviceIndex, isInput:bool ):

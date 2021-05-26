@@ -356,7 +356,6 @@ if __name__ == '__main__':
     shared.serverConfig = '{}'
     Logger.initialize( config )
 
-
     for arg in sys.argv[1:]:
         a = arg.strip().lower()
         if ( a == '-h' ) or ( a == '--help' ) or ( a == '/?' ) :
@@ -388,7 +387,7 @@ if __name__ == '__main__':
 
 
     print( f'Устройство для захвата звука: #{config.audioInputDevice} "{config.audioInputName}"' )
-    print( f'Устройтсво для вывода звука: #{config.audioOutputDevice} "{config.audioOutputName}"' )
+    print( f'Устройство для вывода звука: #{config.audioOutputDevice} "{config.audioOutputName}"' )
 
     protocol = 'ws'
     sslContext = None

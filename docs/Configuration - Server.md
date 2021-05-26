@@ -82,7 +82,7 @@ sudo apt install python3-numpy
 1. Install as a service
 
 sudo cp lvt_server /etc/init.d
-chmod 755 /etc/init.d/lvt_server
+sudo chmod 755 /etc/init.d/lvt_server
 
 Create symbolic link to start service:
 sudo update-rc.d lvt_server defaults
