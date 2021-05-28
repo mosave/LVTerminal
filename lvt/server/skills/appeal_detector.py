@@ -28,7 +28,7 @@ class AppealDetectorSkill(Skill):
         this.savedTopic = TOPIC_DEFAULT
         this.waitUntil = 0
         this.aNames = wordsToList( this.terminal.config.femaleAssistantNames + ' ' + this.terminal.config.maleAssistantNames )
-
+        this.extendVocabulary('подай голос, скажи что-нибудь,голос,ты здесь,живой, живая, меня слышишь' )
 
     def onText( this ):
         # Если в режиме ожидания 
@@ -52,13 +52,18 @@ class AppealDetectorSkill(Skill):
                     this.savedTopic = this.topic
                     this.changeTopic( TOPIC_WAIT_COMMAND )
                     this.stopParsing()
+                elif  this.findWordChainB( 'подай голос' ) or \
+                    this.findWordChainB( 'скажи что-нибудь' ) or \
+                    this.findWordChainB( 'голос' ) :
+                    this.stopParsing( ANIMATION_ACCEPT )
+                    this.say( ['Гав. Гав-гав.', 'мяаау, блин.', 'отстаньте от меня','не мешайте, я за домом присматриваю','не мешайте, я думаю', 'шутить изволите?'] )
                 elif  this.findWordChainB( 'ты здесь' ) or \
                     this.findWordChainB( 'ты * живой' ) :
                     this.stopParsing( ANIMATION_ACCEPT )
-                    this.say( ['да, конечно', 'куда же я денусь', 'пока всё еще да','живее всех живых'] )
+                    this.say( ['да, конечно', 'куда же я денусь', 'пока всё еще да','живее всех живых','не мешайте, я думаю', 'шутить изволите?'] )
                 elif this.findWordChainB( 'меня слышишь' ) :
                     this.stopParsing( ANIMATION_ACCEPT )
-                    this.say( ['ну конечно слышу', 'да, не ' + this.conformToAppeal( 'глухая' ), 'слышу-слышу', 'само-собой'] )
+                    this.say( ['ну конечно слышу', 'да, '+this.appeal+' не ' + this.conformToAppeal( 'глухая' ), 'слышу-слышу', 'само-собой'] )
 
     def onPartialText( this ):
         # В процессе распознавания текста:

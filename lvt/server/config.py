@@ -91,7 +91,17 @@ class Config:
 
             if this.rhvParamsMale == None and this.rhvParamsFemale == None :
                 raise Exception('В конфигурации обязательно должна быть определена хотя бы одна из секций [RHVoiceMale] или [RHVoiceFemale]') 
-
+        elif( this.ttsEngine.lower().strip() == TTS_SAPI.lower() ):
+            this.ttsEngine = TTS_SAPI
+            section = TTS_SAPI
+            this.sapiMaleVoice = p.getValue( section, 'MaleVoice', None )
+            this.sapiFemaleVoice = p.getValue( section, 'FemaleVoice', None )
+            this.sapiMaleRate = p.getIntValue( section, "MaleRate", 0 )
+            this.sapiFemaleRate = p.getIntValue( section, "FemaleRate", 0 )
+            if (this.sapiMaleRate<-10) or (this.sapiMaleRate>10):
+                this.sapiMaleRate = 0
+            if (this.sapiFemaleRate<-10) or (this.sapiFemaleRate>10):
+                this.sapiFemaleRate = 0
         else:
             raise Exception( 'Неверное значение параметра TTSEngine' )
 

@@ -61,6 +61,7 @@
     <Compile Include="lvt\server\skills\parrot_mode.py" />
     <Compile Include="client.py" />
     <Compile Include="server.py" />
+    <Compile Include="tests\test3.py" />
     <Compile Include="tests\test_skills.py" />
     <Compile Include="tests\test2.py" />
     <Compile Include="tests\test_animator.py" />

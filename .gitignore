@@ -7,6 +7,9 @@
 logs/*
 !logs/readme.md
 
+cache/*
+!logs/readme.md
+
 config/*
 !config/readme.md
 

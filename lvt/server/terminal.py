@@ -2,7 +2,9 @@ import sys
 import time
 import datetime
 import json
+import hashlib
 from numpy import random
+from threading import Lock, Thread
 from lvt.const import *
 from lvt.logger import *
 from lvt.protocol import *
@@ -13,9 +15,21 @@ from lvt.server.devices import Devices
 from lvt.server.skill import Skill
 from lvt.server.skill_factory import SkillFactory
 
+#pip3 install pywin32
+# win32 should be imported globally. No other options but tru/except found
+try:
+    import win32com.client
+    import pythoncom
+except:
+    pass
+
+
 config = None
 terminals = list()
-rhvoiceTTS = None
+ttsRHVoice = None
+ttsLock = Lock()
+ttsLocked = set()
+
 
 class Terminal():
     """Terminal class
@@ -99,26 +113,87 @@ class Terminal():
         """Проговорить сообщение на терминал. 
           Текст сообщения так же дублируется командой "Text"
         """
+        global ttsRHVoice
+        global ttsLock
+        global ttsLocked
 
         if isinstance(text, list) :
             text = text[random.randint(len(text))]
 
-        #this.sendMessage( MSG_TEXT, text )
+        this.logDebug( f'Say "{text}" with {config.ttsEngine}' )
 
-        this.logDebug( f'Say "{text}"' )
-        if( config.ttsEngine == TTS_RHVOICE ):
-            if rhvoiceTTS != None :
-                rhvParams = config.rhvParamsMale if this.gender=='masc' else config.rhvParamsFemale
-                if rhvParams == None : rhvParams = config.rhvParamsMale 
-                if rhvParams == None : rhvParams = config.rhvParamsFemale
-                # https://pypi.org/project/rhvoice-wrapper/
-                wav = rhvoiceTTS.get( text, 
-                    voice= rhvParams['voice'],
-                    format_='wav', 
-                    sets=rhvParams, )
-                #this.sendMessage(MSG_MUTE)
-                this.sendDatagram( wav )
-                #this.sendMessage(MSG_UNMUTE)
+        if not config.ttsEngine:
+            return
+
+        voice = ''
+        if (config.ttsEngine == TTS_RHVOICE):
+            voice = config.rhvParamsMale['voice'] if this.gender=='masc' else config.rhvParamsFemale['voice']
+        elif (config.ttsEngine == TTS_SAPI):
+            voice = config.sapiMaleVoice if this.gender=='masc' else config.sapiFemaleVoice
+
+        wfn = hashlib.sha256((config.ttsEngine+'-'+voice+'-'+text).encode()).hexdigest()
+
+        isLocked = True
+        while isLocked:
+            ttsLock.acquire()
+            if not (wfn in ttsLocked):
+                ttsLocked.add(wfn)
+                isLocked = False
+            ttsLock.release()
+            if isLocked:
+                time.sleep(0.1)
+        try:
+            waveFileName = os.path.join( ROOT_DIR,'cache', wfn+'.wav' )
+            #print(f'wave file name= {waveFileName}')
+            #this.sendMessage( MSG_TEXT, text )
+            if not os.path.isfile(waveFileName): 
+                if (config.ttsEngine == TTS_RHVOICE) and (ttsRHVoice != None):
+                    rhvParams = config.rhvParamsMale if this.gender=='masc' else config.rhvParamsFemale
+                    if rhvParams == None : rhvParams = config.rhvParamsMale 
+                    if rhvParams == None : rhvParams = config.rhvParamsFemale
+                    # https://pypi.org/project/rhvoice-wrapper/
+
+                    ttsRHVoice.to_file( 
+                        filename=waveFileName, 
+                        text=text, 
+                        voice=rhvParams['voice'], 
+                        format_='wav',
+                        sets=rhvParams, )
+                    #wav = ttsRHVoice.get( text, 
+                    #    voice= rhvParams['voice'],
+                    #    format_='wav', 
+                    #    sets=rhvParams, )
+                    ##this.sendMessage(MSG_MUTE)
+                    #this.sendDatagram( wav )
+                    ##this.sendMessage(MSG_UNMUTE)
+                elif (config.ttsEngine == TTS_SAPI):
+                    #https://docs.microsoft.com/en-us/previous-versions/windows/desktop/ms723602(v=vs.85)
+                    pythoncom.CoInitialize()
+                    sapi = win32com.client.Dispatch("SAPI.SpVoice")
+                    sapiStream = win32com.client.Dispatch("SAPI.SpFileStream")
+                    voices = sapi.GetVoices()
+                    v = (config.sapiMaleVoice if this.gender=='masc' else config.sapiFemaleVoice).lower().strip()
+                    for voice in voices:
+                        if voice.GetAttribute("Name").lower().strip().startswith(v):
+                            sapi.Voice = voice
+                    sapi.Rate = (config.sapiMaleRate if this.gender=='masc' else config.sapiFemaleRate)
+                    sapiStream.Open( waveFileName, 3 )
+                    sapi.AudioOutputStream = sapiStream
+                    sapi.Speak(text)
+                    sapi.WaitUntilDone(-1)
+                    sapiStream.Close()
+
+            if os.path.isfile(waveFileName): 
+                with open( waveFileName, 'rb' ) as wave:
+                    this.sendDatagram( wave.read( 5000 * 1024 ) )
+            else:
+                this.logError(f'File {waveFileName} not found')
+        except Exception as e:
+            this.logError( f'Exception initializing Microsoft Speech API: {e}' )
+
+        ttsLock.acquire()
+        ttsLocked.remove(wfn)
+        ttsLock.release()
 
 
     def play( this, waveFileName: str ):
@@ -199,7 +274,7 @@ class Terminal():
             this.say(this.sayOnConnect)
             this.sendMessage(MSG_UNMUTE)
             this.sayOnConnect = None
-
+        #this.say('Terminal Connected. Терминал подключен.')
     def onDisconnect( this ):
         """Вызывается при (после) завершения сессии"""
         this.log( 'Terminal disconnected' )
@@ -459,20 +534,26 @@ class Terminal():
         """Initialize module' config variable for easier access """
         global config
         global terminals
-        global rhvoiceTTS
+        global ttsRHVoice
+        global sapiTTS
+        global sapiStream
+        global sapiMaleVoice
+        global sapiFemaleVoice
         
         config = gConfig
         if config.ttsEngine == TTS_RHVOICE :
             import rhvoice_wrapper as rhvoiceWrapper # https://pypi.org/project/rhvoice-wrapper/
             try:
-                rhvoiceTTS = rhvoiceWrapper.TTS( threads=1, 
+                ttsRHVoice = rhvoiceWrapper.TTS( threads=1, 
                     data_path=config.rhvDataPath, 
                     config_path=config.rhvConfigPath,
                     lame_path=None, opus_path=None, flac_path=None,
                     quiet=True )
                 
             except Exception as e:
-                printError( f'Exception initializing RHVoice engine' )
+                this.logError( f'Exception initializing RHVoice engine' )
+        elif config.ttsEngine == TTS_SAPI:
+            pass
         else:
             pass
 
@@ -483,7 +564,7 @@ class Terminal():
 
     def dispose():
         if config.ttsEngine == TTS_RHVOICE :
-            try: rhvoiceTTS.join()
+            try: ttsRHVoice.join()
             except: pass
         else:
             pass

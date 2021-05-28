@@ -91,3 +91,10 @@ sudo update-rc.d lvt_server defaults
 sudo /etc/init.d/lvt_server start
 sudo /etc/init.d/lvt_server stop
 sudo /etc/init.d/lvt_server status
+
+
+
+
+
+Windows 10, Speech API, голос MS Pavel не доступен для использования в приложениях.
+Решение здесь: https://stackoverflow.com/questions/53804721/how-to-get-and-use-full-installed-text-to-speech-languages-list
