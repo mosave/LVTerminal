@@ -63,6 +63,7 @@ class Terminal():
         this.parsedLocations = []
 
         this.lastActivity = time.time()
+        this.lastSound = 0
         this.lastAppealed = None
         this.appealPos = None
         this.isAppealed = False
@@ -125,6 +126,10 @@ class Terminal():
         if not config.ttsEngine:
             return
 
+        if time.time() - this.lastSound > 5 * 60:
+            this.play("ding.wav")
+
+        this.lastSound = time.time()
         voice = ''
         if (config.ttsEngine == TTS_RHVOICE):
             voice = config.rhvParamsMale['voice'] if this.gender=='masc' else config.rhvParamsFemale['voice']
@@ -197,6 +202,7 @@ class Terminal():
 
 
     def play( this, waveFileName: str ):
+        this.lastSound = time.time()
         """Проиграть wave файл на терминале. Максимальный размер файла 500к """
         if os.path.dirname( waveFileName ) == '' :
            waveFileName = os.path.join( ROOT_DIR,'lvt','sounds',waveFileName )

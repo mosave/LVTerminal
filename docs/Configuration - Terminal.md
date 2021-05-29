@@ -34,18 +34,15 @@ Update all
 7. sudo apt-get install htop mc p7zip git
 
 
-8. Устанавливаем драйвера Respeaker2: 
-   https://github.com/SeeedDocument/Seeed-WiKi/blob/master/docs/Respeaker_2_Mics_Pi_HAT.md
+8. Устанавливаем драйвера Respeaker2:
+  описание здесь:  https://wiki.seeedstudio.com/ReSpeaker_2_Mics_Pi_HAT_Raspberry/
 
-   ... или Respeaker4:
-   https://github.com/SeeedDocument/Seeed-WiKi/blob/master/docs/ReSpeaker_4_Mic_Array_for_Raspberry_Pi.md
+  sudo apt-get update
+  git clone https://github.com/HinTak/seeed-voicecard
+  cd seeed-voicecard
+  sudo ./install.sh
+  sudo reboot now
 
- * -- git clone https://github.com/respeaker/seeed-voicecard.git
- * git clone https://github.com/HinTak/seeed-voicecard.git
- * cd seeed-voicecard
- * sudo ./install.sh 
- * sudo reboot
-  
 9. Устанавливаем Python3 и необходимые библиотеки для запуска терминального клиента:
 
  * sudo apt-get install python3 python3-pip python3-numpy python3-pyaudio python3-spidev python3-gpiozero -y
@@ -89,3 +86,10 @@ sudo update-rc.d lvt_client defaults
 sudo /etc/init.d/lvt_client start
 sudo /etc/init.d/lvt_client stop
 sudo /etc/init.d/lvt_client status
+
+
+
+
+Настройка терминала для совместной работы с MajorDoMo
+
+  sudo apt-get install mpd

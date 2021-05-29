@@ -96,6 +96,8 @@ class Config:
             section = TTS_SAPI
             this.sapiMaleVoice = p.getValue( section, 'MaleVoice', None )
             this.sapiFemaleVoice = p.getValue( section, 'FemaleVoice', None )
+            if not this.sapiMaleVoice : this.sapiMaleVoice = this.sapiFemaleVoice
+            if not this.sapiFemaleVoice : this.sapiFemaleVoice = this.sapiMaleVoice
             this.sapiMaleRate = p.getIntValue( section, "MaleRate", 0 )
             this.sapiFemaleRate = p.getIntValue( section, "FemaleRate", 0 )
             if (this.sapiMaleRate<-10) or (this.sapiMaleRate>10):
