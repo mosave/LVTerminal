@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3 
 import sys
 import time
 import datetime
@@ -14,6 +14,8 @@ import websockets
 import threading
 import multiprocessing
 import contextlib
+import subprocess
+#import simpleaudio
 #region leak troubleshooting:
 TRACE_MALLOC = False
 if TRACE_MALLOC :
@@ -28,7 +30,9 @@ from lvt.alsa_supressor import AlsaSupressor
 from lvt.client.microphone import Microphone
 from lvt.client.config import Config
 from lvt.client.updater import Updater
+from lvt.alsa_supressor import AlsaSupressor
 
+audio = None
 config = None
 shared = None
 microphone = None
@@ -86,9 +90,22 @@ async def printStatusThread():
             await asyncio.sleep(1)
 #endregion
 
+### GetVolume() / SetVolume() ##########################################################
+#region
+def getVolume():
+    return '95%'
+
+def setVolume( volume ):
+    try:
+        subprocess.call(["amixer", "sset", "Speaker", f"{volume}"])
+    except Exception as e:
+        pass
+#endregion
+
 ### play() #############################################################################
 #region
-async def play( data ):
+def play( data ):
+    global audio
     global microphone
     global shared
     global config
@@ -97,39 +114,51 @@ async def play( data ):
         microphone.muted = True
         animator.muted = True
     try:
-
-        audio = pyaudio.PyAudio()
         #fn = datetime.datetime.today().strftime(f'{config.terminalId}_%Y%m%d_%H%M%S_play.wav')
         #f = open(os.path.join( ROOT_DIR, 'logs',fn),'wb')
         #f.write(data)
         #f.close()
+        #volume = getVolume()
+        #setVolume('0%')
+        #time.sleep(0.1)
 
         with wave.open( io.BytesIO( data ), 'rb' ) as wav:
-            # Measure number of frames: 
-            nFrames = int(len(data) / wav.getsampwidth() / wav.getnchannels() + 65)
-            # Read ALL frames in memory:
-            frames = wav.readframes(nFrames)
-            # and calculate actual number of frames read...
-            nFrames = int(len(frames)/wav.getsampwidth()/wav.getnchannels())
+            sampwidth = wav.getsampwidth()
+            format = pyaudio.get_format_from_width( sampwidth )
+            nchannels = wav.getnchannels()
+            framerate = wav.getframerate()
+            nframes = wav.getnframes()
+            #print(f'file properties: sampwidth {sampwidth} nchannels {nchannels} framerate {framerate} nframes {nframes} frames ({len(data)} bytes)')
+            # Workaoround broken .wav header:
+            t = len( data ) / sampwidth / nchannels
+            if ( t > 0 ) and ( t < nframes ) :  nframes = t
 
-            # Calculate wav length in seconds
-            waveLen = nFrames / wav.getframerate() + 0.3
+            frames = wav.readframes( nframes )
+            #print(f'{len(frames)} bytes of {nframes} frames read')
+            # Control & fix broken .wav header
+            t = int( len( frames ) / sampwidth / nchannels )
+            if ( t > 0 ) and ( t < nframes ) : nframes = t
 
-            audioStream = audio.open( 
-                format=pyaudio.get_format_from_width( wav.getsampwidth() ),
-                channels=wav.getnchannels(),
-                rate=wav.getframerate(),
-                output=True,
-                output_device_index=config.audioOutputDevice,
-                frames_per_buffer = nFrames - 16 #!!! Dirty hack to workaround RPi cracking noise
-            )
-            audioStream.start_stream()
-            startTime = time.time()
-            audioStream.write( frames )
+        #print(f'open {nframes} frames ({len(frames)} bytes)')
+        audioStream = audio.open(
+            format=format,
+            channels=nchannels,
+            rate=framerate,
+            output=True,
+            output_device_index=config.audioOutputDevice,
+            frames_per_buffer = nframes - 4
+        )
+        startTime = time.time()
+        #print('write frames')
+        audioStream.write( frames )
+        #print('setting volume')
+        #time.sleep(0.1)
+        #setVolume(volume)
 
-            # Wait until played
-            while time.time() < startTime + waveLen : 
-                await asyncio.sleep( 0.2 )
+        # Calculate time before audio played
+        timeout = (nframes / framerate + 0) - (time.time() - startTime)
+        # and wait if required...
+        if timeout>0 : time.sleep( timeout )
     except Exception as e:
         print( f'Exception playing audio: {e}' )
     finally:
@@ -137,13 +166,61 @@ async def play( data ):
         except: pass
         try: audioStream.close()
         except:pass
-        try: audio.terminate() 
-        except:pass
+        pass
 
     if muteUnmute : 
         microphone.muted = False
         animator.muted = False
 
+#endregion
+
+### playSimpleAudio() ##################################################################
+#region
+#def playSimpleAudio( data ):
+#    global audio
+#    global microphone
+#    global shared
+#    global config
+#    #muteUnmute = not microphone.muted
+#    if muteunmute : 
+#        microphone.muted = true
+#        animator.muted = true
+
+#    try:
+#        #fn = datetime.datetime.today().strftime(f'{config.terminalId}_%Y%m%d_%H%M%S_play.wav')
+#        #f = open(os.path.join( ROOT_DIR, 'logs',fn),'wb')
+#        #f.write(data)
+#        #f.close()
+
+#        with wave.open( io.BytesIO( data ), 'rb' ) as wav:
+#            sampwidth = wav.getsampwidth()
+#            format = pyaudio.get_format_from_width( sampwidth )
+#            nchannels = wav.getnchannels()
+#            framerate = wav.getframerate()
+#            nframes = wav.getnframes()
+#            print(f'file properties: sampwidth {sampwidth} nchannels {nchannels} framerate {framerate} nframes {nframes} frames ({len(data)} bytes)')
+#            # Workaoround broken .wav header:
+#            t = len( data ) / sampwidth / nchannels
+#            if ( t > 0 ) and ( t < nframes ) :  nframes = t
+
+#            frames = wav.readframes( 8192 )
+#            frames = wav.readframes( nframes )
+#            print(f'{len(frames)} bytes of {nframes} frames read')
+#            # Control & fix broken .wav header
+#            t = int( len( frames ) / sampwidth / nchannels )
+#            if ( t > 0 ) and ( t < nframes ) : nframes = t
+
+#        print(f'open {nframes} frames ({len(frames)} bytes)')
+#        play_obj = simpleaudio.play_buffer( frames, nchannels, sampwidth, framerate)
+#        play_obj.wait_done()
+
+#        print('close')
+#    except Exception as e:
+#        print( f'Exception playing audio: {e}' )
+
+#    if muteUnmute : 
+#        microphone.muted = False
+#        animator.muted = False
 #endregion
 
 ### processMessage()? messageProcessorThread() #########################################
@@ -153,7 +230,7 @@ async def processMessage( message ):
         m,p = parseMessage( message )
         #if isinstance(m, str) : print(m)
         if not isinstance( message,str ) : # Wave data to play
-            await play(message)
+            play(message)
         elif m == MSG_STATUS:
             try:
                 if p != None : shared.serverStatus = json.loads(p)
@@ -344,7 +421,9 @@ if __name__ == '__main__':
     print( f'Lite Voice Terminal Client v{VERSION}' )
 
     AlsaSupressor.disableWarnings()
+    audio = pyaudio.PyAudio()
 
+    Config.initialize(audio)
     config = Config()
 
     shared = multiprocessing.Manager().Namespace()
@@ -370,7 +449,7 @@ if __name__ == '__main__':
         else:
             printError( f'Неизвестный параметр: "{arg}"' )
 
-    Microphone.initialize( config )
+    Microphone.initialize( config, audio )
     Updater.initialize( config, shared )
 
     if config.animator == "text":

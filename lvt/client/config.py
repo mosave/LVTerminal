@@ -4,9 +4,14 @@ import os
 import pyaudio
 from lvt.const import *
 from lvt.config_parser import ConfigParser
-from lvt.alsa_supressor import AlsaSupressor
+
+global audio
 
 class Config:
+    def initialize( gAudio ):
+        global audio
+        audio = gAudio
+
     """LVT Client Configuration"""
     def __init__( this ):
         configName = 'client.cfg'
@@ -14,8 +19,6 @@ class Config:
             a = arg.strip().lower()
             if ( a.startswith('--config=') ) :
                 configName = a.split('=')[1]
-
-        AlsaSupressor.disableWarnings()
 
         ConfigParser.checkConfigFiles( ['client.cfg'])
 
@@ -79,7 +82,7 @@ class Config:
 
 
     def getAudioDevice( this, deviceIndex, isInput:bool ):
-        audio = pyaudio.PyAudio()
+        global audio
         # Use default device if not specified
         if deviceIndex == None :
             try:
@@ -108,7 +111,6 @@ class Config:
                 deviceName = name
                 break
 
-        audio.terminate()
         # check if device was resolved
         if deviceIndex != None and deviceName == None : 
             raise Exception( f'Invalid Audio{("input" if isInput else "Output")}Device specified' )

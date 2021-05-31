@@ -74,7 +74,7 @@ Update all
    sudo alsactl --file=/home/pi/asound.state restore
    Восстановление настроек можно добавить в /etc/rc.local
 
-13. Запуск терминального клиента как сервиса
+13. Запуск терминального клиента как сервис
 
 sudo cp ./scripts/lvt_client /etc/init.d
 sudo chmod 755 /etc/init.d/lvt_client

@@ -3,6 +3,7 @@ import time
 import datetime
 import json
 import hashlib
+import wave
 from numpy import random
 from threading import Lock, Thread
 from lvt.const import *
@@ -118,7 +119,7 @@ class Terminal():
         global ttsLock
         global ttsLocked
 
-        if isinstance(text, list) :
+        if isinstance(text, list):
             text = text[random.randint(len(text))]
 
         this.logDebug( f'Say "{text}" with {config.ttsEngine}' )
@@ -126,7 +127,7 @@ class Terminal():
         if not config.ttsEngine:
             return
 
-        if time.time() - this.lastSound > 5 * 60:
+        if time.time() - this.lastSound > 1 * 60:
             this.play("ding.wav")
 
         this.lastSound = time.time()
@@ -158,16 +159,31 @@ class Terminal():
                     if rhvParams == None : rhvParams = config.rhvParamsFemale
                     # https://pypi.org/project/rhvoice-wrapper/
 
-                    ttsRHVoice.to_file( 
-                        filename=waveFileName, 
-                        text=text, 
-                        voice=rhvParams['voice'], 
-                        format_='wav',
-                        sets=rhvParams, )
+                    frames = ttsRHVoice.get( text, 
+                        voice= rhvParams['voice'],
+                        format_='pcm', 
+                        sets=rhvParams 
+                    )
+                    #fn = os.path.join( ROOT_DIR, 'logs', datetime.datetime.today().strftime(f'%Y%m%d_%H%M%S_say') )
+                    #f = open( fn+'.pcm','wb')
+                    #f.write(frames)
+                    #f.close()
+                    with wave.open( waveFileName, 'wb' ) as wav:
+                        sampwidth = wav.setsampwidth(2)
+                        nchannels = wav.setnchannels(1)
+                        framerate = wav.setframerate(24000)
+                        wav.writeframes( frames )
+
+                    #ttsRHVoice.to_file( 
+                    #    filename=waveFileName, 
+                    #    text=text, 
+                    #    voice=rhvParams['voice'], 
+                    #    format_='wav',
+                    #    sets=rhvParams )
                     #wav = ttsRHVoice.get( text, 
                     #    voice= rhvParams['voice'],
                     #    format_='wav', 
-                    #    sets=rhvParams, )
+                    #    sets=rhvParams )
                     ##this.sendMessage(MSG_MUTE)
                     #this.sendDatagram( wav )
                     ##this.sendMessage(MSG_UNMUTE)
@@ -189,12 +205,12 @@ class Terminal():
                     sapiStream.Close()
 
             if os.path.isfile(waveFileName): 
-                with open( waveFileName, 'rb' ) as wave:
-                    this.sendDatagram( wave.read( 5000 * 1024 ) )
+                with open( waveFileName, 'rb' ) as f:
+                    this.sendDatagram( f.read( 5000 * 1024 ) )
             else:
                 this.logError(f'File {waveFileName} not found')
         except Exception as e:
-            this.logError( f'Exception initializing Microsoft Speech API: {e}' )
+            this.logError( f'TTS Engine exception: {e}' )
 
         ttsLock.acquire()
         ttsLocked.remove(wfn)

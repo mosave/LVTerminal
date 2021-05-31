@@ -227,7 +227,6 @@ async def websockServer( connection, path ):
         recognizer = None
         spkRecognizer = None
 #endregion
-
 ### apiServer ######################################################################
 async def apiServer( reader, writer ):
     data = await reader.read()
@@ -238,6 +237,7 @@ async def apiServer( reader, writer ):
 
         if m == MSG_API_SAY:
             if (term!=None) and (term.isConnected) :
+                #term.play("ding.wav")
                 term.say( text )
         elif m == MSG_API_ASK :
             if (term!=None) and (term.isConnected) :

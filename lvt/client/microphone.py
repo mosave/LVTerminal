@@ -13,14 +13,20 @@ VAD_FRAME = 30 # ms
 CHUNKS_PER_SECOND = 2
 # "идеальное" значение громкости в алгоритме выбора канала "rms"
 
+audio = None
 config = None
 
 class Microphone:
-    def initialize( gConfig ):
+    def initialize( gConfig, gAudio ):
+        global audio
         global config
         config = gConfig
+        audio = gAudio
 
     def __init__( this ):
+        global audio
+        global config
+
         this._rms = [50]*16
         this._max = [50]*16
         this.channel = 0
@@ -36,10 +42,9 @@ class Microphone:
         this.vadLevel = 0
 
         # Init audio subsystem
-        this.audio = pyaudio.PyAudio()
-        this.sampleSize = this.audio.get_sample_size( pyaudio.paInt16 )
+        this.sampleSize = audio.get_sample_size( pyaudio.paInt16 )
         this.framesPerChunk = int( config.sampleRate / CHUNKS_PER_SECOND)
-        try: this.channels = this.audio.get_device_info_by_index( config.audioInputDevice ).get( "maxInputChannels" )
+        try: this.channels = audio.get_device_info_by_index( config.audioInputDevice ).get( "maxInputChannels" )
         except: this.channels = 1
 
         # Округляем количество каналов
@@ -53,7 +58,7 @@ class Microphone:
         #chunkSize = int( this.framesPerChunk * this.sampleSize * this.channels )
 
         # Открываем аудиопоток, читаем его полусекундными кусками
-        this.audioStream = this.audio.open( 
+        this.audioStream = audio.open( 
             format = pyaudio.paInt16, 
             channels = this.channels,
             rate = config.sampleRate,
@@ -73,11 +78,6 @@ class Microphone:
             try: this.audioStream.close()
             except:pass
             this.audioStream = None
-
-        if this.audio != None:
-            try: this.audio.terminate() 
-            except:pass
-            this.audio = None
 
         if this.vad != None:
             try: del(this.vad)

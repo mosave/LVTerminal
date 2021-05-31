@@ -56,14 +56,14 @@ class AppealDetectorSkill(Skill):
                     this.findWordChainB( 'скажи что-нибудь' ) or \
                     this.findWordChainB( 'голос' ) :
                     this.stopParsing( ANIMATION_ACCEPT )
-                    this.say( ['Гав. Гав-гав.', 'мяаау, блин.', 'отстаньте от меня','не мешайте, я за домом присматриваю','не мешайте, я думаю', 'шутить изволите?'] )
+                    this.say( ['Гав. Гав-гав.', 'мяаау блин.', 'отстаньте от меня','не мешайте, я за домом присматриваю','не мешайте, я думаю', 'шутить изволите?'] )
                 elif  this.findWordChainB( 'ты здесь' ) or \
                     this.findWordChainB( 'ты * живой' ) :
                     this.stopParsing( ANIMATION_ACCEPT )
                     this.say( ['да, конечно', 'куда же я денусь', 'пока всё еще да','живее всех живых','не мешайте, я думаю', 'шутить изволите?'] )
                 elif this.findWordChainB( 'меня слышишь' ) :
                     this.stopParsing( ANIMATION_ACCEPT )
-                    this.say( ['ну конечно слышу', 'да, '+this.appeal+' не ' + this.conformToAppeal( 'глухая' ), 'слышу-слышу', 'само-собой'] )
+                    this.say( ['ну конечно слышу', 'да, '+this.appeal+' не ' + this.conformToAppeal( 'глухая' ), 'слышу-слышу', 'само собой'] )
 
     def onPartialText( this ):
         # В процессе распознавания текста:
