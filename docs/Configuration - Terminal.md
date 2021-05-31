@@ -49,15 +49,15 @@ Update all
  * sudo pip3 install websockets webrtcvad
 
 10. Копируем LVTerminal на RPi. Для работы клиента необходимы следующие файлы:
- * client.py
+ * lvt_client.py
  * lvt/*
  * lvt/client/*
  * config/client.cfg  (в качестве шаблона можно использовать config.default/client.cfg)
  * logs/
 
 11. Добиваемся чтобы клиент запускался, подключался к серверу и "слышал" звук
- * ./client.py --help    # подсказка по параметрам командной строки
- * ./client.py --devices # получить список аудиоустройств, которые при необходимости можно задавать 
+ * ./lvt_client.py --help    # подсказка по параметрам командной строки
+ * ./lvt_client.py --devices # получить список аудиоустройств, которые при необходимости можно задавать 
    в параметрах AudioInputDevice и AudioOutputDevice
 
 12. Проверяем и настраиваем уровень звука с микрофонов:
@@ -76,20 +76,22 @@ Update all
 
 13. Запуск терминального клиента как сервис
 
-sudo cp ./scripts/lvt_client /etc/init.d
-sudo chmod 755 /etc/init.d/lvt_client
+ В файле scripts/lvt_server поправить путь установки LVTerminal (переменная **DIR**) и имя пользователя, под которым будет запускаться сервис:
+ DIR=**/home/house/LVTerminal**
+ DAEMON_USER=**house**
 
-#Create symbolic link to start service:
-sudo update-rc.d lvt_client defaults
+ sudo cp ./scripts/lvt_client /etc/init.d
+ sudo chmod 755 /etc/init.d/lvt_client
+ sudo update-rc.d lvt_client defaults
+
+Управление сервисом:
+ sudo systemctl start lvt_client
+ sudo systemctl stop lvt_client
+ sudo systemctl status lvt_client
 
 
-sudo /etc/init.d/lvt_client start
-sudo /etc/init.d/lvt_client stop
-sudo /etc/init.d/lvt_client status
 
-
-
-
-Настройка терминала для совместной работы с MajorDoMo
+ Настройка терминала для совместной работы с MajorDoMo
 
   sudo apt-get install mpd
+

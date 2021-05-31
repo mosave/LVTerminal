@@ -81,10 +81,15 @@ sudo apt install python3-numpy
 
 1. Install as a service
 
-sudo cp lvt_server /etc/init.d
+ В файле scripts/lvt_server поправить путь установки LVTerminal (переменная **DIR**) и имя пользователя, под которым будет запускаться сервис:
+ DIR=**/home/house/LVTerminal**
+ DAEMON_USER=**house**
+
+
+sudo cp scripts/lvt_server /etc/init.d
 sudo chmod 755 /etc/init.d/lvt_server
 
-Create symbolic link to start service:
+#Create symbolic link to start service:
 sudo update-rc.d lvt_server defaults
 
 

@@ -467,7 +467,7 @@ class Terminal():
         this.say("Обновление терминала.")
 
         package = []
-        packageFile( 'client.py' )
+        packageFile( 'lvt_client.py' )
         packageDirectory( 'lvt' )
         packageDirectory( os.path.join( 'lvt','client' ) )
         this.sendMessage( MSG_UPDATE, json.dumps( package, ensure_ascii=False ) )

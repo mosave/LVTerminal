@@ -11,7 +11,7 @@
 ### END INIT INFO
 
 DIR=/home/pi/LVTerminal
-DAEMON=$DIR/client.sh
+DAEMON=$DIR/lvt_client.sh
 DAEMON_NAME=lvt_client
 
 DAEMON_OPTS="-q" 
@@ -27,7 +27,8 @@ do_start () {
 }
 do_stop () {
     log_daemon_msg "Stopping Lite Voice Terminal client service"
-    start-stop-daemon --stop --pidfile $PIDFILE --retry 10
+    #start-stop-daemon --stop --pidfile $PIDFILE --retry 10
+    pkill -f "lvt_client.py"
     log_end_msg $?
 }
 

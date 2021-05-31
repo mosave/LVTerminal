@@ -10,13 +10,13 @@
 # Description:       Lite Voice Terminal Server
 ### END INIT INFO
 
-DIR=/home/pi/LVTerminal
-DAEMON=$DIR/server.sh
+DIR=/home/house/LVTerminal
+DAEMON=$DIR/lvt_server.sh
 DAEMON_NAME=lvt_server
 
-# -l=lvt/server.log
+# -l=lvt/lvt_server.log
 DAEMON_OPTS="" 
-DAEMON_USER=pi
+DAEMON_USER=house
 PIDFILE=/var/run/$DAEMON_NAME.pid
 
 . /lib/lsb/init-functions
@@ -28,7 +28,8 @@ do_start () {
 }
 do_stop () {
     log_daemon_msg "Stopping Lite Voice Terminal Server"
-    start-stop-daemon --stop --pidfile $PIDFILE --retry 10
+    #start-stop-daemon --stop --pidfile $PIDFILE --retry 10
+    pkill -f "lvt_server.py"
     log_end_msg $?
 }
 
