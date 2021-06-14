@@ -31,9 +31,9 @@ Lite Voice Terminal это клиент-серверная платформа с
 - [x] Интеграция в систему **MajorDoMo**: реализовано получение списка устройств через интеграционный php скрипт, после чего устройствами можно управлять непосредственно в LVT либо просто отправлять распознанные фразы для обработки в консоль МД)
 - [ ] Ограниченная поддержка функций **MdmTerminal2**
 - [x] Запуск сервера LVT на Unix
-- [ ] Запуск сервера LVT на Windows
+- [x] Запуск сервера LVT на Windows
 - [x] RHVoice TTS
-- [ ] Windows TTS
+- [x] Windows TTS
 - [ ] Docker-образ LVT сервера 
 
 
@@ -55,6 +55,7 @@ Lite Voice Terminal это клиент-серверная платформа с
     * [Raspberry Pi3 A+ и Respeaker 4 MIC](https://github.com/mosave/LVTerminal/tree/master/hardware/RPi%203A%2B%20with%20Respeaker4/readme.md)
     * [Raspberry Pi ZeroW и Respeaker 4 MIC Linear Array](https://github.com/mosave/LVTerminal/tree/master/hardware/RPi%20Zero%20with%20Respeaker4%20Linear%20Array/readme.md)
     * [Raspberry Pi ZeroW и Respeaker 2 MIC](https://github.com/mosave/LVTerminal/tree/master/hardware/RPi%20Zero%20with%20Respeaker2/readme.md)
+ * [Интеграция LVT в сервер MajorDoMo](https://github.com/mosave/LVTerminal/blob/master/docs/MajorDoMo.md)
  * [Описание протокола LVT](https://github.com/mosave/LVTerminal/blob/master/docs/LVT%20Protocol.md)
  * [Разработка скиллов (skill, навык)](https://github.com/mosave/LVTerminal/blob/master/docs/Skill%20Development.md)
  * []()

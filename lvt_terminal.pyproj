@@ -91,6 +91,7 @@
     <Content Include="docs\Configuration - Server.md" />
     <Content Include="docs\Configuration - Terminal.md" />
     <Content Include="docs\LVT Protocol.md" />
+    <Content Include="docs\MajorDoMo.md" />
     <Content Include="docs\Skill Development.md" />
     <Content Include="docs\stuff.txt" />
     <Content Include="docs\todo.txt" />
