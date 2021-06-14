@@ -33,8 +33,8 @@ if __name__ == '__main__':
     shared.isTerminated = False
     shared.isConnected = False
     shared.isMuted = False
-    shared.serverStatus = '{"Terminal":""}'
-    shared.serverConfig = '{}'
+    shared.terminalStatus = '{"Terminal":""}'
+    shared.serverStatus = '{}'
 
     #from lvt.client.animator import Animator
     #animator = Animator( config, shared )

@@ -103,7 +103,7 @@ async def websockServer( connection, path ):
         sendDatagram( MESSAGE( msg,p1,p2 ) )
 
     def sendStatus():
-        status = terminal.getStatus() if terminal != None else '{"Terminal":"?","Name":"Not Registered"}'
+        status = json.dumps(terminal.getStatus()) if terminal != None else '{"Terminal":"?","Name":"Not Registered","Connected":"false"}'
         sendMessage( MSG_STATUS, status )
 
 
@@ -155,15 +155,14 @@ async def websockServer( connection, path ):
                     message = None
 
             if isinstance( message, str ): # Получено сообщение
-                if terminal != None : terminal.lastActivity = time.time()
                 m, p = parseMessage( message )
                 if m == MSG_DISCONNECT:
                     break
                 elif m == MSG_STATUS:
                     sendStatus()
-                elif m == MSG_CONFIG:
+                elif m == MSG_LVT_STATUS:
                     if terminal == None : break
-                    sendMessage( MSG_CONFIG, config.getJson() )
+                    sendMessage( MSG_LVT_STATUS, json.dumps(Terminal.getLVTStatus()) )
                 elif m == MSG_TEXT:
                     if terminal == None : break
                     log(f'[{terminal.id}] {p}')
@@ -171,6 +170,7 @@ async def websockServer( connection, path ):
                     id, password, version = split3( p )
                     terminal = Terminal.authorize( id, password, version )
                     if terminal != None:
+                        terminal.ipAddress = connection.remote_address[0]
                         terminal.onConnect( messageQueue )
                         if terminal.autoUpdate==2 and version != VERSION :
                             terminal.updateClient()
@@ -229,20 +229,48 @@ async def websockServer( connection, path ):
 #endregion
 ### apiServer ######################################################################
 async def apiServer( reader, writer ):
-    data = await reader.read()
-    message = data.decode()
-    if isinstance( message, str ): # Получено строковое сообщение
-        m, termId, text = split3( message )
-        term =  Terminal.find( termId ) if termId else None
+    data = await reader.readuntil(b'\0')
+    response = 'Ok'
+    try:
+        message = data.decode().strip('\0 \r\n')
+        if isinstance( message, str ): # Получено строковое сообщение
+            m, jsn = split2( message )
+            data = json.loads( jsn )
+            terminalId = data['terminal'] if 'terminal' in data else ''
+            message = data['message'] if 'message' in data else ''
+            terminal =  Terminal.find( terminalId ) if terminalId else None
 
-        if m == MSG_API_SAY:
-            if (term!=None) and (term.isConnected) :
-                #term.play("ding.wav")
-                term.say( text )
-        elif m == MSG_API_ASK :
-            if (term!=None) and (term.isConnected) :
-                term.say( text )
-                term.onText( term.appeal )
+            if m == MSG_API_STATUS : 
+                response = json.dumps(Terminal.getLVTStatus())
+            elif terminal == None:
+                response = 'Invalid Terminal Id'
+            elif not terminal.isConnected:
+                response = 'Terminal is Offline'
+            elif m == MSG_API_SAY:
+                if message :
+                    terminal.say( message )
+                else:
+                    response = 'Message is empty'
+            elif m == MSG_API_ASK :
+                terminal.answerPrefix = data['answerPrefix'] if 'answerPrefix' in data else ''
+                if message:
+                    terminal.say( message )
+                terminal.changeTopic( TOPIC_MD_ASK )
+            elif m == MSG_API_YESNO :
+                terminal.answerPrefix = data['answerPrefix'] if 'answerPrefix' in data else ''
+                terminal.changeTopic( "YesNo", \
+                    message=message,
+                    topicYes = TOPIC_MD_YES,
+                    topicNo = TOPIC_MD_NO,
+                    topicCancel = TOPIC_MD_CANCEL
+                )
+            else:
+                response = 'Bad Command'
+    except Exception as e:
+        response = f'Internal LVT error: {e}'
+    print(response)
+    response = (response+'').encode()
+    writer.write( response)
     writer.close()
 
 

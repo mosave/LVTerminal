@@ -4,6 +4,7 @@ import datetime
 import json
 import hashlib
 import wave
+import psutil
 from numpy import random
 from threading import Lock, Thread
 from lvt.const import *
@@ -51,7 +52,7 @@ class Terminal():
         this.password = config.terminals[id]['password']
         this.name = config.terminals[id]['name']
         this.defaultLocation = this.entities.findLocation(config.terminals[id]['location'])
-
+        this.ipAddress = ''
         this.autoUpdate = config.terminals[id]['autoupdate']
 
         this.clientVersion = ""
@@ -63,7 +64,6 @@ class Terminal():
 
         this.parsedLocations = []
 
-        this.lastActivity = time.time()
         this.lastSound = 0
         this.lastAppealed = None
         this.appealPos = None
@@ -85,6 +85,7 @@ class Terminal():
         this.connectedOn = None
         this.disconnectedOn = None
         this.playAppealOffIfNotStopped = False
+        this.answerPrefix = ''
         this.logDebug( 'Loading skills' )
 
         this.allTopics = set()
@@ -232,10 +233,6 @@ class Terminal():
         """Возвращает Config"""
         global config
         return config
-    @property
-    def isActive( this ) -> bool:
-        """Терминал способен передавать команды (в онлайне) """
-        return ( time.time() - this.lastActivity < 1 * 60 )
 
     @property
     def locations( this ):
@@ -290,7 +287,7 @@ class Terminal():
             this.reset()
 
         this.sendMessage( MSG_ANIMATE, ANIMATION_NONE )
-        this.sendMessage( MSG_CONFIG, config.getJson() )
+        this.sendMessage( MSG_LVT_STATUS, json.dumps(Terminal.getLVTStatus()) )
         if this.sayOnConnect :
             this.sendMessage(MSG_MUTE)
             this.say(this.sayOnConnect)
@@ -393,7 +390,7 @@ class Terminal():
                 this.logError( f'{skill.name}.onTimer() exception: {e}' )
         this.processTopicChange()
 #endregion
-### processTopicChange() ###############################################################
+### changeTopic / processTopicChange() #################################################
 #region
     def processTopicChange( this ):
         # Обработать изменения топика
@@ -413,6 +410,19 @@ class Terminal():
                     this.logError( f'{skill.name}.onTopicChange() exception: {e}' )
 
             this.topic = newTopic
+
+    def changeTopic( this, newTopic, *params, **kwparams ):
+        """Изменить текущий топик. Выполняется ПОСЛЕ выхода из обработчика onText/onPartialText"""
+        this.newTopic = str( newTopic )
+
+        p = kwparams
+        if len( params ) == 1 and isinstance( params[0],dict ) : 
+            p.update( params[0] )
+        elif len( params ) > 0 : 
+            p.update( {'params':params} )
+        this.newTopicParams = p
+        this.logDebug( f'{this.name}.changeTopic("{newTopic}", {p}) ]' )
+        this.processTopicChange()
 
 #endregion
 ### Vocabulary manipulations ###########################################################
@@ -496,16 +506,15 @@ class Terminal():
           Используется для передачи на сторону клиента.
           Клиент при этом уже авторизован паролем
         """
-        js = '{'
-        js += f'"Terminal":"{this.id}",'
-        js += f'"Name":"{this.name}",'
-        js += f'"UsingVocabulary":"{this.usingVocabulary}",'
-        #if this.usingVocabulary :
-        #    js += f'"Vocabulary":' + json.dumps( list(this.vocabulary),
-        #    ensure_ascii=False ) + ', '
-        js += f'"Active":"{this.isActive}" '
-        js += '}'
-        return js
+        return {
+            'Terminal':this.id,
+            'Name':this.name,
+            'Location': this.defaultLocation,
+            'UsingVocabulary':this.usingVocabulary,
+            'Connected':bool(this.isConnected),
+            'Address':this.ipAddress,
+        }
+
 
     def animate( this, animation:str ):
         """Передать слиенту запрос на анимацию"""
@@ -573,7 +582,7 @@ class Terminal():
                     quiet=True )
                 
             except Exception as e:
-                this.logError( f'Exception initializing RHVoice engine' )
+                logError( f'Exception initializing RHVoice engine' )
         elif config.ttsEngine == TTS_SAPI:
             pass
         else:
@@ -591,4 +600,55 @@ class Terminal():
         else:
             pass
 
+
 #endregion
+### getStatus() ########################################################################
+#region
+    def getLVTStatus():
+        global config
+        global terminals
+        """Returns 'public' options and system state suitable for sending to terminal client """
+        def formatSize( bytes, suffix='B' ):
+            """ '1.20MB', '1.17GB'..."""
+            factor = 1024
+            for unit in ['', 'K', 'M', 'G', 'T', 'P']:
+                if bytes < factor:
+                    return f'{bytes:.2f}{unit}{suffix}'
+                bytes /= factor
+
+        cpufreq = psutil.cpu_freq()
+        svmem = psutil.virtual_memory()
+        terminalsTotal = 0
+        terminalsConnected = 0
+        trms = dict()
+        if terminals != None :
+            for t in terminals :
+                if t.isConnected : terminalsConnected += 1
+                trms[t.id] = t.getStatus()
+            terminalsTotal = len(terminals)
+
+        return {
+            'Model': config.model,
+            'FullModel': config.fullModel,
+            'SpkModel': config.spkModel,
+            'SampleRate': config.sampleRate,
+            'RecognitionThreads':config.recognitionThreads,
+            'AssistantNames': normalizeWords(config.femaleAssistantNames + config.maleAssistantNames ),
+            'VoiceEngine': config.ttsEngine,
+            'LogLevel': config.logLevel,
+            'PrintLevel': config.printLevel,
+            'VocabularyMode': config.vocabularyMode,
+            'StoreAudio':config.storeAudio,
+            'TerminalsTotal': terminalsTotal,
+            'TerminalsConnected': terminalsConnected,
+            'Terminals': trms,
+            'CpuCores': os.cpu_count(),
+            'CpuFreq':f"{cpufreq.current:.2f}Mhz",
+            'CpuLoad': f"{psutil.cpu_percent()}%",
+            'MemTotal':formatSize(svmem.total),
+            'MemAvail':formatSize(svmem.available),
+            'MemUsed':formatSize(svmem.used),
+            'MemLoad':f"{svmem.percent}%"
+        }
+#endregion
+

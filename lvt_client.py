@@ -233,12 +233,12 @@ async def processMessage( message ):
             play(message)
         elif m == MSG_STATUS:
             try:
-                if p != None : shared.serverStatus = json.loads(p)
+                if p != None : shared.terminalStatus = json.loads(p)
             except:
                 pass
-        elif m == MSG_CONFIG:
+        elif m == MSG_LVT_STATUS:
             try:
-                if p != None : shared.serverConfig = json.loads(p)
+                if p != None : shared.serverStatus = json.loads(p)
             except:
                 pass
         elif m == MSG_WAKEUP: 
@@ -299,7 +299,7 @@ async def microphoneThread( connection ):
             #await processMessages( connection )
             if microphone.active : 
                 try:
-                    if not _active and shared.serverConfig['StoreAudio']=='True' :
+                    if not _active and shared.serverStatus['StoreAudio']=='True' :
                         for ch in range(microphone.channels):
                             await connection.send(MESSAGE(MSG_TEXT,f'CH#{ch}: RMS {microphone._rms[ch]} MAX {microphone._max[ch]}'))
                         await connection.send(MESSAGE(MSG_TEXT,f'Selecting CH#{microphone.channel}, VAD:{microphone.vadLevel}'))
@@ -431,8 +431,8 @@ if __name__ == '__main__':
     shared.isTerminated = False
     shared.exitCode = 0
     shared.isConnected = False
-    shared.serverStatus = '{"Terminal":""}'
-    shared.serverConfig = '{}'
+    shared.terminalStatus = '{"Terminal":""}'
+    shared.serverStatus = '{}'
     Logger.initialize( config )
 
     for arg in sys.argv[1:]:

@@ -1,7 +1,6 @@
 import sys
 import time
 import os
-import psutil
 import getopt
 from lvt.const import *
 from lvt.server.grammar import *
@@ -163,48 +162,5 @@ class Config:
 
 #endregion
 
-### getJson() ##########################################################################
-#region
-    def getJson( this, terminals=None ):
-        """Returns 'public' options and system state suitable for sending to terminal client """
-        def formatSize( bytes, suffix='B' ):
-            """ '1.20MB', '1.17GB'..."""
-            factor = 1024
-            for unit in ['', 'K', 'M', 'G', 'T', 'P']:
-                if bytes < factor:
-                    return f'{bytes:.2f}{unit}{suffix}'
-                bytes /= factor
-
-        cpufreq = psutil.cpu_freq()
-        svmem = psutil.virtual_memory()
-
-        js = '{'
-        js += f'"Model":"{this.model}",'
-        js += f'"FullModel":"{this.fullModel}",'
-        js += f'"SpkModel":"{this.spkModel}",'
-        js += f'"SampleRate":"{this.sampleRate}",'
-        js += f'"RecognitionThreads":"{this.recognitionThreads}",'
-        s = normalizeWords(this.femaleAssistantNames + this.maleAssistantNames )
-        js += f'"AssistantNames":"{s}",'
-        js += f'"VoiceEngine":"{this.ttsEngine}",'
-        js += f'"LogLevel":"{this.logLevel}",'
-        js += f'"PrintLevel":"{this.printLevel}",'
-        js += f'"VocabularyMode":"{this.vocabularyMode}",'
-        js += f'"StoreAudio":"{this.storeAudio}",'
-        #js += f'"":"{this.}",'
-        if terminals != None :
-            activeTerminals = 0
-            for t in terminals: activeTerminals+= 1 if t.isActive else 0
-            js += f'"TotalTerminals":"{len(this.terminals)}",'
-            js += f'"ActiveTerminals":"{activeTerminals}",'
-        js += f'"CpuCores":"{os.cpu_count()}",'
-        js += f'"CpuFreq":"{cpufreq.current:.2f}Mhz",'
-        js += f'"CpuLoad":"{psutil.cpu_percent()}%",'
-        js += f'"MemTotal":"{formatSize(svmem.total)}",'
-        js += f'"MemAvail":"{formatSize(svmem.available)}",'
-        js += f'"MemUsed":"{formatSize(svmem.used)}",'
-        js += f'"MemLoad":"{svmem.percent}%"' + '}'
-        return js
-#endregion
        
 

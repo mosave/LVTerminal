@@ -77,7 +77,7 @@ class OnOffSkill(Skill):
         this.logDebug(f'{location}')
         # Отфильтровать устройства по локации и наличию метода on/off
         for d in devices.devices.values() :
-           if location not in d.location : continue
+           if d.location!=None and location not in d.location : continue
            if ('on' if turnOn else 'off') not in d.methods : continue
            devs.append(d)
         devsE = list()

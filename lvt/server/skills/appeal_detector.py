@@ -6,9 +6,6 @@ from lvt.protocol import *
 from lvt.server.grammar import *
 from lvt.server.skill import Skill
 
-TOPIC_WAIT_COMMAND = "WaitCommand"
-WAIT_COMMAND_TIMEOUT = 5 # время в режиме ожидания команды, секунд
-
 #Define base skill class
 class AppealDetectorSkill(Skill):
     """Скил определяет наличие в фразе обращения к ассистенту и реализует режим ожидания команды.
@@ -45,6 +42,7 @@ class AppealDetectorSkill(Skill):
         # Не в режиме ожидания:
         # Проверяем, есть ли в фразе обращение:
         if this.detectAppeals():
+            this.lastSound = time.time()
             if this.topic == TOPIC_DEFAULT :
                 this.terminal.animate( ANIMATION_AWAKE )
                 # В случае если фраза содержит только обращение - переходим в ожидание команды

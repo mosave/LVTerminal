@@ -11,8 +11,8 @@ MSG_WAKEUP = "Wakeup"
 MSG_STATUS = "Status" # [<terminal status, JSON>]
 
 # Terminal => Server: Запрос конфигурации сервера
-# Server => Terminal: Конфигурация сервера (JSON пакет)
-MSG_CONFIG = "Config" # [<Server configuration, JSON>]
+# Server => Terminal: Текущее состояние сервера (JSON пакет)
+MSG_LVT_STATUS = "LVTStatus" # [<Server status, JSON>]
 
 # Terminal => Server: Завершение текущей сессии
 # Server => Terminal: Завершение текущей сессии
@@ -48,18 +48,23 @@ MSG_TERMINAL = "Terminal"# <TerminalId> <Password> <Version>
 
 # All available commands
 MSG_ALL = { \
-    MSG_IDLE, MSG_STATUS, MSG_CONFIG, MSG_DISCONNECT, MSG_TERMINAL, MSG_REBOOT, \
+    MSG_IDLE, MSG_STATUS, MSG_LVT_STATUS, MSG_DISCONNECT, MSG_TERMINAL, MSG_REBOOT, \
     MSG_TEXT, MSG_ANIMATE, MSG_UPDATE, \
     MSG_MUTE, MSG_UNMUTE, \
     }
 
 #*** LVT API Commands
+# Запрос текущего статуса LVT сервера
+MSG_API_STATUS = 'GetStatus'
+
 #  Проговорить текст на треминале "TerminalId"
-MSG_API_SAY = 'Say'# <TerminalId> текстовое сообщение для проговаривания
+MSG_API_SAY = 'Say' # {"terminal":"<terminalId>","message":"<фраза>"}
 
 # Проговорить текст на треминале и перейти в режим ожидания голосовой команды
-MSG_API_ASK = 'Ask'# <TerminalId> текстовое сообщение для проговаривания перед переходом в режим ожидания команды
+MSG_API_ASK = 'Ask' # {"terminal":"<terminalId>","message":"<фраза>","answerPrefix":"<префикс ответа>"}
 
+# Проговорить текст на треминале и перейти в режим ожидания голосовой команды
+MSG_API_YESNO = 'YesNo' # {"terminal":"<terminalId>","message":"<фраза>","answerPrefix":"<префикс ответа>"}
 
 
 def split2( s: str ):

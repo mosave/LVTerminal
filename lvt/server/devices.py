@@ -258,7 +258,7 @@ class Devices():
             auth = None
         try:
             url = urljoin(os.environ.get("BASE_URL", config.mdServer ), '/lvt.php' )
-            md = requests.get( url, auth=auth ).json()
+            md = requests.post( url, data={'cmd':'GetEntities'}, auth=auth ).json()
         except Exception as ex:
             md = None
             logError(f'Error querying MajorDoMo integration script {url}: {ex}')

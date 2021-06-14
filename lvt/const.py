@@ -34,6 +34,16 @@ TTS_ALL = frozenset(TTS_RHVOICE)
 TOPIC_ALL = '*'
 TOPIC_DEFAULT = 'DefaultTopic'
 
+TOPIC_MD_ASK = 'MajorDoMoAsk'
+TOPIC_MD_YES = 'MajorDoMoYes'
+TOPIC_MD_NO  = 'MajorDoMoNo'
+TOPIC_MD_CANCEL = 'MajorDoMoCancel'
+
+
+TOPIC_WAIT_COMMAND = "WaitCommand"
+
+WAIT_COMMAND_TIMEOUT = 5 # время в режиме ожидания команды, секунд
+
 
 DEVICE_ACTIONS = frozenset({'none','get','post','mqtt'})
 DEVICE_SOURCES = frozenset({'config','majordomo'})

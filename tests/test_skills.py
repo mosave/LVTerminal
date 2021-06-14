@@ -185,6 +185,7 @@ def testOnOffSkill():
 ConfigParser.setConfigDir( os.path.join( ROOT_DIR, 'config.default' ) )
 
 config = Config()
+config.ttsEngine = None
 config.logFileName = "logs/test_skills.log"
 config.logLevel = logging.DEBUG
 config.printLevel = logging.DEBUG
