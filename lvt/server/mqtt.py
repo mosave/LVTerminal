@@ -30,7 +30,7 @@ async def mqttClient():
         except KeyboardInterrupt as e:
             raise e
         except Exception as e:
-            printError( f'MQTT:  exception: {e}' )
+            printError( f'MQTT: exception: {e}' )
             asyncio.sleep(10)
         finally:
             try: await client.disconnect()

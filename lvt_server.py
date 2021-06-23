@@ -268,7 +268,6 @@ async def apiServer( reader, writer ):
                 response = 'Bad Command'
     except Exception as e:
         response = f'Internal LVT error: {e}'
-    print(response)
     response = (response+'').encode()
     writer.write( response)
     writer.close()
