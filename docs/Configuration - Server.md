@@ -73,11 +73,10 @@ python3 setup.py install
 
 *** 4. Устанавливаем необходимые Python библиотеки
 
-sudo apt install python3-pip python3-websockets python3-psutil python3-pyaudio
-sudo pip3 install pymorphy2 hbmqtt numpy rhvoice_wrapper
-
-sudo apt-get install python3-pyaudio
-sudo apt install python3-numpy
+    sudo apt install python3-pip python3-websockets python3-psutil python3-pyaudio
+    sudo pip3 install pymorphy2 hbmqtt numpy rhvoice_wrapper
+    sudo apt-get install python3-pyaudio
+    sudo apt install python3-numpy
 
 1. Install as a service
 
@@ -86,16 +85,15 @@ sudo apt install python3-numpy
  DAEMON_USER=**house**
 
 
-sudo cp scripts/lvt_server /etc/init.d
-sudo chmod 755 /etc/init.d/lvt_server
+    sudo cp scripts/lvt_server /etc/init.d
+    sudo chmod 755 /etc/init.d/lvt_server
 
-#Create symbolic link to start service:
-sudo update-rc.d lvt_server defaults
+    #Create symbolic link to start service:
+    sudo update-rc.d lvt_server defaults
 
-
-sudo /etc/init.d/lvt_server start
-sudo /etc/init.d/lvt_server stop
-sudo /etc/init.d/lvt_server status
+    sudo /etc/init.d/lvt_server start
+    sudo /etc/init.d/lvt_server stop
+    sudo /etc/init.d/lvt_server status
 
 
 

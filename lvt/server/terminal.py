@@ -154,6 +154,7 @@ class Terminal():
             #print(f'wave file name= {waveFileName}')
             #this.sendMessage( MSG_TEXT, text )
             if not os.path.isfile(waveFileName): 
+                this.log(f'generating wav, engine={config.ttsEngine}, ttsRHVoice={ttsRHVoice}. ')
                 if (config.ttsEngine == TTS_RHVOICE) and (ttsRHVoice != None):
                     rhvParams = config.rhvParamsMale if this.gender=='masc' else config.rhvParamsFemale
                     if rhvParams == None : rhvParams = config.rhvParamsMale 
@@ -165,10 +166,10 @@ class Terminal():
                         format_='pcm', 
                         sets=rhvParams 
                     )
-                    #fn = os.path.join( ROOT_DIR, 'logs', datetime.datetime.today().strftime(f'%Y%m%d_%H%M%S_say') )
-                    #f = open( fn+'.pcm','wb')
-                    #f.write(frames)
-                    #f.close()
+                    fn = os.path.join( ROOT_DIR, 'logs', datetime.datetime.today().strftime(f'%Y%m%d_%H%M%S_say') )
+                    f = open( fn+'.pcm','wb')
+                    f.write(frames)
+                    f.close()
                     with wave.open( waveFileName, 'wb' ) as wav:
                         sampwidth = wav.setsampwidth(2)
                         nchannels = wav.setnchannels(1)
@@ -582,7 +583,7 @@ class Terminal():
                     quiet=True )
                 
             except Exception as e:
-                logError( f'Exception initializing RHVoice engine' )
+                logError( f'Exception initializing RHVoice engine: {e}' )
         elif config.ttsEngine == TTS_SAPI:
             pass
         else:

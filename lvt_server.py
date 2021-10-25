@@ -129,11 +129,11 @@ async def websockServer( connection, path ):
                         recognizer = KaldiRecognizer( model, config.sampleRate, json.dumps( list( vocabulary ), ensure_ascii=False ) )
                         SetLogLevel( -1 )
                         if( spkModel != None ): 
-                            spkRecognizer = KaldiRecognizer( model, spkModel, config.sampleRate )
+                            spkRecognizer = KaldiRecognizer( model, config.sampleRate, spkModel )
                     else: # Распознование без использования словаря
                         recognizer = KaldiRecognizer( fullModel if fullModel != None else model, config.sampleRate )
                         if( spkModel != None ):
-                            spkRecognizer = KaldiRecognizer( fullModel if fullModel != None else model, spkModel, float( config.sampleRate ) )
+                            spkRecognizer = KaldiRecognizer( fullModel if fullModel != None else model, config.sampleRate, spkModel )
 
             # Ждем сообщений, дергая terminal.onTimer примерно раз в секунду
             message = None
