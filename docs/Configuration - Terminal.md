@@ -16,8 +16,8 @@ Update all
      и подключаемся к нему с помощью любого ssh клиента (I love PuTTY). 
      Пользователь "pi", пароль по умолчанию "raspberry"
 4. Меняем пароль для пользователя pi и root:
-     passwd
-     sudo passwd
+```passwd
+sudo passwd```
 5. raspi-config:
   * set host name
   * time zone
@@ -26,28 +26,28 @@ Update all
   * enable SPI
   * enable I2C
   * expand file system
-6. sudo apt-get update
-     sudo apt-get upgrade
-     sudo apt-get autoremove
-     sudo apt-get autoclean
+6.```sudo apt-get update
+sudo apt-get upgrade
+sudo apt-get autoremove
+sudo apt-get autoclean```
 
 7. sudo apt-get install htop mc p7zip git
 
 
 8. Устанавливаем драйвера Respeaker2:
     описание здесь:  https://wiki.seeedstudio.com/ReSpeaker_2_Mics_Pi_HAT_Raspberry/
-
+  ```
     sudo apt-get update
     git clone https://github.com/HinTak/seeed-voicecard
     cd seeed-voicecard
     sudo ./install.sh
     sudo reboot now
-
+  ```
 9. Устанавливаем Python3 и необходимые библиотеки для запуска терминального клиента:
-
-  * sudo apt-get install python3 python3-pip python3-numpy python3-pyaudio python3-spidev python3-gpiozero -y
-  * sudo pip3 install websockets webrtcvad
-
+ ```
+  sudo apt-get install python3 python3-pip python3-numpy python3-pyaudio python3-spidev python3-gpiozero -y
+  sudo pip3 install websockets webrtcvad
+```
 10. Копируем LVTerminal на RPi. Для работы клиента необходимы следующие файлы:
   * lvt_client.py
   * lvt/*
@@ -70,8 +70,10 @@ Update all
      уровнем звука (параметр **ChannelSelection="RMS"** в файле конфигурации клиента).
      В этом случае имеет смысл выставить на каналах разные уровни чувствительности микрофона
   * Сохранить текущие настройки громкости и загрузить их:
+  ```
      sudo alsactl --file=/home/pi/asound.state store
      sudo alsactl --file=/home/pi/asound.state restore
+  ```
      Восстановление настроек можно добавить в /etc/rc.local
 
 13. Запуск терминального клиента как сервис
@@ -79,11 +81,11 @@ Update all
    В файле scripts/lvt_server поправить путь установки LVTerminal (переменная **DIR**) и имя пользователя, под которым будет запускаться сервис:
    DIR=**/home/house/LVTerminal**
    DAEMON_USER=**house**
-
+```
    sudo cp ./scripts/lvt_client /etc/init.d
    sudo chmod 755 /etc/init.d/lvt_client
    sudo update-rc.d lvt_client defaults
-
+```
 Управление сервисом:
 ```
    sudo systemctl start lvt_client
