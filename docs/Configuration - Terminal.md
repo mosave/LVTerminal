@@ -17,7 +17,8 @@ Update all
      Пользователь "pi", пароль по умолчанию "raspberry"
 4. Меняем пароль для пользователя pi и root:
 ```passwd
-sudo passwd```
+sudo passwd
+```
 5. raspi-config:
   * set host name
   * time zone
@@ -26,25 +27,28 @@ sudo passwd```
   * enable SPI
   * enable I2C
   * expand file system
-6.```sudo apt-get update
+6.
+```
+sudo apt-get update
 sudo apt-get upgrade
 sudo apt-get autoremove
-sudo apt-get autoclean```
+sudo apt-get autoclean
+```
 
 7. sudo apt-get install htop mc p7zip git
 
 
 8. Устанавливаем драйвера Respeaker2:
     описание здесь:  https://wiki.seeedstudio.com/ReSpeaker_2_Mics_Pi_HAT_Raspberry/
-  ```
+```
     sudo apt-get update
     git clone https://github.com/HinTak/seeed-voicecard
     cd seeed-voicecard
     sudo ./install.sh
     sudo reboot now
-  ```
+```
 9. Устанавливаем Python3 и необходимые библиотеки для запуска терминального клиента:
- ```
+```
   sudo apt-get install python3 python3-pip python3-numpy python3-pyaudio python3-spidev python3-gpiozero -y
   sudo pip3 install websockets webrtcvad
 ```
