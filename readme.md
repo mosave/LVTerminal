@@ -1,6 +1,7 @@
 # Lite Voice Terminal
 
-### Disclaimer: "очень предварительная" версия в процессе разработки
+### Disclaimer: Архив первой экспериментальной реализации LVT. Разработка этой ветки остановлена
+**Please note: this branch is an archive of first approach to LVT. The development here is stopped.**
 
 Lite Voice Terminal is free open source client-server platform for powering up DIY offline "lite" smart speaker for Russian language.
 “Lite” means lite speaker is built on hardware with limited computational power like RaspberryPi Zero / Zero W
