@@ -1,0 +1,9 @@
+pyaudio
+websockets 
+webrtcvad
+rhvoice_wrapper 
+numpy
+spidev
+gpiozero
+pkg_resources
+

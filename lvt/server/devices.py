@@ -9,7 +9,6 @@ from lvt.const import *
 from lvt.logger import *
 from lvt.config_parser import ConfigParser
 from lvt.server.grammar import *
-from lvt.server.mqtt import MQTT
 from lvt.server.entities import Entities
 
 config = None
@@ -52,8 +51,6 @@ class Action():
     def execute( this ):
         if this.action == None or this.action == 'none' :
             pass
-        elif this.action == 'mqtt' :
-            MQTT.publish( this.url, bytes(this.data,'utf-8') )
         elif this.action == 'get' :
             thread = threading.Thread( target=httpGet, args=[this.url, this.user, this.password] )
             thread.daemon = False
@@ -237,81 +234,10 @@ class Devices():
                     raise Exception( f'Ошибка в определении метода {id}.{m}' )
 
             devices[id] = device
-        Devices.loadMajorDoMoDevices()
         Devices.updateDefaultDevices()
 
     def dispose():
         pass
-
-#endregion
-### getMajorDoMoDevices() ##############################################################
-#region
-    def loadMajorDoMoDevices():
-        global config
-        global devices
-        if not config.mdServer or not config.mdIntegration :
-            return
-
-        if config.mdUser!='' and config.mdPassword!='' :
-            auth = requests.auth.HTTPBasicAuth( config.mdUser, config.mdPassword )
-        else :
-            auth = None
-        try:
-            url = urljoin(os.environ.get("BASE_URL", config.mdServer ), '/lvt.php' )
-            md = requests.post( url, data={'cmd':'GetEntities'}, auth=auth ).json()
-        except Exception as ex:
-            md = None
-            logError(f'Error querying MajorDoMo integration script {url}: {ex}')
-
-
-        entities = Entities()
-        if md == None : return
-        try:
-            for l in md['locations'] :
-                ln = normalizeWords(l['Title'])
-                if entities.findLocation( ln ) == None : 
-                    entities.locations.append( list([ln]) )
-        except Exception as ex:
-            logError(f'Error processing MajorDoMo locations: {ex}')
-
-        ids = [id for id in devices if devices[id].source=='majordomo' ]
-        for id in ids : devices.pop(id)
-
-        for d in md['devices'] :
-            try:
-                id = d['Id']
-                name = normalizeWords(d['Title'])
-                if not name or id in devices : continue
-                type = Devices().getTypeByName(d['DeviceType'])
-                if type==None : continue
-
-                device = Device( id,'majordomo' )
-
-                device.addName(name)
-
-                names = prasesToList(normalizePhrases(d['AltTitles']))
-                for name in names :
-                    device.addName(name)
-
-                device.typeName = d['DeviceType']
-                device.locationId = d['LocationId']
-                device.location = d['Location']
-                mdMethods = {'on':'turnOn',
-                             'off': 'turnOff',
-                             'open':'open',
-                             'close': 'close'
-                    }
-                for m in device.methods :
-                    if m in mdMethods :
-                        device.methods[m].user = config.mdUser
-                        device.methods[m].password = config.mdPassword
-                        device.methods[m].action = 'get'
-                        device.methods[m].url = urljoin( \
-                            os.environ.get("BASE_URL", config.mdServer ), \
-                            f'/objects/?object={id}&op=m&m={mdMethods[m]}' )
-                devices[id] = device
-            except Exception as ex:
-                logError(f'Error processing MajorDoMo locations: {ex}')
 
 #endregion
 ### updateDefaultDevices() #############################################################

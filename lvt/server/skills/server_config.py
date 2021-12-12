@@ -25,7 +25,6 @@ class ServerConfigSkill(Skill):
         this.extendVocabulary( "включи выключи используй режим распознавания со словарём, без словаря, с использованием, без использования" )
         this.extendVocabulary( "обнови перезапусти запусти перезагрузи загрузи терминал" )
         this.extendVocabulary( "словари словарю" )
-        this.mdUpdateResult = 0
         this.nextVersionCheckOn = datetime.datetime.now()
 
     def onText( this ):
@@ -58,7 +57,6 @@ class ServerConfigSkill(Skill):
                 this.stopParsing( ANIMATION_THINK )
                 this.say( "Обновление списка устройств..." )
 
-                this.mdUpdateResult = 0
                 thread = threading.Thread( target=this.updateDevices() )
                 thread.daemon = False
                 thread.start()
@@ -75,15 +73,7 @@ class ServerConfigSkill(Skill):
                 this.terminal.reboot( "Терминал перезагружен." )
 
     def onTimer( this ):
-        if this.mdUpdateResult == 1:
-            this.stopParsing( ANIMATION_ACCEPT )
-            this.say( 'Устройства обновлены' )
-            this.mdUpdateResult = 0
-        elif this.mdUpdateResult == 2:
-            this.stopParsing( ANIMATION_CANCEL )
-            this.say( 'Ошибка при обновлении устройств' )
-            this.mdUpdateResult = 0
-        elif this.topic == TOPIC_DEFAULT and this.lastAppealed :
+        if this.topic == TOPIC_DEFAULT and this.lastAppealed :
             if datetime.datetime.now() > this.lastAppealed + datetime.timedelta( seconds=10 ) and datetime.datetime.now() > this.nextVersionCheckOn :
                 this.nextVersionCheckOn = datetime.datetime.today() + datetime.timedelta( hours=32 )
                 if this.terminal.clientVersion != VERSION :
@@ -98,10 +88,6 @@ class ServerConfigSkill(Skill):
             Entities.initialize( this.config )
             Devices.initialize( this.config )
 
-            if this.config.mdIntegration :
-                Devices.loadMajorDoMoDevices()
             Devices.updateDefaultDevices()
             this.terminal.updateVocabulary()
-            this.mdUpdateResult = 1
         except Exception as e:
-            this.mdUpdateResult = 2

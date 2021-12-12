@@ -1,35 +1,38 @@
 # Lite Voice Terminal
+Free, open source, offline, DIY smart speaker platform oriented to **Russian language**.
 
-### Disclaimer: "очень предварительная" версия в процессе разработки
+### Disclaimer: "Второй подход к инструменту", версия в процессе разработки
 
-Lite Voice Terminal is free open source client-server platform for powering up DIY offline "lite" smart speaker for Russian language.
-“Lite” means lite speaker is built on hardware with limited computational power like RaspberryPi Zero / Zero W
-"Offline" means voice recognition services are provided by on-premise ASR server.
-
-Lite Voice Terminal это клиент-серверная платформа с открытым кодом для создания "легких" смарт колонок, 
+Lite Voice Terminal это клиент-серверная платформа с открытым исходным кодом для создания "легких" смарт колонок,
 не требующих использования онлайн-сервисов для распознавания голоса.
 
-Под словом "легкий" понимаются минимальные требования к железу "умной" колонки, 
-которая может быть реализована на Raspberry ZeroW или подобном одноплатном компьютере с достаточно 
-чувствительным микрофоном и возможностью вывода звука
+"Легкий" означает что смарт колонка (LVT клиент) работает на Raspberry ZeroW или подобном одноплатном компьютере с достаточно 
+чувствительным микрофоном и возможностью вывода звука.
 
-Распознавание голоса при этом выполняет установленный локально сервер. Предполагается, что сервер
-на базе Intel Core i3 / 16Gb достаточен для поддержки до 10-20 терминалов.
+Распознавание голоса и обработка команд выполняется на установленном локально сервере.
+Предполагается что сервера на Intel Core i3 / 16Gb должно быть достаточно для поддержки до 10-20 терминалов.
+
+[Первая итерация проекта](https://github.com/mosave/LVTerminal/tree/iteration0) на текущий момент заморожена.
+
+Основные задачи, которые планируется решить в текущей реализации:
+ - Отказ от избыточной универсальности, поддержка только русского языка.
+ - Упрощение и оптимизация серверной части
+ - Интеграция с [Logitech Media Server (Squeezebox)](https://mysqueezebox.com/index/Home)) на уровне сервера.
+ - Расширение протоколов управления LVT и разработка модуля интеграции с Home Assistant.
+ - Оптимизация клиента LVT
+
 
 ### Возможности (реализованные и планируемые к реализации)
 
 - [x] Клиент LVT может работать как под unix (RaspberryPi с микрофоном) так и на windows платформе
-- [ ] Реализация LVT клиента на HTML/JScript 
 - [x] Не требует использования внешних онлайн сервисов
 - [x] Обмен между клиентской и серверной частью реализовано по протоколу websock с поддержкой SSL
 - [x] Не требует специальной настройки голосовой активации (как snowboy), имя (несколько имен) ассистента 
 просто указывюется в файле настройки. К имени же привязывается и голос ассистента (мужской/женский)
 - [ ] Идентификация говорящего по голосу (работает только на достаточно длинных фразах, на текущий момент отключено)
 - [x] Возможность расширения функций ассистента за счет написания своих модулей 
-- [x] Распознавание с использованием либо БЕЗ использования словаря с возможностью переключаться между режимами на ходу. Я пока не решил окончательно, какой из режимов работает лучше...
-- [x] Взаимодействие с устройствами по протоколу **MQTT**: на текущий момент работает только отправка сообщений
-- [x] Интеграция в систему **MajorDoMo**: реализовано получение списка устройств через интеграционный php скрипт, после чего устройствами можно управлять непосредственно в LVT либо просто отправлять распознанные фразы для обработки в консоль МД)
-- [ ] Ограниченная поддержка функций **MdmTerminal2**
+- [ ] Совместная работа LVT клиента и squeezeboxlite (плеер-клиент [Logitech Media Server](https://mysqueezebox.com/index/Home))
+- [ ] Интеграция в **Home Assistant**
 - [x] Запуск сервера LVT на Unix
 - [x] Запуск сервера LVT на Windows
 - [x] RHVoice TTS
@@ -55,7 +58,6 @@ Lite Voice Terminal это клиент-серверная платформа с
     * [Raspberry Pi3 A+ и Respeaker 4 MIC](https://github.com/mosave/LVTerminal/tree/master/hardware/RPi%203A%2B%20with%20Respeaker4/readme.md)
     * [Raspberry Pi ZeroW и Respeaker 4 MIC Linear Array](https://github.com/mosave/LVTerminal/tree/master/hardware/RPi%20Zero%20with%20Respeaker4%20Linear%20Array/readme.md)
     * [Raspberry Pi ZeroW и Respeaker 2 MIC](https://github.com/mosave/LVTerminal/tree/master/hardware/RPi%20Zero%20with%20Respeaker2/readme.md)
- * [Интеграция LVT в сервер MajorDoMo](https://github.com/mosave/LVTerminal/blob/master/docs/MajorDoMo.md)
  * [Описание протокола LVT](https://github.com/mosave/LVTerminal/blob/master/docs/LVT%20Protocol.md)
  * [Разработка скиллов (skill, навык)](https://github.com/mosave/LVTerminal/blob/master/docs/Skill%20Development.md)
  * []()
@@ -64,4 +66,3 @@ Lite Voice Terminal это клиент-серверная платформа с
 
 LVT is distributed under [LGPL v2.1](https://www.gnu.org/licenses/lgpl-2.1.html) or later.
 Components and API used may be a subject of other licenses.
-

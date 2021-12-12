@@ -26,7 +26,12 @@ import datetime
 
 def play( data ):
     try:
+        print()
+        print("========== Инициализация аудиоподсистемы ==========")
         audio = pyaudio.PyAudio()
+        print("============ Инициализация завершена ==============")
+        print("")
+
         with wave.open( io.BytesIO( data ), 'rb' ) as wav:
             # Measure number of frames: 
             nFrames = int(len(data) / wav.getsampwidth() / wav.getnchannels() + 65)

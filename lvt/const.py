@@ -10,7 +10,12 @@ LOGLEVEL_INFO = 2
 LOGLEVEL_DEBUG = 3
 LOGLEVEL_VERBOSE = 9
 
-VERSION = "0.0.7"
+VERSION = "1.0.0"
+
+# Voice sampling rate.
+
+VOICE_SAMPLING_RATE = 16000
+
 
 # Animation effect names
 ANIMATION_NONE = "None"
@@ -34,19 +39,13 @@ TTS_ALL = frozenset(TTS_RHVOICE)
 TOPIC_ALL = '*'
 TOPIC_DEFAULT = 'DefaultTopic'
 
-TOPIC_MD_ASK = 'MajorDoMoAsk'
-TOPIC_MD_YES = 'MajorDoMoYes'
-TOPIC_MD_NO  = 'MajorDoMoNo'
-TOPIC_MD_CANCEL = 'MajorDoMoCancel'
-
-
 TOPIC_WAIT_COMMAND = "WaitCommand"
 
 WAIT_COMMAND_TIMEOUT = 5 # время в режиме ожидания команды, секунд
 
 
-DEVICE_ACTIONS = frozenset({'none','get','post','mqtt'})
-DEVICE_SOURCES = frozenset({'config','majordomo'})
+DEVICE_ACTIONS = frozenset({'none','get','post'})
+DEVICE_SOURCES = frozenset({'config'})
 
 
 

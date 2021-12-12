@@ -11,8 +11,6 @@
   - Skill: по просьбе администратора регистрировать пользователя в базе данных
   - Skill: сказать текущее время
   + Skill: выделение location из фразы
-  - Встроить MQTT client
-  - MQTT: заполнение Locations, Devices и прочих entities
   - Поддержка HTTP/restful, клиент и сервер
   - restful: заполнение Locations, Devices и прочих entities
   - devices: общая инфраструктура, класс устройства, генерализация методов взаимодействия.
@@ -20,7 +18,6 @@
   - Skill: YesNoCancel
   - Skill: калькулятор
   - Skill: поиск в интернете (в википедии или поисковике)
-  - Интеграция с MajorDoMo (restfull / droidAPI / ???)
   - web интерфейс конфигурации LVT Client. Возможно на стороне LVT сервера
   - Реализовать HTML5 websock клиент :)
 

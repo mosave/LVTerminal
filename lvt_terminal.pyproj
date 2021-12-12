@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>f7c765a6-ab0d-40c3-82fb-cd372cb281a9</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>lvt_server.py</StartupFile>
+    <StartupFile>lvt_client.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -12,7 +12,7 @@
     <Name>LVTerminal</Name>
     <RootNamespace>LVTerminal</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>--config=server_win.cfg</CommandLineArguments>
+    <CommandLineArguments>--config=client_mosave1.cfg</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <IsWindowsApplication>False</IsWindowsApplication>
     <InterpreterId>Global|PythonCore|3.9</InterpreterId>
@@ -27,7 +27,6 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="lvt\alsa_supressor.py" />
     <Compile Include="lvt\client\animator_apa102.py" />
     <Compile Include="lvt\client\animator.py" />
     <Compile Include="lvt\client\apa102.py" />
@@ -42,12 +41,10 @@
     <Compile Include="lvt\server\grammar.py" />
     <Compile Include="lvt\protocol.py" />
     <Compile Include="lvt\server\config.py" />
-    <Compile Include="lvt\server\mqtt.py" />
     <Compile Include="lvt\server\skills\acronyms.py" />
     <Compile Include="lvt\server\skills\datetime_detector.py" />
     <Compile Include="lvt\server\skills\debug.py" />
     <Compile Include="lvt\server\skills\location_detector.py" />
-    <Compile Include="lvt\server\skills\majordomo.py" />
     <Compile Include="lvt\server\skills\one_word_commands.py" />
     <Compile Include="lvt\server\skills\on_off.py" />
     <Compile Include="lvt\server\skills\server_config.py" />
@@ -97,7 +94,12 @@
     <Content Include="docs\todo.txt" />
     <Content Include="lvt\sounds\appeal_off.wav" />
     <Content Include="lvt\sounds\appeal_on.wav" />
+    <Content Include="lvt_client.sh" />
+    <Content Include="lvt_server.bat" />
+    <Content Include="lvt_server.sh" />
     <Content Include="readme.md" />
+    <Content Include="requirements_client.txt" />
+    <Content Include="requirements_server.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

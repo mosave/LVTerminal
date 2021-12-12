@@ -5,7 +5,6 @@ Name="Свет"
 Type="Свет"
 Location="Кухня"
 Default=1
-#On = MQTT "Kitchen/BTK/Kitchen/State" "1"
 #On = GET "http://md/objects/?object=relayKitchen&op=m&m=turnOn"
 #On = POST "http://md/objects/" '{"object":"relayKitchen","op":"m", "m":"turnOn"}'
 #Off = GET "http://md/objects/?object=relayKitchen&op=m&m=turnOff"
@@ -18,8 +17,6 @@ Type="Свет"
 Location="Зал"
 Default = 1
 
-#On= MQTT "Common/OMG/to433" '{"value":12219937,"protocol":1,"length":24,"delay":362}'
-#Off= MQTT "Common/OMG/to433" '{"value":12219936,"protocol":1,"length":24,"delay":362}'
 
 [onoffRight]
 Name="Свет справа"

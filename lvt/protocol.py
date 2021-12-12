@@ -27,7 +27,13 @@ MSG_ANIMATE = "Animate" # None|Awake|Think|Accept|Cancel
 
 # Server => Terminal: выключить/включить микрофон
 MSG_MUTE = "Mute"
-MSG_UNMUTE = "Unmute"               
+MSG_UNMUTE = "Unmute"
+
+# Server => Terminal: установить громкость терминала
+MSG_VOLUME = "Volume"
+
+# Server => Terminal: установить громкость терминала
+MSG_VOLUME_PLAYER = "VolumePlayer"
 
 # Server => Terminal: terminal client update package
 MSG_UPDATE = "Update" # <client update JSON package>
@@ -50,7 +56,7 @@ MSG_TERMINAL = "Terminal"# <TerminalId> <Password> <Version>
 MSG_ALL = { \
     MSG_IDLE, MSG_STATUS, MSG_LVT_STATUS, MSG_DISCONNECT, MSG_TERMINAL, MSG_REBOOT, \
     MSG_TEXT, MSG_ANIMATE, MSG_UPDATE, \
-    MSG_MUTE, MSG_UNMUTE, \
+    MSG_MUTE, MSG_UNMUTE, MSG_VOLUME, MSG_VOLUME_PLAYER \
     }
 
 #*** LVT API Commands

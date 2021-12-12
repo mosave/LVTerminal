@@ -1,4 +1,4 @@
 # Lite Voice Terminal
 ### Logs directory placeholder
 
-Default directory where all log files should be placed
+Каталог по умолчанию для журналов LVT

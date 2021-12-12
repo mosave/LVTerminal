@@ -13,12 +13,12 @@ class AcronymaExpanderSkill(Skill):
     Специально для тех кто любит одушевлять и давать имена вещам :)
     Расшифровка производится по словарю lvt/entities/acronyms
     """
-    def onLoad( this ):
-        this.priority = 9950
-        this.subscribe( TOPIC_ALL )
+    def onLoad( self ):
+        self.priority = 9950
+        self.subscribe( TOPIC_ALL )
 
-    def onText( this ):
-        for a in this.entities.acronyms:
+    def onText( self ):
+        for a in self.entities.acronyms:
             for i in range(1, len(a)):
-                this.replaceWordChain( a[i], a[0] )
+                self.replaceWordChain( a[i], a[0] )
 

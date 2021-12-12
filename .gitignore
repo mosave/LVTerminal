@@ -96,6 +96,9 @@ celerybeat-schedule
 
 # virtualenv
 .venv/
+.venv_windows
+.venv_server
+.venv_client
 venv/
 ENV/
 

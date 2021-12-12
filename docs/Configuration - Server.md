@@ -1,4 +1,4 @@
-** Установка софта и настройка клиента LVT сервера
+## Установка софта и настройка клиента LVT сервера
 
 Технически LVT сервер можно запустить и на старших моделях Raspberry Pi (4/4B) и он будет "тянуть" 
 пару одновременно подключенных терминалов при условии использовании "облегченной" голосовой модели
@@ -11,7 +11,7 @@
 гораздо больше. 
 
 
-*** 1. Движок распознавания речи [Kaldi](http://kaldi-asr.org/doc)
+### 1. Движок распознавания речи [Kaldi](http://kaldi-asr.org/doc)
 
 Официальная процедура установки kaldi [находится здесь](http://kaldi-asr.org/doc/install.html)
 
@@ -47,20 +47,7 @@ make -j $(nproc) online2 lm rnnlm
 Vosk API. Возможно, я еще вернусь к этой задаче - но позже :)
 
 
-*** 2. Устанавливаем и настраиваем [Vosk API](https://github.com/alphacep/vosk-api)
-
-Описание процедуры установки [на официальном сайте Vosk](https://alphacephei.com/vosk/]
-
-```
-cd /opt/
-git clone https://github.com/alphacep/vosk-api
-cd vosk-api/src
-KALDI_ROOT=/opt/kaldi make
-cd ../python
-python3 setup.py install
-```
-
-*** 3. Скачиваем голосовые модели для kaldi
+### 3. Скачиваем голосовые модели для kaldi
 
  * Большая подборка моделей лежит [здесь](https://alphacephei.com/vosk/models)
  * Официальный список моделей [на сервере Kaldi](http://kaldi-asr.org/models.html)
@@ -71,19 +58,33 @@ python3 setup.py install
 динамическое переключение между двумя моделями а режим "со словарем" можно задать
 в качестве основного в настройках.
 
-*** 4. Устанавливаем необходимые Python библиотеки
+### 4. Устанавливаем необходимые Python библиотеки
 
-    sudo apt install python3-pip python3-websockets python3-psutil python3-pyaudio
-    sudo pip3 install pymorphy2 hbmqtt numpy rhvoice_wrapper
+    pyaudio платформеннозависим, поэтому установить через apt-get:    
+    '''
     sudo apt-get install python3-pyaudio
-    sudo apt install python3-numpy
+    '''
 
-1. Install as a service
+    Скрипт **lvt_server.sh** сам создает virtual environment и устанавливает необходимые зависимости.
+    '''
+    cd LVTerminal
+    ./lvt_server.sh
+    '''
+
+    Однако если по какой-то причине вы решите сделать это самостоятильно либо не использовать virtual_env - то серверная часть LVT зависит от следующих модулей:
+
+    * pyaudio (уже установлен)
+    * websockets 
+    * psutil 
+    * pymorphy2 
+    * rhvoice_wrapper 
+    * numpy
+
+### 5. Установка серверной части в виде сервиса
 
  В файле scripts/lvt_server поправить путь установки LVTerminal (переменная **DIR**) и имя пользователя, под которым будет запускаться сервис:
- DIR=**/home/house/LVTerminal**
- DAEMON_USER=**house**
-
+    DIR=**/home/house/LVTerminal**
+    DAEMON_USER=**house**
 
     sudo cp scripts/lvt_server /etc/init.d
     sudo chmod 755 /etc/init.d/lvt_server
@@ -97,7 +98,9 @@ python3 setup.py install
 
 
 
-
+### 6. Разное
 
 Windows 10, Speech API, голос MS Pavel не доступен для использования в приложениях.
 Решение здесь: https://stackoverflow.com/questions/53804721/how-to-get-and-use-full-installed-text-to-speech-languages-list
+
+

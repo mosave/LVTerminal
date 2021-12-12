@@ -152,7 +152,9 @@ class Terminal():
         try:
             waveFileName = os.path.join( ROOT_DIR,'cache', wfn+'.wav' )
             #print(f'wave file name= {waveFileName}')
-            #this.sendMessage( MSG_TEXT, text )
+            #this.sendMessage( MSG_TEXT
+            #
+            #, text )
             if not os.path.isfile(waveFileName): 
                 this.log(f'generating wav, engine={config.ttsEngine}, ttsRHVoice={ttsRHVoice}. ')
                 if (config.ttsEngine == TTS_RHVOICE) and (ttsRHVoice != None):
@@ -632,7 +634,7 @@ class Terminal():
             'Model': config.model,
             'FullModel': config.fullModel,
             'SpkModel': config.spkModel,
-            'SampleRate': config.sampleRate,
+            'SampleRate': VOICE_SAMPLING_RATE,
             'RecognitionThreads':config.recognitionThreads,
             'AssistantNames': normalizeWords(config.femaleAssistantNames + config.maleAssistantNames ),
             'VoiceEngine': config.ttsEngine,

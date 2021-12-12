@@ -17,15 +17,12 @@ sys.path.append( os.path.abspath( os.path.join( os.path.dirname( __file__ ),'../
 from lvt.const import *
 from lvt.protocol import *
 from lvt.const import *
-from lvt.alsa_supressor import AlsaSupressor
 from lvt.client.microphone import Microphone
 from lvt.client.config import Config
 
 if __name__ == '__main__':
     #set project folder to correct value
     ROOT_DIR = os.path.abspath( os.path.join( os.path.dirname( __file__ ),'../' ) )
-
-    AlsaSupressor.disableWarnings()
 
     config = Config()
 

@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3 
 import json
 import os
 import sys
@@ -19,7 +19,6 @@ from lvt.server.grammar import *
 from lvt.protocol import *
 from lvt.logger import *
 from lvt.server.config import Config
-from lvt.server.mqtt import MQTT, mqttClient
 from lvt.server.entities import Entities
 from lvt.server.devices import Devices
 from lvt.server.terminal import Terminal
@@ -126,14 +125,14 @@ async def websockServer( connection, path ):
                     vocabulary = v
                     if ( len( vocabulary ) > 0 ) and model != None: # Фильтрация по словарю:
                         #SetLogLevel( -10 )
-                        recognizer = KaldiRecognizer( model, config.sampleRate, json.dumps( list( vocabulary ), ensure_ascii=False ) )
+                        recognizer = KaldiRecognizer( model, VOICE_SAMPLING_RATE, json.dumps( list( vocabulary ), ensure_ascii=False ) )
                         SetLogLevel( -1 )
                         if( spkModel != None ): 
-                            spkRecognizer = KaldiRecognizer( model, config.sampleRate, spkModel )
+                            spkRecognizer = KaldiRecognizer( model, VOICE_SAMPLING_RATE, spkModel )
                     else: # Распознование без использования словаря
-                        recognizer = KaldiRecognizer( fullModel if fullModel != None else model, config.sampleRate )
+                        recognizer = KaldiRecognizer( fullModel if fullModel != None else model, VOICE_SAMPLING_RATE, None )
                         if( spkModel != None ):
-                            spkRecognizer = KaldiRecognizer( fullModel if fullModel != None else model, config.sampleRate, spkModel )
+                            spkRecognizer = KaldiRecognizer( fullModel if fullModel != None else model, VOICE_SAMPLING_RATE, spkModel )
 
             # Ждем сообщений, дергая terminal.onTimer примерно раз в секунду
             message = None
@@ -199,7 +198,7 @@ async def websockServer( connection, path ):
                         wav = wave.open(os.path.join( ROOT_DIR, 'logs',fn),'w')
                         wav.setnchannels(1)
                         wav.setsampwidth(2)
-                        wav.setframerate(config.sampleRate)
+                        wav.setframerate(VOICE_SAMPLING_RATE)
                         for chunk in waveChunks:
                             wav.writeframesraw( chunk )
                         wav.close()
@@ -321,7 +320,6 @@ for arg in sys.argv[1:]:
 
 Logger.initialize( config )
 Grammar.initialize( config )
-MQTT.initialize( config )
 Entities.initialize( config )
 Devices.initialize( config )
 Terminal.initialize( config )
@@ -365,8 +363,6 @@ try:
     lvtApiServer = asyncio.start_server( apiServer, config.serverAddress, config.apiServerPort )
     
     loop = asyncio.get_event_loop()
-    if config.mqttServer != '' :
-        t = asyncio.ensure_future(mqttClient())
     loop.run_until_complete( lvtApiServer )
     loop.run_until_complete( lvtServer )
     loop.run_forever()

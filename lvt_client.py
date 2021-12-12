@@ -1,21 +1,15 @@
 #!/usr/bin/env python3 
 import sys
 import time
-import datetime
-import os
 import io
 import json
 import asyncio
 import pyaudio
-import audioop
 import wave
 import ssl
 import websockets
-import threading
 import multiprocessing
-import contextlib
 import subprocess
-#import simpleaudio
 #region leak troubleshooting:
 TRACE_MALLOC = False
 if TRACE_MALLOC :
@@ -26,11 +20,9 @@ if TRACE_MALLOC :
 from lvt.const import *
 from lvt.protocol import *
 from lvt.logger import *
-from lvt.alsa_supressor import AlsaSupressor
 from lvt.client.microphone import Microphone
 from lvt.client.config import Config
 from lvt.client.updater import Updater
-from lvt.alsa_supressor import AlsaSupressor
 
 audio = None
 config = None
@@ -44,14 +36,15 @@ def showHelp():
     """Display usage instructions"""
     print( "Использование: lvt_client.py [параметры]" )
     print( "Допустимые параметры:" )
-    print( " -h | --help                    Вывод этой подсказки" )
-    print( " -d | --devices                 Показать список аудио устройств" )
-    print( " -q | --quiet                   Не отображать уровень звука в консоли" )
+    print( " -h | --help                       Вывод этой подсказки" )
+    print( " -d | --devices                    Показать список аудио устройств" )
+    print( " -q | --quiet                      Не отображать уровень звука в консоли" )
+    print( " -c=<config> | --config=<config>   Использоавть указанный файл конфигурации" )
 
 def showDevices():
+    global audio
     """List audio deivces to use in config"""
     print( "Список поддерживаемых аудио устройств. В файле конфигурации может быть указан как индекс так и название устройств" )
-    audio = pyaudio.PyAudio()
     print( f' Индекс  Каналы     Название устройтсва' )
     for i in range( audio.get_device_count() ):
         device = audio.get_device_info_by_index( i )
@@ -85,7 +78,7 @@ async def printStatusThread():
             graph = graph[:pL] + '|' + graph[pL:pR] + '|' + graph[pR + 1:]
 
             face = 'O_O' if microphone.active else '-_-'
-            face = f'x{face}x' if microphone.muted else f'({face})'
+            face = f'x(){face})x' if microphone.muted else f'@({face})@'
             sys.__stdout__.write( f'[{animator.animation:^10}] {face} CH:{microphone.channel} RMS:{microphone.rms:>5} VAD:{microphone.vadLevel:>3} [{graph}]  \r' )
             await asyncio.sleep(1)
 #endregion
@@ -93,11 +86,30 @@ async def printStatusThread():
 ### GetVolume() / SetVolume() ##########################################################
 #region
 def getVolume():
-    return '95%'
+    global config
+    global alsaaudio
+    if config.volumeControl != None:
+        return alsaaudio.Mixer(cardindex=config.volumeCardIndex, control=config.volumeControl ).getvolume()[0]
+    else:
+        return None
+
+def getVolumePlayer():
+    global config
+    global alsaaudio
+    if config.volumeControl != None:
+        return alsaaudio.Mixer(cardindex=config.volumeCardIndex, control=config.volumeControlPlayer ).getvolume()[0]
+    else:
+        return None
 
 def setVolume( volume ):
     try:
-        subprocess.call(["amixer", "sset", "Speaker", f"{volume}"])
+        alsaaudio.Mixer(cardindex=config.volumeCardIndex, control=config.volumeControl ).setvolume(volume)
+    except Exception as e:
+        pass
+
+def setVolumePlayer( volume ):
+    try:
+        alsaaudio.Mixer(cardindex=config.volumeCardIndex, control=config.volumeControlPlayer ).setvolume(volume)
     except Exception as e:
         pass
 #endregion
@@ -109,6 +121,11 @@ def play( data ):
     global microphone
     global shared
     global config
+
+    volumePlayer = getVolumePlayer()
+    if volumePlayer != None:
+        setVolumePlayer(0)
+
     muteUnmute = not microphone.muted
     if muteUnmute : 
         microphone.muted = True
@@ -172,55 +189,9 @@ def play( data ):
         microphone.muted = False
         animator.muted = False
 
-#endregion
+    if volumePlayer != None:
+        setVolumePlayer(volumePlayer)
 
-### playSimpleAudio() ##################################################################
-#region
-#def playSimpleAudio( data ):
-#    global audio
-#    global microphone
-#    global shared
-#    global config
-#    #muteUnmute = not microphone.muted
-#    if muteunmute : 
-#        microphone.muted = true
-#        animator.muted = true
-
-#    try:
-#        #fn = datetime.datetime.today().strftime(f'{config.terminalId}_%Y%m%d_%H%M%S_play.wav')
-#        #f = open(os.path.join( ROOT_DIR, 'logs',fn),'wb')
-#        #f.write(data)
-#        #f.close()
-
-#        with wave.open( io.BytesIO( data ), 'rb' ) as wav:
-#            sampwidth = wav.getsampwidth()
-#            format = pyaudio.get_format_from_width( sampwidth )
-#            nchannels = wav.getnchannels()
-#            framerate = wav.getframerate()
-#            nframes = wav.getnframes()
-#            print(f'file properties: sampwidth {sampwidth} nchannels {nchannels} framerate {framerate} nframes {nframes} frames ({len(data)} bytes)')
-#            # Workaoround broken .wav header:
-#            t = len( data ) / sampwidth / nchannels
-#            if ( t > 0 ) and ( t < nframes ) :  nframes = t
-
-#            frames = wav.readframes( 8192 )
-#            frames = wav.readframes( nframes )
-#            print(f'{len(frames)} bytes of {nframes} frames read')
-#            # Control & fix broken .wav header
-#            t = int( len( frames ) / sampwidth / nchannels )
-#            if ( t > 0 ) and ( t < nframes ) : nframes = t
-
-#        print(f'open {nframes} frames ({len(frames)} bytes)')
-#        play_obj = simpleaudio.play_buffer( frames, nchannels, sampwidth, framerate)
-#        play_obj.wait_done()
-
-#        print('close')
-#    except Exception as e:
-#        print( f'Exception playing audio: {e}' )
-
-#    if muteUnmute : 
-#        microphone.muted = False
-#        animator.muted = False
 #endregion
 
 ### processMessage()? messageProcessorThread() #########################################
@@ -257,6 +228,20 @@ async def processMessage( message ):
         elif m == MSG_UNMUTE: 
             microphone.muted = False
             animator.muted = False
+        elif m == MSG_VOLUME: 
+            try:
+                p = int(p)
+                p = 100 if p>100 else (0 if p<0 else p)
+                setVolume(p)
+            except:
+                pass
+        elif m == MSG_VOLUME_PLAYER: 
+            try:
+                p = int(p)
+                p = 100 if p>100 else (0 if p<0 else p)
+                setVolumePlayer(p)
+            except:
+                pass
         elif m == MSG_ANIMATE:
             if p == None : p = ANIMATE_NONE
             if animator != None and p in ANIMATION_ALL:
@@ -300,9 +285,7 @@ async def microphoneThread( connection ):
             if microphone.active : 
                 try:
                     if not _active and shared.serverStatus['StoreAudio']=='True' :
-                        for ch in range(microphone.channels):
-                            await connection.send(MESSAGE(MSG_TEXT,f'CH#{ch}: RMS {microphone._rms[ch]} MAX {microphone._max[ch]}'))
-                        await connection.send(MESSAGE(MSG_TEXT,f'Selecting CH#{microphone.channel}, VAD:{microphone.vadLevel}'))
+                        await connection.send(MESSAGE(MSG_TEXT,f'Selecting CH#{microphone.channel}: RMS={microphone.rms} MAX={microphone.max} VAD={microphone.vadLevel}'))
                 except Exception as e:
                     print( f'{e}' )
                     pass
@@ -420,8 +403,11 @@ if __name__ == '__main__':
     print()
     print( f'Lite Voice Terminal Client v{VERSION}' )
 
-    AlsaSupressor.disableWarnings()
+    print()
+    print("========== Инициализация аудиоподсистемы ==========")
     audio = pyaudio.PyAudio()
+    print("============= Инициализация завершена =============")
+    print("")
 
     Config.initialize(audio)
     config = Config()
@@ -445,7 +431,9 @@ if __name__ == '__main__':
             exit( 0 )
         elif ( a == '-q' ) or ( a == '--quiet' ) :
             shared.quiet = True
-
+        elif ( a.startswith('-с=' ) or a.startswith('--config=') ):
+            #config parameter is already processed
+            pass
         else:
             printError( f'Неизвестный параметр: "{arg}"' )
 
@@ -467,6 +455,37 @@ if __name__ == '__main__':
 
     print( f'Устройство для захвата звука: #{config.audioInputDevice} "{config.audioInputName}"' )
     print( f'Устройство для вывода звука: #{config.audioOutputDevice} "{config.audioOutputName}"' )
+
+    if config.volumeControl != None or config.volumeControlPlayer != None :
+        import alsaaudio
+        
+        try:
+            volumeControls = alsaaudio.mixers(config.volumeCardIndex)
+        except alsaaudio.ALSAAudioError:
+            printError(f"Неправильный индекс устройства alsamixer ({config.volumeCardIndex})" )
+            config.volumeCardIndex = 0
+            config.volumeControl = None
+            config.volumeControlPlayer = None
+            volumeControls = []
+        showControls = False
+        if config.volumeControl != None and config.volumeControl not in volumeControls:
+            printError( f"Неправильное название громкости LVT: {config.volumeControl}" )
+            config.volumeControl = None
+            showControls = True
+        if config.volumeControlPlayer != None and config.volumeControlPlayer not in volumeControls:
+            printError( f"Неправильное название громкости аудиоплеера: {config.volumeControlPlayer}" )
+            config.volumeControlPlayer = None
+            showControls = True
+        if showControls:
+            print( "Допустимые названия каналов управления громкостью:" )
+            print( f"{', '.join(volumeControls)}" )
+
+    if config.volumeControl != None or config.volumeControlPlayer != None :
+        #print( f'Устройство для управления громкостью: "{alsaaudio.cards()[config.volumeCardIndex]}"' )
+        if config.volumeControl != None :
+            print( f'Громкость LVT: {getVolume()}% ({config.volumeControl})' )
+        if config.volumeControlPlayer != None :
+            print( f'Громкость плеера: {getVolumePlayer()}% ({config.volumeControlPlayer})' )
 
     protocol = 'ws'
     sslContext = None

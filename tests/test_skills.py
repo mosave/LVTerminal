@@ -18,7 +18,6 @@ from lvt.logger import *
 from lvt.config_parser import ConfigParser
 from lvt.server.grammar import *
 from lvt.server.config import Config 
-from lvt.server.mqtt import MQTT
 from lvt.server.entities import Entities
 from lvt.server.devices import Devices
 from lvt.server.terminal import Terminal
@@ -157,13 +156,6 @@ def testTimeTeller():
     onText( 'алиса какое сегодня число' )
     checkIfSaid( transcribeDate(datetime.datetime.today()) )
 
-def testMajorDoMo():
-    logs.clear()
-    print( '***** MajorDoMoSkill tests' )
-    onText( 'Мажордом, обнови список устройств' )
-    onText( 'Мажордом, включи свет в зале' )
-    #checkIfSaid( transcribeDate(datetime.datetime.today()) )
-
 def testOnOffSkill():
     logs.clear()
     print( '***** OnOffSkill() tests' )
@@ -198,7 +190,6 @@ logs = list()
 Logger.initialize( config )
 Logger.setLogCapture(logs)
 Grammar.initialize( config )
-MQTT.initialize( config )
 Entities.initialize( config )
 Devices.initialize( config )
 Terminal.initialize( config )
@@ -242,7 +233,6 @@ terminal.onConnect( messageQueue )
 #print( transcribeNumber(123123123,{'gent'}, 'хомяк') )
 
 #testOnOffSkill()
-#testMajorDoMo()
 
 testAppealDetector()
 testFindWordChain()

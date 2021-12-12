@@ -1,0 +1,8 @@
+numpy==1.21.4
+psutil==5.8.0
+pymorphy2==0.9.1
+pymorphy2-dicts-ru==2.4.417127.4579844
+requests==2.26.0
+rhvoice-wrapper==0.7.1
+vosk==0.3.32
+websockets==10.1

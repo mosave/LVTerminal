@@ -3,6 +3,7 @@ import time
 import os
 import getopt
 from lvt.const import *
+from lvt.logger import logError
 from lvt.server.grammar import *
 from lvt.config_parser import ConfigParser
 
@@ -14,138 +15,122 @@ class Config:
 
 ### __init__  ##########################################################################
 #region
-    def __init__( this ):
-        configName = "server.cfg"
+    def __init__( self ):
+        withConfig = False
+        self.configName = "server.cfg"
         for arg in sys.argv[1:]:
             a = arg.strip().lower()
-            if ( a.startswith('--config=') ) :
-                configName = a.split('=')[1]
+            if ( a.startswith('-c=') or a.startswith('--config=') ) :
+                self.configName = a.split('=')[1]
+                withConfig = True
 
-
-        ConfigParser.checkConfigFiles( [
-            'server.cfg',
-            'acronyms', 'locations', 'vocabulary', 'devices', 'persons'
-            ])
-        p = ConfigParser( configName )
+        if not withConfig:
+            ConfigParser.checkConfigFiles( [
+                'server.cfg',
+                'acronyms', 'locations', 'vocabulary', 'devices', 'persons'
+                ])
+        p = ConfigParser( self.configName )
         section = 'LVTServer'
         ### Network configuration
-        this.serverAddress = p.getValue( section, 'ServerAddress','0.0.0.0' )
-        this.serverPort = p.getIntValue( section, 'ServerPort',2700 )
-        this.apiServerPort = p.getIntValue( section, 'APIServerPort', 7999 )
-        this.sslCertFile = p.getValue( section, 'SSLCertFile','' )
-        this.sslKeyFile = p.getValue( section, 'SSLKeyFile','' )
+        self.serverAddress = p.getValue( section, 'ServerAddress','0.0.0.0' )
+        self.serverPort = p.getIntValue( section, 'ServerPort',2700 )
+        self.apiServerPort = p.getIntValue( section, 'APIServerPort', 7999 )
+        self.sslCertFile = p.getValue( section, 'SSLCertFile','' )
+        self.sslKeyFile = p.getValue( section, 'SSLKeyFile','' )
 
         ### Voice recognition configuration 
-        this.model = p.getValue( section, 'Model','' ).strip()
-        this.fullModel = p.getValue( section, 'FullModel','' ).strip()
-        if this.model=='' and this.fullModel== '':
-            raise Exception( 'No models specified' )
+        self.model = p.getValue( section, 'Model','' ).strip()
+        self.fullModel = p.getValue( section, 'FullModel','' ).strip()
+        if self.model=='' and self.fullModel== '':
+            self.error( 'No models specified' )
 
-        this.sampleRate = p.getIntValue( section, 'SampleRate',8000 )
-        if this.sampleRate not in [8000,16000]: raise Exception("Invalid SampleRate specified")
+        self.storeAudio = bool(p.getValue(section,'StoreAudio','0') != '0')
 
-        this.storeAudio = bool(p.getValue(section,'StoreAudio','0') != '0')
+        self.recognitionThreads = p.getIntValue( section, 'RecognitionThreads',os.cpu_count() )
+        if( self.recognitionThreads < 1 ): self.recognitionThreads = 1
 
-        this.recognitionThreads = p.getIntValue( section, 'RecognitionThreads',os.cpu_count() )
-        if( this.recognitionThreads < 1 ): this.recognitionThreads = 1
+        self.vocabularyMode = bool(p.getIntValue( section, 'VocabularyMode', 1 ))
+        if self.model=='' : self.vocabularyMode = False
 
-        this.vocabularyMode = bool(p.getIntValue( section, 'VocabularyMode', 1 ))
-        if this.model=='' : this.vocabularyMode = False
-
-        this.language = p.getValue( section, 'Language','ru' )
-        if this.language not in {'ru','uk','en' } : this.language = 'ru'
+        self.language = p.getValue( section, 'Language','ru' )
+        if self.language not in {'ru','uk','en' } : self.language = 'ru'
 
         ### Speaker identification config
-        this.spkModel = p.getValue( section, 'SpkModel','' ).strip()
-        this.voiceSimilarity = p.getFloatValue( section, 'VoiceSimilarity', 0.6 )
-        this.voiceSelectivity = p.getFloatValue( section, 'VoiceSelectivity', 0.2 )
+        self.spkModel = p.getValue( section, 'SpkModel','' ).strip()
+        self.voiceSimilarity = p.getFloatValue( section, 'VoiceSimilarity', 0.6 )
+        self.voiceSelectivity = p.getFloatValue( section, 'VoiceSelectivity', 0.2 )
 
         ### Assistant configuration
-        this.maleAssistantNames = normalizeWords(p.getValue( section, 'MaleAssistantNames','' ))
-        this.femaleAssistantNames = normalizeWords(p.getValue( section, 'FemaleAssistantNames','' ))
+        self.maleAssistantNames = normalizeWords(p.getValue( section, 'MaleAssistantNames','' ))
+        self.femaleAssistantNames = normalizeWords(p.getValue( section, 'FemaleAssistantNames','' ))
 
           
-        if( len( wordsToList( this.maleAssistantNames + ' ' + this.femaleAssistantNames) ) == 0 ): 
-            raise Exception( 'Either MaleAssistantNames or FemaleAssistantNames should be specified' )
+        if( len( wordsToList( self.maleAssistantNames + ' ' + self.femaleAssistantNames) ) == 0 ): 
+            self.error( 'Either MaleAssistantNames or FemaleAssistantNames should be specified' )
 
         ### Logging
-        this.logFileName = p.getValue( section, "Log", None )
-        this.logLevel = p.getIntValue( section, "LogLevel",20 )
-        this.printLevel = p.getIntValue( section, "PrintLevel",20 )
+        self.logFileName = p.getValue( section, "Log", None )
+        self.logLevel = p.getIntValue( section, "LogLevel",20 )
+        self.printLevel = p.getIntValue( section, "PrintLevel",20 )
 
         ### TTS Engine
-        this.ttsEngine = p.getValue( section, 'TTSEngine', '' )
+        self.ttsEngine = p.getValue( section, 'TTSEngine', '' )
 
-        if str( this.ttsEngine ) == '':
+        if str( self.ttsEngine ) == '':
             pass
-        elif( this.ttsEngine.lower().strip() == TTS_RHVOICE.lower() ):
-            this.ttsEngine = TTS_RHVOICE
+        elif( self.ttsEngine.lower().strip() == TTS_RHVOICE.lower() ):
+            self.ttsEngine = TTS_RHVOICE
 
             section = TTS_RHVOICE
-            this.rhvDataPath = p.getValue( section, 'data_path', None )
-            this.rhvConfigPath = p.getValue( section, 'config_path', None )
+            self.rhvDataPath = p.getValue( section, 'data_path', None )
+            self.rhvConfigPath = p.getValue( section, 'config_path', None )
 
-            this.rhvParamsMale = this.loadRHVoiceParams( "RHVoiceMale", p )
-            this.rhvParamsFemale = this.loadRHVoiceParams( "RHVoiceFemale", p )
+            self.rhvParamsMale = self.loadRHVoiceParams( "RHVoiceMale", p )
+            self.rhvParamsFemale = self.loadRHVoiceParams( "RHVoiceFemale", p )
 
-            if this.rhvParamsMale == None and this.rhvParamsFemale == None :
-                raise Exception('В конфигурации обязательно должна быть определена хотя бы одна из секций [RHVoiceMale] или [RHVoiceFemale]') 
-        elif( this.ttsEngine.lower().strip() == TTS_SAPI.lower() ):
-            this.ttsEngine = TTS_SAPI
+            if self.rhvParamsMale == None and self.rhvParamsFemale == None :
+                self.error('В конфигурации обязательно должна быть определена хотя бы одна из секций [RHVoiceMale] или [RHVoiceFemale]') 
+        elif( self.ttsEngine.lower().strip() == TTS_SAPI.lower() ):
+            self.ttsEngine = TTS_SAPI
             section = TTS_SAPI
-            this.sapiMaleVoice = p.getValue( section, 'MaleVoice', None )
-            this.sapiFemaleVoice = p.getValue( section, 'FemaleVoice', None )
-            if not this.sapiMaleVoice : this.sapiMaleVoice = this.sapiFemaleVoice
-            if not this.sapiFemaleVoice : this.sapiFemaleVoice = this.sapiMaleVoice
-            this.sapiMaleRate = p.getIntValue( section, "MaleRate", 0 )
-            this.sapiFemaleRate = p.getIntValue( section, "FemaleRate", 0 )
-            if (this.sapiMaleRate<-10) or (this.sapiMaleRate>10):
-                this.sapiMaleRate = 0
-            if (this.sapiFemaleRate<-10) or (this.sapiFemaleRate>10):
-                this.sapiFemaleRate = 0
+            self.sapiMaleVoice = p.getValue( section, 'MaleVoice', None )
+            self.sapiFemaleVoice = p.getValue( section, 'FemaleVoice', None )
+            if not self.sapiMaleVoice : self.sapiMaleVoice = self.sapiFemaleVoice
+            if not self.sapiFemaleVoice : self.sapiFemaleVoice = self.sapiMaleVoice
+            self.sapiMaleRate = p.getIntValue( section, "MaleRate", 0 )
+            self.sapiFemaleRate = p.getIntValue( section, "FemaleRate", 0 )
+            if (self.sapiMaleRate<-10) or (self.sapiMaleRate>10):
+                self.sapiMaleRate = 0
+            if (self.sapiFemaleRate<-10) or (self.sapiFemaleRate>10):
+                self.sapiFemaleRate = 0
         else:
-            raise Exception( 'Неверное значение параметра TTSEngine' )
-
-        ### MQTT client
-        section = 'MQTT'
-        this.mqttServer = p.getValue( section, 'Server','' )
-
-        ### MajorDoMo
-        section = 'MajorDoMo'
-        this.mdUser = p.getValue( section, 'User','' )
-        this.mdPassword = p.getValue( section, 'Password','' )
-        this.mdServer = p.getValue( section, 'Server','' )
-        #if this.mdServer!='' :
-        #    this.mdServer = os.environ.get("BASE_URL", this.mdServer )
-        this.mdIntegration = bool(p.getValue( section, 'Integration','0' )=='1')
-        this.mdSendRawCommands = bool(p.getValue( section, 'SendRawCommands','0' )=='1')
-
+            self.error( 'Неверное значение','TTSEngine' )
 
         ### Terminals
-        this.terminals = dict()
+        self.terminals = dict()
         for section in p.sections :
             if section.lower().startswith("terminal|") :
                 id = p.getValue(section,'ID','').strip().lower()
                 pwd = p.getValue(section,'Password','')
                 if id=='' or pwd=='':
-                    raise Exception( 'Необходимо задать значения параметров ID и Password')
-                this.terminals[id] = {
+                    self.error( 'Необходимо задать значения параметров ID и Password')
+                self.terminals[id] = {
                     'password': pwd,
                     'name': p.getValue(section,'Name',id),
                     'location': p.getValue(section,'Location',''),
                     'autoupdate': p.getIntValue(section,'AutoUpdate',1)
                 }
-                if this.terminals[id]['autoupdate'] not in [0,1,2] :
-                    raise Exception( 'Неверное значение параметра "AutoUpdate"')
+                if self.terminals[id]['autoupdate'] not in [0,1,2] :
+                    self.error( 'Неверное значение','AutoUpdate')
         ### Skills
-        this.skills = dict()
+        self.skills = dict()
         for section in p.sections :
             if section.lower().find("skill|")>0 :
                 cfg = p.getRawValues(section)
                 cfg['enable'] = bool(p.getValue(section,'Enable','1')!='0')
-                this.skills[section.split('|')[0].lower()] = cfg
+                self.skills[section.split('|')[0].lower()] = cfg
 
-    def loadRHVoiceParams( this, section: str, p: ConfigParser ) :
+    def loadRHVoiceParams( self, section: str, p: ConfigParser ) :
         rhvParams = p.getValues( section )
         if( rhvParams != None ):
             for key in rhvParams: 
@@ -157,8 +142,16 @@ class Config:
                     except:
                         pass
             if 'voice' not in rhvParams or str(rhvParams['voice']).strip()=='':
-                raise Exception(f'Не определен параметр Voice="" в секции {section}')
+                self.error(f'Не определено', 'Voice', section )
         return rhvParams
+
+    def error(self, message:str, parameter:str = None, section:str = None):
+        s = os.path.basename(self.configName)
+        if str(section)!="" : s = s + "=>"+section
+        if str(parameter)!="" : s = s + "=>"+parameter
+        print(f'{s}: {message}')
+        logError( message )
+        quit(1);
 
 #endregion
 

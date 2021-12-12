@@ -33,6 +33,12 @@ def logDebug( message: str ):
     """Вывод отладочного сообщения на экран и в журнал, синоним logDebug()"""
     printDebug( message )
 
+def fatalError( message:str):
+    """Вывод сообщения об ошибке на экран и в журнал и завершение работы"""
+    print( message )
+    if logWriter != None :
+        logWriter.logMessage( logging.ERROR, message )
+    quit(1)
 
 class Logger:
 

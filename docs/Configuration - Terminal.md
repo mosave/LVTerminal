@@ -1,6 +1,5 @@
 ### Установка софта и настройка клиента LVT терминала
 
-
 Update all
 
 Мой выбор - raspbian.
@@ -47,18 +46,38 @@ sudo apt-get autoclean
     sudo ./install.sh
     sudo reboot now
 ```
-9. Устанавливаем Python3 и необходимые библиотеки для запуска терминального клиента:
-```
-  sudo apt-get install python3 python3-pip python3-numpy python3-pyaudio python3-spidev python3-gpiozero -y
-  sudo pip3 install websockets webrtcvad
-```
-10. Копируем LVTerminal на RPi. Для работы клиента необходимы следующие файлы:
+9. Копируем LVTerminal на RPi. Для работы клиента необходимы следующие файлы:
   * lvt_client.py
   * lvt/*
   * lvt/client/*
   * config/client.cfg  (в качестве шаблона можно использовать config.default/client.cfg)
   * logs/
   
+
+10. Устанавливаем Python3 и необходимые библиотеки для запуска терминального клиента:
+    '''
+    sudo apt-get install python3 python3-venv python3-pyaudio python3-alsaaudio python3-rpi.gpio libatlas-base-dev 
+
+    '''
+
+    Скрипт **lvt_client.sh** сам создает virtual environment и устанавливает необходимые зависимости.
+    '''
+    cd LVTerminal
+    ./lvt_client.sh
+    '''
+
+    Однако если по какой-то причине вы решите сделать это самостоятильно либо не использовать virtual_env - клиентская часть LVT зависит от следующих модулей:
+
+    * pyaudio
+    * pyalsaaudio (только для управления громкостью)
+    * websockets 
+    * webrtcvad
+    * rhvoice_wrapper 
+    * numpy
+    * spidev
+    * gpiozero (при использовании APA102 )
+    * RPi.GPIO (при использовании APA102)
+
 11. Добиваемся чтобы клиент запускался, подключался к серверу и "слышал" звук
   * ./lvt_client.py --help    # подсказка по параметрам командной строки
   * ./lvt_client.py --devices # получить список аудиоустройств, которые при необходимости можно задавать 
@@ -71,7 +90,7 @@ sudo apt-get autoclean
      то есть уровень звука (SNR) при нормальной громкости речи находится в диапазоне от 500-2000 а сохраняемый 
      при этом звук при прослушивании хорошо слышен и не имеет искажений
   * При наличии нескольких микрофонов можно включить алгоритм выбора канала с наиболее близким к оптимальному
-     уровнем звука (параметр **ChannelSelection="RMS"** в файле конфигурации клиента).
+     уровнем звука (параметр **MicSelection="RMS"** в файле конфигурации клиента).
      В этом случае имеет смысл выставить на каналах разные уровни чувствительности микрофона
   * Сохранить текущие настройки громкости и загрузить их:
   ```
@@ -97,7 +116,5 @@ sudo apt-get autoclean
    sudo systemctl status lvt_client
 ```
 
-Настройка терминала для совместной работы с MajorDoMo
 
-  sudo apt-get install mpd
 
