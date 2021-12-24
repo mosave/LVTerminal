@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>f7c765a6-ab0d-40c3-82fb-cd372cb281a9</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>lvt_client.py</StartupFile>
+    <StartupFile>lvt_server.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -12,7 +12,7 @@
     <Name>LVTerminal</Name>
     <RootNamespace>LVTerminal</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>--config=client_mosave1.cfg</CommandLineArguments>
+    <CommandLineArguments>--config=server_mosave1.cfg</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <IsWindowsApplication>False</IsWindowsApplication>
     <InterpreterId>Global|PythonCore|3.9</InterpreterId>
@@ -36,7 +36,6 @@
     <Compile Include="lvt\config_parser.py" />
     <Compile Include="lvt\const.py" />
     <Compile Include="lvt\logger.py" />
-    <Compile Include="lvt\server\devices.py" />
     <Compile Include="lvt\server\entities.py" />
     <Compile Include="lvt\server\grammar.py" />
     <Compile Include="lvt\protocol.py" />
@@ -46,12 +45,11 @@
     <Compile Include="lvt\server\skills\debug.py" />
     <Compile Include="lvt\server\skills\location_detector.py" />
     <Compile Include="lvt\server\skills\one_word_commands.py" />
-    <Compile Include="lvt\server\skills\on_off.py" />
     <Compile Include="lvt\server\skills\server_config.py" />
     <Compile Include="lvt\server\skills\time_teller.py" />
     <Compile Include="lvt\server\skills\yes_no.py" />
     <Compile Include="lvt\server\skill_factory.py" />
-    <Compile Include="lvt\server\speaker.py" />
+    <Compile Include="lvt\server\speakers.py" />
     <Compile Include="lvt\server\terminal.py" />
     <Compile Include="lvt\server\skill.py" />
     <Compile Include="lvt\server\skills\appeal_detector.py" />
@@ -80,7 +78,6 @@
     <Content Include="config.default\acronyms" />
     <Content Include="config.default\actions" />
     <Content Include="config.default\client.cfg" />
-    <Content Include="config.default\devices" />
     <Content Include="config.default\locations" />
     <Content Include="config.default\persons" />
     <Content Include="config.default\server.cfg" />

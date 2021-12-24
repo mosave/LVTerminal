@@ -18,8 +18,8 @@ config.logFileName = "logs/test2.log"
 config.logLevel = logging.DEBUG
 config.printLevel = logging.DEBUG
 logs = list()
-Logger.initialize( config )
-Logger.setLogCapture(logs)
+LoggerInit( config )
+LoggerCapture(logs)
 
 def onTopicChange( params:dict={} ):
 

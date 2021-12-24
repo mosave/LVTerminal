@@ -7,7 +7,6 @@ from lvt.protocol import *
 from lvt.server.grammar import *
 from lvt.server.skill import Skill
 from lvt.server.entities import Entities
-from lvt.server.devices import Devices
 
 # Как часто проверять версию терминала (раз в день?)
 CHECK_VERSION_TIMEOUT = 60 * 60 * 24
@@ -22,51 +21,18 @@ class ServerConfigSkill(Skill):
     def onLoad( this ):
         this.priority = 5000
         this.subscribe( TOPIC_DEFAULT )
-        this.extendVocabulary( "включи выключи используй режим распознавания со словарём, без словаря, с использованием, без использования" )
-        this.extendVocabulary( "обнови перезапусти запусти перезагрузи загрузи терминал" )
-        this.extendVocabulary( "словари словарю" )
+        this.extendVocabulary( "обнови пере запусти загрузи терминал" )
         this.nextVersionCheckOn = datetime.datetime.now()
 
     def onText( this ):
         if this.isAppealed :
-            iOff = this.findWord( 'выключи' )
-            iOn = this.findWord( 'включи' )
-            (iNoDict,_) = this.findWordChain( 'без словаря' )
-            iDict = this.findWord( 'словарь' ) if iNoDict < 0 else -1
-            iRecognize = this.findWord( 'распознавание' )
 
-            if iOn >= 0 and iOn < iDict or iOff >= 0 and iOff < iNoDict :
-                if this.terminal.vocabularyMode:
-                    this.stopParsing( ANIMATION_CANCEL )
-                    this.say( "режим распознавания со словарём уже включен" )
-                else:
-                    this.terminal.vocabularyMode = True
-                    this.terminal.usingVocabulary = True
-                    this.stopParsing( ANIMATION_ACCEPT )
-                    this.say( "Включаю режим распознавания со словарём" )
-            elif iOff >= 0 and iOff < iDict or iOn >= 0 and iOn < iNoDict :
-                if this.terminal.vocabularyMode:
-                    this.terminal.vocabularyMode = False
-                    this.terminal.usingVocabulary = False
-                    this.stopParsing( ANIMATION_ACCEPT )
-                    this.say( "Выключаю режим распознавания со словарём" )
-                else:
-                    this.stopParsing( ANIMATION_CANCEL )
-                    this.say( "режим распознавания со словарём уже выключен" )
-            elif this.findWordChainB( 'обновить список устройств' ):
-                this.stopParsing( ANIMATION_THINK )
-                this.say( "Обновление списка устройств..." )
-
-                thread = threading.Thread( target=this.updateDevices() )
-                thread.daemon = False
-                thread.start()
-            # 
-            elif this.findWordChainB( 'обнови * терминал' )  :
+            if this.findWordChainB( 'обнови * терминал' )  :
                 this.stopParsing( ANIMATION_THINK )
                 this.terminal.updateClient()
 
             # Хак: в словаре малой модели отсутствуют слова "перезагрузи" и "перезапусти"
-            elif this.findWordChainB( 'перезагрузи * терминал' ) or this.findWordChainB( 'перезапусти * терминал' ) or \
+            elif this.findWordChainB( 'пере загрузи * терминал' ) or this.findWordChainB( 'пере запусти * терминал' ) or \
                 this.findWordChainB( 'загрузи * терминал' ) or this.findWordChainB( 'запусти * терминал' ) :
                 this.stopParsing( ANIMATION_THINK )
                 this.say( "Выполняется перезагрузка терминала." )
@@ -86,8 +52,6 @@ class ServerConfigSkill(Skill):
     def updateDevices( this ):
         try:
             Entities.initialize( this.config )
-            Devices.initialize( this.config )
-
-            Devices.updateDefaultDevices()
             this.terminal.updateVocabulary()
         except Exception as e:
+            pass

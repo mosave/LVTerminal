@@ -1,0 +1,2 @@
+#!/bin/bash
+sudo alsactl --file=/etc/voicecard/wm8960_asound.state store

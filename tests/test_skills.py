@@ -19,7 +19,6 @@ from lvt.config_parser import ConfigParser
 from lvt.server.grammar import *
 from lvt.server.config import Config 
 from lvt.server.entities import Entities
-from lvt.server.devices import Devices
 from lvt.server.terminal import Terminal
 from lvt.server.speaker import Speaker
 from lvt.server.skill import Skill
@@ -36,7 +35,6 @@ def onText( text:str, controlPhrase : str=None ):
     text = ""
     for w in words :
         text += ( ' ' if text != '' else '' ) + w
-        terminal.onPartialText( text )
     print( '>>> Анализ фразы' )
     terminal.onText( text )
     print( f'>>> Сообщений в очереди клиента: {len(messageQueue)}' )
@@ -191,12 +189,10 @@ Logger.initialize( config )
 Logger.setLogCapture(logs)
 Grammar.initialize( config )
 Entities.initialize( config )
-Devices.initialize( config )
 Terminal.initialize( config )
 Speaker.initialize( config )
 
 
-#d = Devices().devices['relayToilet']
 #d.methods['on'].execute()
 #d.methods['off'].execute()
 

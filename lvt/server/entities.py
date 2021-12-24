@@ -5,10 +5,10 @@ import json
 from lvt.const import *
 from lvt.logger import *
 from lvt.protocol import *
+import lvt.server.config as config
 from lvt.config_parser import ConfigParser
 from lvt.server.grammar import *
 
-config = None
 vocabulary = None
 acronyms = None
 locations = None
@@ -62,9 +62,8 @@ class Entities():
 
 ### Static methods #####################################################################
 #region
-    def initialize( gConfig ):
-        """Initialize module' config variable for easier access """
-        global config
+    def initialize( ):
+        """Initialize module'  """
         global vocabulary
         global acronyms
         global locations
@@ -73,8 +72,6 @@ class Entities():
         locations = Entities.load( 'locations' )
         vocabulary = Entities.load( 'vocabulary' )
         
-        config = gConfig
-
     def dispose():
         pass
 

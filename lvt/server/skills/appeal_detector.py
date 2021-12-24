@@ -3,6 +3,7 @@ import time
 import datetime
 from lvt.const import *
 from lvt.protocol import *
+import lvt.server.config as config
 from lvt.server.grammar import *
 from lvt.server.skill import Skill
 
@@ -18,110 +19,99 @@ class AppealDetectorSkill(Skill):
     Если в течение 5 секунд распознается очередная фраза
 
     """
-    def onLoad( this ):
+    def onLoad( self ):
         #print('loading AppealDetector')
-        this.priority = 10000
-        this.subscribe( TOPIC_ALL )
-        this.savedTopic = TOPIC_DEFAULT
-        this.waitUntil = 0
-        this.aNames = wordsToList( this.terminal.config.femaleAssistantNames + ' ' + this.terminal.config.maleAssistantNames )
-        this.extendVocabulary('подай голос, скажи что-нибудь,голос,ты здесь,живой, живая, меня слышишь' )
+        self.priority = 10000
+        self.subscribe( TOPIC_ALL )
+        self.savedTopic = TOPIC_DEFAULT
+        self.waitUntil = 0
+        self.aNames = wordsToList( config.assistantNames )
+        self.extendVocabulary('подай голос, скажи что-нибудь,голос,ты здесь,живой, живая, меня слышишь' )
 
-    def onText( this ):
+    def onText( self ):
         # Если в режиме ожидания 
-        if this.topic == TOPIC_WAIT_COMMAND:
+        if self.topic == TOPIC_WAIT_COMMAND:
             # Добавить в начало команды обращение, если нужно
-            if not this.detectAppeals(): this.insertWords( 0,'слушай ' + this.appeal )
+            if not self.detectAppeals(): self.insertWords( 0,'слушай ' + self.appeal )
             # Ставим галочку в терминале что в случае необнаружения команды озвучить appeal_off
-            this.terminal.playAppealOffIfNotStopped = True
+            self.terminal.playAppealOffIfNotStopped = True
             # И перезапустить распознавание без топика
-            this.changeTopic( TOPIC_DEFAULT )
-            this.restartParsing()
+            self.changeTopic( TOPIC_DEFAULT )
+            self.restartParsing()
             return
 
         # Не в режиме ожидания:
         # Проверяем, есть ли в фразе обращение:
-        if this.detectAppeals():
-            this.lastSound = time.time()
-            if this.topic == TOPIC_DEFAULT :
-                this.terminal.animate( ANIMATION_AWAKE )
+        if self.detectAppeals():
+            self.lastSound = time.time()
+            if self.topic == TOPIC_DEFAULT :
+                self.terminal.animate( ANIMATION_AWAKE )
                 # В случае если фраза содержит только обращение - переходим в ожидание команды
-                if len( this.words ) == 1 :
-                    this.savedTopic = this.topic
-                    this.changeTopic( TOPIC_WAIT_COMMAND )
-                    this.stopParsing()
-                elif  this.findWordChainB( 'подай голос' ) or \
-                    this.findWordChainB( 'скажи что-нибудь' ) or \
-                    this.findWordChainB( 'голос' ) :
-                    this.stopParsing( ANIMATION_ACCEPT )
-                    this.say( ['Гав. Гав-гав.', 'мяаау блин.', 'отстаньте от меня','не мешайте, я за домом присматриваю','не мешайте, я думаю', 'шутить изволите?'] )
-                elif  this.findWordChainB( 'ты здесь' ) or \
-                    this.findWordChainB( 'ты * живой' ) :
-                    this.stopParsing( ANIMATION_ACCEPT )
-                    this.say( ['да, конечно', 'куда же я денусь', 'пока всё еще да','живее всех живых','не мешайте, я думаю', 'шутить изволите?'] )
-                elif this.findWordChainB( 'меня слышишь' ) :
-                    this.stopParsing( ANIMATION_ACCEPT )
-                    this.say( ['ну конечно слышу', 'да, '+this.appeal+' не ' + this.conformToAppeal( 'глухая' ), 'слышу-слышу', 'само собой'] )
+                if len( self.words ) == 1 :
+                    self.savedTopic = self.topic
+                    self.changeTopic( TOPIC_WAIT_COMMAND )
+                    self.stopParsing()
+                elif  self.findWordChainB( 'подай голос' ) or \
+                    self.findWordChainB( 'скажи что-нибудь' ) or \
+                    self.findWordChainB( 'голос' ) :
+                    self.stopParsing( ANIMATION_ACCEPT )
+                    self.say( ['Гав. Гав-гав.', 'мяаау блин.', 'отстаньте от меня','не мешайте, я за домом присматриваю','не мешайте, я думаю', 'шутить изволите?'] )
+                elif  self.findWordChainB( 'ты здесь' ) or \
+                    self.findWordChainB( 'ты * живой' ) :
+                    self.stopParsing( ANIMATION_ACCEPT )
+                    self.say( ['да, конечно', 'куда же я денусь', 'пока всё еще да','живее всех живых','не мешайте, я думаю', 'шутить изволите?'] )
+                elif self.findWordChainB( 'меня слышишь' ) :
+                    self.stopParsing( ANIMATION_ACCEPT )
+                    self.say( ['ну конечно слышу', 'да, '+self.appeal+' не ' + self.conformToAppeal( 'глухая' ), 'слышу-слышу', 'само собой'] )
 
-    def onPartialText( this ):
-        # В процессе распознавания текста:
-        # В режиме ожидания команды - увеличиваем таймаут
-        if this.topic == TOPIC_WAIT_COMMAND:
-            this.waitUntil = time.time() + WAIT_COMMAND_TIMEOUT
-        else: # Распознаем наличие обращения
-            if this.detectAppeals():
-                if this.topic == TOPIC_DEFAULT:
-                    this.terminal.animate( ANIMATION_AWAKE )
-
-
-    def detectAppeals( this ):
-        if this.isAppealed :
+    def detectAppeals( self ):
+        if self.isAppealed :
             return True
         aPos = None
         # Получить список имен ассистента
-        for aName in this.aNames: # Встречается ли в фразе имя ассистента?
-            aPos = this.findWord( aName, {'NOUN','nomn','sing'} )
+        for aName in self.aNames: # Встречается ли в фразе имя ассистента?
+            aPos = self.findWord( aName, {'NOUN','nomn','sing'} )
             if aPos >= 0 : 
                 # Сохраняем на будущее как и когда обратились к ассистенту
-                this.terminal.appeal = this.getNormalForm( aPos, {'NOUN','nomn','sing'} )
-                if this.terminal.appeal == 'алиша' : this.terminal.appeal = 'алиса'
-                this.terminal.lastAppealed = datetime.datetime.now()
+                self.terminal.appeal = self.getNormalForm( aPos, {'NOUN','nomn','sing'} )
+                if self.terminal.appeal == 'алиша' : self.terminal.appeal = 'алиса'
+                self.terminal.lastAppealed = datetime.datetime.now()
                 break
 
         if aPos == None or aPos < 0 : return False
 
         # Обращение вида "Эй, ассистент" 
         if aPos > 0 : 
-            if this.isWord( aPos - 1,'эй' ) or this.isWord( aPos - 1,'хэй' ) or this.isWord( aPos - 1,'алло' ) or this.isWord( aPos - 1,'и' ) or this.isWord( aPos - 1,'слушай' ) :
+            if self.isWord( aPos - 1,'эй' ) or self.isWord( aPos - 1,'хэй' ) or self.isWord( aPos - 1,'алло' ) or self.isWord( aPos - 1,'и' ) or self.isWord( aPos - 1,'слушай' ) :
                 # Удаляем незначащее слово
                 aPos -= 1
-                this.deleteWord( aPos )
+                self.deleteWord( aPos )
 
         # Обращение вида "Ассистент, слушай"
-        if aPos + 1 < len( this.words ) :
-            if this.isWord( aPos + 1,'слушай' ) or this.isWord( aPos - 1,'алло' ) :
+        if aPos + 1 < len( self.words ) :
+            if self.isWord( aPos + 1,'слушай' ) or self.isWord( aPos - 1,'алло' ) :
                 # Удаляем незначащее слово
-                this.deleteWord( aPos + 1 )
+                self.deleteWord( aPos + 1 )
 
-        this.terminal.appealPos = aPos
-        this.terminal.isAppealed = True
+        self.terminal.appealPos = aPos
+        self.terminal.isAppealed = True
         return True
 
-    def onTopicChange( this, newTopic: str, params={} ):
+    def onTopicChange( self, newTopic: str, params={} ):
         if newTopic == TOPIC_WAIT_COMMAND :
             # Задаем время ожидания команды
-            this.waitUntil = time.time() + WAIT_COMMAND_TIMEOUT
-            this.play( 'appeal_on.wav' )
-        elif this.topic == TOPIC_WAIT_COMMAND :
+            self.waitUntil = time.time() + WAIT_COMMAND_TIMEOUT
+            self.play( 'appeal_on.wav' )
+        elif self.topic == TOPIC_WAIT_COMMAND :
             # Играем отбой
-            this.waitUntil = 0
+            self.waitUntil = 0
        
-    def onTimer( this ):
-        if( this.topic == TOPIC_WAIT_COMMAND ):
-            if time.time() > this.waitUntil:
-                this.animate( ANIMATION_CANCEL )
-                this.play( 'appeal_off.wav' )
-                this.changeTopic( this.savedTopic )
-                this.terminal.playAppealOffIfNotStopped = False
+    def onTimer( self ):
+        if( self.topic == TOPIC_WAIT_COMMAND ):
+            if time.time() > self.waitUntil:
+                self.animate( ANIMATION_CANCEL )
+                self.play( 'appeal_off.wav' )
+                self.changeTopic( self.savedTopic )
+                self.terminal.playAppealOffIfNotStopped = False
 
 

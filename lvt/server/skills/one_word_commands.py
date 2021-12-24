@@ -13,7 +13,7 @@ class OneWordCommandSkill(Skill):
     def onLoad( this ):
         this.priority = 9700
         this.subscribe( TOPIC_DEFAULT )
-        this.extendVocabulary("свет время");
+        this.extendVocabulary("свет время")
 
     def onText( this ):
         if this.isAppealed and this.appealPos + 2 == len( this.words ):

@@ -4,128 +4,126 @@ import os
 from lvt.client.apa102 import APA102
 from gpiozero import LED
 from lvt.const import *
-from lvt.client.config import Config
 from lvt.client.animator import Animator
+import lvt.client.config as config
 
 class APA102Animator(Animator):
+    def __init__( self, shared ):
 
-    def __init__( this, config: Config, shared ):
-        Animator.__init__( this, config, shared )
+        self.shared = shared
+        self.nPixels = config.apa102LedCount
+        self.muteLeds = config.apa102MuteLeds
+        self.leds = APA102( self.nPixels )
 
-        if config.apa102LedCount<1 or config.apa102LedCount>=127 :
-            raise Exception("Invalid number of APA102 LEDs specified")
-        this.nPixels = config.apa102LedCount
-        this.muteLeds = config.apa102MuteLeds
-        # драйвер
-        this.leds = APA102( num_led=this.nPixels )
         # Подать питание на плату:
-        this.power = LED( 5 )
-        this.power.on()
+        self.power = LED( 5 )
+        self.power.on()
+        Animator.__init__( self, shared )
 
-
-    def __del__( this ):
-        this.off()
-        try: this.power.off()
+    def __del__( self ):
+        try: self.off()
         except:pass
-        try: this.leds.cleanup()
+        try: self.power.off()
+        except:pass
+        try: self.leds.cleanup()
         except:pass
 
 
-    def animationAwake( this, restart:bool ):
+    def animationAwake( self, restart:bool ):
         """Wake up and listening"""
 
         if restart : 
-            this.brAwake = 2
-            this.stepAwake = 2
-            this.timeout = 0.3
+            self.brAwake = 2
+            self.stepAwake = 2
+            self.timeout = 0.3
         else:
-            this.brAwake += this.stepAwake 
-            if this.stepAwake < 0 and this.brAwake < 2 :
-                this.brAwake = 2
-                this.stepAwake = -this.stepAwake
-                this.timeout = 0.5
-            elif this.stepAwake > 0 and this.brAwake > 40 :
-                this.brAwake = 30
-                this.stepAwake = -this.stepAwake
-                this.timeout = 0.05
+            self.brAwake += self.stepAwake 
+            if self.stepAwake < 0 and self.brAwake < 2 :
+                self.brAwake = 2
+                self.stepAwake = -self.stepAwake
+                self.timeout = 0.5
+            elif self.stepAwake > 0 and self.brAwake > 40 :
+                self.brAwake = 30
+                self.stepAwake = -self.stepAwake
+                self.timeout = 0.05
             else:
-                this.timeout = 0.05
+                self.timeout = 0.05
 
 
-        this.show( [255,255,255,this.brAwake] * this.nPixels )
+        self.show( [255,255,255,self.brAwake] * self.nPixels )
         return False
 
-    def animationThink( this, restart:bool ):
+    def animationThink( self, restart:bool ):
         """Thinking"""
         if restart : 
-            this.pxThink = []
-            for i in range( this.nPixels ):
-                this.pxThink.append( this.leds.wheel( int(i*255/this.nPixels) ) )
+            self.pxThink = []
+            for i in range( self.nPixels ):
+                self.pxThink.append( self.leds.wheel( int(i*255/self.nPixels) ) )
         else:
-            this.pxThink.append(this.pxThink[0])
-            this.pxThink.pop(0)
+            self.pxThink.append(self.pxThink[0])
+            self.pxThink.pop(0)
 
-        this.timeout = 1.5/this.nPixels
-        this.showRGB( this.pxThink )
+        self.timeout = 1.5/self.nPixels
+        self.showRGB( self.pxThink )
         return False
 
-    def animationAccept( this, restart:bool ):
+    def animationAccept( self, restart:bool ):
         """Accepted"""
         if restart : 
-            this.brAccept = 100
-            this.timeout = 0.5
+            self.brAccept = 100
+            self.timeout = 0.5
         else:
-            this.brAccept = this.brAccept * 0.5
-            this.timeout = 0.1
-            if this.brAccept < 2 :
-                this.brAccept = 0
-                this.timeout = 0.5
+            self.brAccept = self.brAccept * 0.5
+            self.timeout = 0.1
+            if self.brAccept < 2 :
+                self.brAccept = 0
+                self.timeout = 0.5
 
-        this.show( [0,255,0,this.brAccept] * this.nPixels )
-        return (this.brAccept>0)
+        self.show( [0,255,0,self.brAccept] * self.nPixels )
+        return (self.brAccept>0)
 
-    def animationCancel( this, restart:bool ):
+    def animationCancel( self, restart:bool ):
         """Cancelled / Ignoring"""
         if restart : 
-            this.brCancel = 100
-            this.timeout = 0.5
+            self.brCancel = 100
+            self.timeout = 0.5
         else:
-            this.brCancel = this.brCancel * 0.5
-            this.timeout = 0.1
-            if this.brCancel < 2 :
-                this.brCancel = 0
-                this.timeout = 0.5
+            self.brCancel = self.brCancel * 0.5
+            self.timeout = 0.1
+            if self.brCancel < 2 :
+                self.brCancel = 0
+                self.timeout = 0.5
 
-        this.show( [255,0,0,this.brCancel] * this.nPixels )
-        return (this.brCancel>0)
+        self.show( [255,0,0,self.brCancel] * self.nPixels )
+        return (self.brCancel>0)
 
-    def animationNone( this, restart:bool ):
+    def animationNone( self, restart:bool ):
         """Standup animation"""
-        this.show( [0,0,0,0] * this.nPixels )
-        this.timeout = 0.3
+        self.show( [0,0,0,0] * self.nPixels )
+        self.timeout = 0.3
         return False
 
-    def show( this, pixels ):
-        for i in range( this.nPixels ):
-            this.leds.set_pixel( i, \
+    def show( self, pixels ):
+        for i in range( self.nPixels ):
+            self.leds.set_pixel( i, \
                   int( pixels[4 * i + 0] ), \
                   int( pixels[4 * i + 1] ), \
                   int( pixels[4 * i + 2] ), \
                   int( pixels[4 * i + 3] ) )
 
-        if this.muted :
-            for i in this.muteLeds:
-                this.leds.set_pixel( i, 0,0,255, 100 )
+        if self.muted :
+            for i in self.muteLeds:
+                self.leds.set_pixel( i, 0,0,255, 100 )
 
-        this.leds.show()
+        self.leds.show()
 
-    def showRGB( this, pixels ):
-        for i in range( this.nPixels ):
-            this.leds.set_pixel_rgb( i, pixels[i] )
+    def showRGB( self, pixels ):
+        for i in range( self.nPixels ):
+            self.leds.set_pixel_rgb( i, pixels[i] )
 
-        if this.muted :
-            for i in this.muteLeds:
-                this.leds.set_pixel( i, 0,0,255, 100 )
+        if self.muted :
+            for i in self.muteLeds:
+                self.leds.set_pixel( i, 0,0,255, 100 )
 
-        this.leds.show()
+        self.leds.show()
 

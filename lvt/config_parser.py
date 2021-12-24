@@ -99,7 +99,7 @@ class ConfigParser:
         """
         return int( self.getValue( section, key, str(default) ) )
 
-    def getFloatValue( self, section: str, key: str, default: int ) -> int:
+    def getFloatValue( self, section: str, key: str, default: float ) -> int:
         """Retrieve single (first appearing) value as integer, using default value if not specified
           * section: could be both "SectionName" or "SectionName|SectionId", case-insensitive
           * key: parameter name, case-insensitive

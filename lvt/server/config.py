@@ -3,157 +3,206 @@ import time
 import os
 import getopt
 from lvt.const import *
-from lvt.logger import logError
+from lvt.logger import *
 from lvt.server.grammar import *
 from lvt.config_parser import ConfigParser
 
-class Config:
-    """LVT Server configuration.
-      * terminals: list of terminal configuration sections to be used in Terminal
-      * rhv* properties are defined if RHV voice engine specified only
+fileName : str = 'server.cfg'
+serverAddress : str = '0.0.0.0'
+serverPort : int = 2700
+apiServerPort : int = 7999
+sslCertFile = None
+sslKeyFile = None
+model = None
+fullModel = None
+storeAudio = False
+recognitionThreads : int = 4
+
+# Распознавание голоса
+spkModel = None
+voiceSimilarity : float = 0.6
+voiceSelectivity : float = 0.2
+assistantNames = 'мажордом'
+gender = 'masc'
+
+logFileName = os.path.join( ROOT_DIR, "logs", "server.log")
+logLevel = None
+printLevel = None
+
+voiceLogLevel = None
+voiceLogDir = os.path.join( ROOT_DIR, "logs")
+
+ttsEngine = None
+voice = ''
+rhvParams = dict()
+sapiRate = 0.0
+
+terminals = dict()
+skills = dict()
+
+def init():
+    """Load LVT Server configuration.
     """
+    global fileName
+    global serverAddress
+    global serverPort
+    global apiServerPort
+    global sslCertFile
+    global sslKeyFile
+    global model
+    global fullModel 
+    global storeAudio
+    global recognitionThreads
 
-### __init__  ##########################################################################
-#region
-    def __init__( self ):
-        withConfig = False
-        self.configName = "server.cfg"
-        for arg in sys.argv[1:]:
-            a = arg.strip().lower()
-            if ( a.startswith('-c=') or a.startswith('--config=') ) :
-                self.configName = a.split('=')[1]
-                withConfig = True
+    global spkModel
+    global voiceSimilarity
+    global voiceSelectivity
 
-        if not withConfig:
-            ConfigParser.checkConfigFiles( [
-                'server.cfg',
-                'acronyms', 'locations', 'vocabulary', 'devices', 'persons'
-                ])
-        p = ConfigParser( self.configName )
-        section = 'LVTServer'
-        ### Network configuration
-        self.serverAddress = p.getValue( section, 'ServerAddress','0.0.0.0' )
-        self.serverPort = p.getIntValue( section, 'ServerPort',2700 )
-        self.apiServerPort = p.getIntValue( section, 'APIServerPort', 7999 )
-        self.sslCertFile = p.getValue( section, 'SSLCertFile','' )
-        self.sslKeyFile = p.getValue( section, 'SSLKeyFile','' )
+    global assistantNames
+    global gender
 
-        ### Voice recognition configuration 
-        self.model = p.getValue( section, 'Model','' ).strip()
-        self.fullModel = p.getValue( section, 'FullModel','' ).strip()
-        if self.model=='' and self.fullModel== '':
-            self.error( 'No models specified' )
+    global logFileName
+    global logLevel
+    global printLevel 
+    global voiceLogLevel
+    global voiceLogDir
 
-        self.storeAudio = bool(p.getValue(section,'StoreAudio','0') != '0')
+    global ttsEngine
+    global voice
+    global rhvParams
+    global sapiRate
+    global terminals
+    global skills
 
-        self.recognitionThreads = p.getIntValue( section, 'RecognitionThreads',os.cpu_count() )
-        if( self.recognitionThreads < 1 ): self.recognitionThreads = 1
+    withConfig = False
 
-        self.vocabularyMode = bool(p.getIntValue( section, 'VocabularyMode', 1 ))
-        if self.model=='' : self.vocabularyMode = False
+    for arg in sys.argv[1:]:
+        a = arg.strip().lower()
+        if ( a.startswith('-c=') or a.startswith('--config=') ) :
+            fileName = a.split('=')[1]
+            withConfig = True
 
-        self.language = p.getValue( section, 'Language','ru' )
-        if self.language not in {'ru','uk','en' } : self.language = 'ru'
+    if not withConfig:
+        ConfigParser.checkConfigFiles( [
+            'server.cfg',
+            'acronyms', 'locations', 'vocabulary', 'persons'
+            ])
+    p = ConfigParser( fileName )
+    section = 'LVTServer'
+    ### Network configuration
+    serverAddress = p.getValue( section, 'ServerAddress','0.0.0.0' )
+    serverPort = p.getIntValue( section, 'ServerPort',2700 )
+    apiServerPort = p.getIntValue( section, 'APIServerPort', 7999 )
+    sslCertFile = p.getValue( section, 'SSLCertFile','' )
+    sslKeyFile = p.getValue( section, 'SSLKeyFile','' )
 
-        ### Speaker identification config
-        self.spkModel = p.getValue( section, 'SpkModel','' ).strip()
-        self.voiceSimilarity = p.getFloatValue( section, 'VoiceSimilarity', 0.6 )
-        self.voiceSelectivity = p.getFloatValue( section, 'VoiceSelectivity', 0.2 )
+    ### Voice recognition configuration 
+    model = p.getValue( section, 'Model','' ).strip()
+    if model=='' :
+        __error( 'Не указана модель для распознавания со словарем', 'Model', section )
 
-        ### Assistant configuration
-        self.maleAssistantNames = normalizeWords(p.getValue( section, 'MaleAssistantNames','' ))
-        self.femaleAssistantNames = normalizeWords(p.getValue( section, 'FemaleAssistantNames','' ))
+    fullModel = p.getValue( section, 'FullModel','' ).strip()
 
+    storeAudio = bool(p.getValue(section,'StoreAudio','0') != '0')
+
+    recognitionThreads = p.getIntValue( section, 'RecognitionThreads',int(str(os.cpu_count())) )
+    if( recognitionThreads < 4 ): recognitionThreads = 4
+
+    ### Speaker identification config
+    spkModel = p.getValue( section, 'SpkModel','' ).strip()
+    if( spkModel != "" ) :
+        voiceSimilarity = p.getFloatValue( section, 'VoiceSimilarity', 0.6 )
+        if( voiceSimilarity<0.1 or voiceSimilarity>1 ): 
+            __error( '"Коэффициент похожести" голоса должен находиться в диапазоне 0.1 .. 1.0', 'VoiceSimilarity', section )
+
+        voiceSelectivity = p.getFloatValue( section, 'VoiceSelectivity', 0.2 )
+        if( voiceSelectivity<0 or voiceSelectivity>1.0 ): 
+            __error( '"Коэффициент похожести" голоса должен находиться в диапазоне 0 .. 1.0', 'voiceSelectivity', section )
+
+    ### Assistant configuration
+    aNames = wordsToList(normalizeWords(p.getValue( section, 'AssistantNames','' )))
           
-        if( len( wordsToList( self.maleAssistantNames + ' ' + self.femaleAssistantNames) ) == 0 ): 
-            self.error( 'Either MaleAssistantNames or FemaleAssistantNames should be specified' )
+    if len( aNames ) == 0 : 
+        __error( 'Необходимо задать хотя бы одно имя для ассистента', 'AssistantNames', section )
 
-        ### Logging
-        self.logFileName = p.getValue( section, "Log", None )
-        self.logLevel = p.getIntValue( section, "LogLevel",20 )
-        self.printLevel = p.getIntValue( section, "PrintLevel",20 )
+    assistantNames = ''
+    for aName in aNames:
+        assistantNames = (assistantNames + ' ' + normalFormOf( str(aName), {'NOUN','nomn','sing'} )).strip()
 
-        ### TTS Engine
-        self.ttsEngine = p.getValue( section, 'TTSEngine', '' )
+    gender = p.getValue( section, 'Gender','' ).strip().lower()
+    if gender not in {'m','f'} :
+        __error( 'Необходимо указать пол ассистента [M, F]', 'Gender', section )
+    gender = 'masc' if gender=='m' else 'femn'
 
-        if str( self.ttsEngine ) == '':
-            pass
-        elif( self.ttsEngine.lower().strip() == TTS_RHVOICE.lower() ):
-            self.ttsEngine = TTS_RHVOICE
 
-            section = TTS_RHVOICE
-            self.rhvDataPath = p.getValue( section, 'data_path', None )
-            self.rhvConfigPath = p.getValue( section, 'config_path', None )
+    ### Logging
+    logFileName = p.getValue( section, "Log", None )
+    if not bool(logFileName) :
+        logFileName = "server.log"
+    if os.path.dirname(logFileName) == '':
+        logFileName = os.path.join( ROOT_DIR, "logs", logFileName)
 
-            self.rhvParamsMale = self.loadRHVoiceParams( "RHVoiceMale", p )
-            self.rhvParamsFemale = self.loadRHVoiceParams( "RHVoiceFemale", p )
+    logLevel = p.getIntValue( section, "LogLevel",20 )
+    printLevel = p.getIntValue( section, "PrintLevel",20 )
 
-            if self.rhvParamsMale == None and self.rhvParamsFemale == None :
-                self.error('В конфигурации обязательно должна быть определена хотя бы одна из секций [RHVoiceMale] или [RHVoiceFemale]') 
-        elif( self.ttsEngine.lower().strip() == TTS_SAPI.lower() ):
-            self.ttsEngine = TTS_SAPI
-            section = TTS_SAPI
-            self.sapiMaleVoice = p.getValue( section, 'MaleVoice', None )
-            self.sapiFemaleVoice = p.getValue( section, 'FemaleVoice', None )
-            if not self.sapiMaleVoice : self.sapiMaleVoice = self.sapiFemaleVoice
-            if not self.sapiFemaleVoice : self.sapiFemaleVoice = self.sapiMaleVoice
-            self.sapiMaleRate = p.getIntValue( section, "MaleRate", 0 )
-            self.sapiFemaleRate = p.getIntValue( section, "FemaleRate", 0 )
-            if (self.sapiMaleRate<-10) or (self.sapiMaleRate>10):
-                self.sapiMaleRate = 0
-            if (self.sapiFemaleRate<-10) or (self.sapiFemaleRate>10):
-                self.sapiFemaleRate = 0
-        else:
-            self.error( 'Неверное значение','TTSEngine' )
+    voiceLogDir = p.getValue( section, "VoiceLogDir", None )
+    if not bool(voiceLogDir) :
+        voiceLogDir = os.path.join( ROOT_DIR, "logs")
+    voiceLogLevel = p.getIntValue( section, "VoiceLogLevel",None )
 
-        ### Terminals
-        self.terminals = dict()
-        for section in p.sections :
-            if section.lower().startswith("terminal|") :
-                id = p.getValue(section,'ID','').strip().lower()
-                pwd = p.getValue(section,'Password','')
-                if id=='' or pwd=='':
-                    self.error( 'Необходимо задать значения параметров ID и Password')
-                self.terminals[id] = {
-                    'password': pwd,
-                    'name': p.getValue(section,'Name',id),
-                    'location': p.getValue(section,'Location',''),
-                    'autoupdate': p.getIntValue(section,'AutoUpdate',1)
-                }
-                if self.terminals[id]['autoupdate'] not in [0,1,2] :
-                    self.error( 'Неверное значение','AutoUpdate')
-        ### Skills
-        self.skills = dict()
-        for section in p.sections :
-            if section.lower().find("skill|")>0 :
-                cfg = p.getRawValues(section)
-                cfg['enable'] = bool(p.getValue(section,'Enable','1')!='0')
-                self.skills[section.split('|')[0].lower()] = cfg
+    ### TTS Engine
+    ttsEngine = p.getValue( section, 'TTSEngine', '' )
 
-    def loadRHVoiceParams( self, section: str, p: ConfigParser ) :
+    if( ttsEngine.lower().strip() == TTS_RHVOICE.lower() ):
+        ttsEngine = TTS_RHVOICE
+        section = TTS_RHVOICE
         rhvParams = p.getValues( section )
-        if( rhvParams != None ):
-            for key in rhvParams: 
-                try: 
-                    rhvParams[key] = int( rhvParams[key] )
-                except:
-                    try:
-                        rhvParams[key] = float( rhvParams[key] )
-                    except:
-                        pass
-            if 'voice' not in rhvParams or str(rhvParams['voice']).strip()=='':
-                self.error(f'Не определено', 'Voice', section )
-        return rhvParams
+        voice = str(p.getValue( section, 'Voice', '' )).strip()
+        if voice == '' : __error(f'Не определена переменная Voice', 'Voice',  section )
 
-    def error(self, message:str, parameter:str = None, section:str = None):
-        s = os.path.basename(self.configName)
-        if str(section)!="" : s = s + "=>"+section
-        if str(parameter)!="" : s = s + "=>"+parameter
-        print(f'{s}: {message}')
-        logError( message )
-        quit(1);
+    elif( ttsEngine.lower().strip() == TTS_SAPI.lower() ):
+        ttsEngine = TTS_SAPI
+        section = TTS_SAPI
+        voice = str(p.getValue( section, 'Voice', '' )).strip()
 
-#endregion
+        if voice=='' : __error( 'Не определена переменная Voice','Voice', section )
 
-       
+        sapiRate = p.getIntValue( section, "Rate", 0 )
+        if (sapiRate<-10) or (sapiRate>10): sapiRate = 0
+    else:
+        __error( f'Неверное значение [{TTS_RHVOICE}, {TTS_SAPI}]','TTSEngine', section )
+
+
+    ### Terminals
+    terminals = dict()
+    for section in p.sections :
+        if section.lower().startswith("terminal|") :
+            id = p.getValue(section,'ID','').strip().lower()
+            pwd = p.getValue(section,'Password','')
+            if id=='' or pwd=='':
+                __error( 'Необходимо задать значения параметров ID и Password')
+            terminals[id] = {
+                'password': pwd,
+                'name': p.getValue(section,'Name',id),
+                'location': p.getValue(section,'Location',''),
+                'autoupdate': p.getIntValue(section,'AutoUpdate',1)
+            }
+            if terminals[id]['autoupdate'] not in [0,1,2] :
+                __error( 'Неверное значение','AutoUpdate')
+    ### Skills
+    skills = dict()
+    for section in p.sections :
+        if section.lower().find("skill|")>0 :
+            cfg = p.getRawValues(section)
+            cfg['enable'] = bool(p.getValue(section,'Enable','1')!='0')
+            skills[section.split('|')[0].lower()] = cfg
+
+    loggerInit( sys.modules[__name__] )
+
+def __error(message:str, parameter:str = '', section:str = ''):
+    s = os.path.basename(fileName)
+    if str(section)!="" : s = s + str("=>"+section)
+    if str(parameter)!="" : s = s + str("=>"+parameter)
+    print(f'{s}: {message}')
+    fatalError( message )
 

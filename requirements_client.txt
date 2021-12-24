@@ -1,9 +1,11 @@
 pyaudio
+pyalsaaudio
 websockets 
 webrtcvad
 rhvoice_wrapper 
 numpy
 spidev
 gpiozero
+rpi.gpio
 pkg_resources
 

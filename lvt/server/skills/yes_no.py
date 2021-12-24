@@ -79,11 +79,6 @@ class YesNoSkill(Skill):
         this.say('Извините, я не '+this.conformToAppeal('понял')+' что вы сказали. Скажите пожалуйста да или нет')
         this.stopParsing()
 
-    def onPartialText( this ):
-        if this.topic == TOPIC_YES_NO : 
-            this.dtRepeat = time.time() + TIMEOUT_REPEAT
-            this.dtCancel = time.time() + TIMEOUT_CANCEL
-
     def onTopicChange( this, newTopic: str, params={} ):
         if newTopic == TOPIC_YES_NO:
             this.dtRepeat = time.time() + TIMEOUT_REPEAT

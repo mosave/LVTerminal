@@ -3,147 +3,221 @@ import time
 import os
 import pyaudio
 from lvt.const import *
-from lvt.logger import logError
+from lvt.logger import *
 from lvt.config_parser import ConfigParser
 
-global audio
+fileName = 'client.cfg'
+serverAddress : str = ''
+serverPort : int = 2700
 
-class Config:
-    def initialize( gAudio: pyaudio.PyAudio ):
-        global audio
-        audio = gAudio
+terminalId : str = ''
+password : str = ''
 
-    """LVT Client Configuration"""
-    def __init__( self ):
-        withConfig = False
-        self.configName = 'client.cfg'
-        for arg in sys.argv[1:]:
-            a = arg.strip().lower()
-            if ( a.startswith('-c=') or a.startswith('--config=') ) :
-                self.configName = arg.strip().split('=')[1]
-                withConfig = True
+ssl = False
+sslAllowAny = True
 
-        if not withConfig:
-            ConfigParser.checkConfigFiles( ['client.cfg'])
+logFileName = os.path.join( ROOT_DIR, "logs", "client.log")
+logLevel = 20
+printLevel = 20
 
-        p = ConfigParser( self.configName )
+audioOutputDevice = None
+audioOutputName = None
 
-        self.serverAddress = p.getValue( '', "serverAddress","" )
-        if len( self.serverAddress.strip() ) == 0:
-            self.configError( "Не задан адрес сервера","serverAddress" )
-        self.serverPort = p.getIntValue( '', "ServerPort", 2700 )
-        self.terminalId = p.getValue( '', "TerminalId", '' ).replace( ' ','' ).lower()
-        if len( self.terminalId ) <= 0 :
-            self.configError( "Не задан ID терминала","TerminalId" )
+audioInputDevice = None
+audioInputName = None
 
-        self.password = p.getValue( '', "Password",'' ).replace( ' ','' )
+volumeControl = None
+volumeControlPlayer = None
+volumeCardIndex = 0
 
-        if len( self.password ) <= 0 :
-            self.configError( "Не задан пароль","Password" )
+channels = 1
+microphones = [1]
+micSelection = 'avg'
 
-        self.ssl = bool( p.getIntValue( '', "UseSSL",0 ) )
-        self.sslAllowAny = bool( p.getIntValue( '', "AllowAnyCert",0 ) )
-        # audioInput and
+noiseThreshold = 200
+vadSelectivity = 3
+vadConfidence = 80
 
-        self.logFileName = p.getValue( '', "Log", None )
-        self.logLevel = p.getIntValue( '', "LogLevel",20 )
-        self.printLevel = p.getIntValue( '', "PrintLevel",20 )
+animator = 'text'
+apa102LedCount = 3
+apa102MuteLeds = [0]
 
-        #Audio output settings
-        (self.audioOutputDevice, self.audioOutputName ) = self.getAudioDevice( p.getValue( "", 'AudioOutputDevice', None ), False )
+def init( audio: pyaudio.PyAudio ):
+    global fileName
+    global serverAddress
+    global serverPort
+    global terminalId
+    global password
+    global ssl
+    global sslAllowAny
+    global logFileName
+    global logLevel
+    global printLevel
+    global audioOutputDevice
+    global audioOutputName
+    global audioInputDevice 
+    global audioInputName
+    global volumeControl
+    global volumeControlPlayer
+    global volumeCardIndex
 
-        self.volumeControl = p.getValue("","LVTVolumeControl",None)
-        self.volumeControlPlayer = p.getValue("","PlayerVolumeControl",None)
-        self.volumeCardIndex = p.getIntValue("", "VolumeCardIndex", 0 )
+    global channels
+    global microphones
+    global noiseThreshold
+    global vadSelectivity
+    global vadConfidence
+    global animator
+    global apa102LedCount
+    global apa102MuteLeds
 
-        # Microphone settings
-        (self.audioInputDevice, self.audioInputName) = self.getAudioDevice( p.getValue( "", 'AudioInputDevice', None ), True )
+    withConfig = False
 
-        self.channels = p.getIntValue( '', 'Channels', 1 )
-        if self.channels<1 or self.channels>16: 
-            self.configError("Неверное количество каналов [1..16]","Channels")
+    fileName = 'client.cfg'
+    fileName = 'client.cfg'
+    for arg in sys.argv[1:]:
+        a = arg.strip().lower()
+        if ( a.startswith('-c=') or a.startswith('--config=') ) :
+            fileName = arg.strip().split('=')[1]
+            withConfig = True
 
-        try:
-            allMicrophones = ','.join([str(m) for m in range(0, self.channels)])
-            self.microphones = set(map(int, p.getValue( '', 'Microphones', allMicrophones).split(",") ))
-        except:
-            self.microphones = set(range(0, self.channels) )
+    if not withConfig:
+        ConfigParser.checkConfigFiles( ['client.cfg'])
 
-        for mic in self.microphones:
-            if (mic<0) or (mic>=self.channels):
-                self.configError("Неверно указаны индексы микрофонных каналов","Microphones")
+    p = ConfigParser( fileName )
 
-        self.micSelection = p.getValue( '', "MicSelection",'avg' ).strip().lower()
-        if self.micSelection not in ['avg', 'rms'] : 
-            self.configError( f"Неверный метод группировки микрофонных каналов [AVG, RMS]","MicSelection" )
+    serverAddress = p.getValue( '', "serverAddress","" )
+    if not bool( serverAddress.strip() ):
+        __error( "Не задан адрес сервера","serverAddress" )
+    serverPort = p.getIntValue( '', "ServerPort", 2700 )
+    terminalId = p.getValue( '', "TerminalId", '' ).replace( ' ','' ).lower()
+    if not bool( terminalId ):
+        __error( "Не задан ID терминала","TerminalId" )
 
-        self.noiseThreshold = p.getIntValue( '', "NoiseThreshold", 200 )
-        if self.noiseThreshold<50 or self.noiseThreshold>1000: 
-            self.configError("Invalid value [50..1000]","NoiseThreshold")
+    password = p.getValue( '', "Password",'' ).replace( ' ','' )
 
-        self.vadSelectivity = p.getIntValue( '', "VADSelectivity", 3 )
-        if self.vadSelectivity<0 or self.vadSelectivity>3: 
-            self.configError("Invalid value [0..3]","VADSelectivity")
+    if not bool( password ) :
+        __error( "Не задан пароль","Password" )
 
-        self.vadConfidence = p.getIntValue( '', "VADConfidence", 80 )
-        if self.vadConfidence<10 or self.vadConfidence>100: 
-            self.configError("Invalid value [10..100]","VADConfidence")
+    ssl = bool( p.getIntValue( '', "UseSSL",0 ) )
+    sslAllowAny = bool( p.getIntValue( '', "AllowAnyCert",0 ) )
+    # audioInput and
+
+    logFileName = p.getValue( '', "Log", None )
+    if not bool(logFileName): logFileName = "client.log"
+    if os.path.dirname(logFileName) == '':
+        logFileName = os.path.join( ROOT_DIR, "logs", logFileName)
+
+    logLevel = p.getIntValue( '', "LogLevel", None )
+    printLevel = p.getIntValue( '', "PrintLevel", None )
+
+    #Audio output settings
+    (audioOutputDevice, audioOutputName ) = __getAudioDevice( audio, p.getValue( "", 'AudioOutputDevice', None ), False )
+
+    volumeControl = p.getValue("","LVTVolumeControl",None)
+    volumeControlPlayer = p.getValue("","PlayerVolumeControl",None)
+    volumeCardIndex = p.getIntValue("", "VolumeCardIndex", 0 )
+
+    # Microphone settings
+    (audioInputDevice, audioInputName) = __getAudioDevice( audio, p.getValue( "", 'AudioInputDevice', None ), True )
+
+    channels = p.getIntValue( '', 'Channels', 1 )
+    if channels<1 or channels>16: 
+        __error("Неверное количество каналов [1..16]","Channels")
+
+    try:
+        allMicrophones = ','.join([str(m) for m in range(0, channels)])
+        microphones = set(map(int, p.getValue( '', 'Microphones', allMicrophones).split(",") ))
+    except:
+        microphones = set(range(0, channels) )
+
+    for mic in microphones:
+        if (mic<0) or (mic>=channels):
+            __error("Неверно указаны индексы микрофонных каналов","Microphones")
+
+    micSelection = p.getValue( '', "MicSelection",'avg' ).strip().lower()
+    if micSelection not in ['avg', 'rms'] : 
+        __error( f"Неверный метод группировки микрофонных каналов [AVG, RMS]","MicSelection" )
+
+    noiseThreshold = p.getIntValue( '', "NoiseThreshold", 200 )
+    if noiseThreshold<50 or noiseThreshold>1000: 
+        __error("Неверное пороговое значение уровня шума [50..1000]","NoiseThreshold")
+
+    vadSelectivity = p.getIntValue( '', "VADSelectivity", 3 )
+    if vadSelectivity<0 or vadSelectivity>3: 
+        __error("Неверное значение избирательности детектора голоса [0..3]","VADSelectivity")
+
+    vadConfidence = p.getIntValue( '', "VADConfidence", 80 )
+    if vadConfidence<10 or vadConfidence>100: 
+        __error("Неверное значение коэффициента надежности детектора голоса [10..100]","VADConfidence")
 
 
            
-        self.animator = p.getValue( '', "Animator",'text' ).strip().lower()
-        if self.animator not in ['apa102','text'] : 
-            self.configError( "Invalid value [text, apa102]","Animator" )
-        if self.animator=='apa102' :
-            n = p.getIntValue('','APA102LEDCount',3)
-            self.apa102LedCount = 1 if n<1 else 127 if n>127 else n
-            self.apa102MuteLeds = set()
-            leds = p.getValue( '', "APA102MuteLEDs",'0' ).strip().split(',')
-            for s in leds :
-                try: n = int(s)
-                except: n=-1
-                if (n>=0) and (n<self.apa102LedCount) : 
-                    self.apa102MuteLeds.add(n)
+    animator = p.getValue( '', "Animator",'text' ).strip().lower()
+    if animator not in ['apa102','text'] : 
+        __error( "Недопустимый тип аниматора [text, apa102]","Animator" )
+    if animator=='apa102' :
+        n = p.getIntValue('','APA102LEDCount',3)
+        apa102LedCount = 1 if n<1 else 127 if n>127 else n
+        apa102MuteLeds = set()
+        leds = p.getValue( '', "APA102MuteLEDs",'0' ).strip().split(',')
+        for s in leds :
+            try: n = int(s)
+            except: n=-1
+            if (n>=0) and (n<apa102LedCount) : 
+                apa102MuteLeds.add(n)
 
+    loggerInit( sys.modules[__name__] )
 
-    def getAudioDevice( self, deviceIndex, isInput:bool ):
-        global audio 
-        # Use default device if not specified
-        if deviceIndex == None :
-            try:
-                if isInput :
-                    deviceIndex = audio.get_default_input_device_info().get( 'index' )
-                else:
-                    deviceIndex = audio.get_default_output_device_info().get( 'index' )
-            except:
-                deviceIndex = None
+def __getAudioDevice( audio: pyaudio.PyAudio, deviceIndex, isInput:bool ):
+    parameter = f'Audio{("input" if isInput else "Output")}Device'
+    # Use default device if not specified
+    if deviceIndex == None :
+        try:
+            if isInput :
+                a = audio.get_default_input_device_info()
+                deviceIndex = audio.get_default_input_device_info().get( 'index' )
+            else:
+                deviceIndex = audio.get_default_output_device_info().get( 'index' )
+        except:
+            deviceIndex = 0
 
-        if deviceIndex == None : return(None, None)
+    if deviceIndex == None : 
+        __error( 'Неверное имя или индекс аудиоустройтсва', parameter )
+        return(None, None)
 
-        # Extract device index if possible
-        try: deviceIndex = int( deviceIndex )
-        except: deviceIndex = str( deviceIndex )
+    # Extract device index if possible
+    try: deviceIndex = int( deviceIndex )
+    except: deviceIndex = str( deviceIndex )
 
-        # Resolve audio input & output devices over the list of devices
-        # available
-        deviceName = None
-        for i in range( audio.get_device_count() ):
-            #print(audio.get_device_info_by_index( i ))
-            name = audio.get_device_info_by_index( i ).get( "name" )
-            # Resolve index by device name
-            if ( type( deviceIndex ) is str ) and name.lower().startswith( deviceIndex.lower() ) : deviceIndex = i
-            # Assign original device name
-            if ( type( deviceIndex ) is int ) and ( deviceIndex == i ) : 
-                deviceName = name
-                break
+    # Resolve audio input & output devices over the list of devices
+    # available
+    deviceName = None
+    device = 0
+    for i in range( audio.get_device_count() ):
+        #print(audio.get_device_info_by_index( i ))
+        device = audio.get_device_info_by_index( i )
+        name = str(device.get( "name" ))
+        # Resolve index by device name
+        if ( type( deviceIndex ) is str ) and name.lower().startswith( deviceIndex.lower() ) : deviceIndex = i
+        # Assign original device name
+        if ( type( deviceIndex ) is int ) and ( deviceIndex == i ) :
+            deviceName = name
+            break
 
-        # check if device was resolved
-        if deviceIndex != None and deviceName == None : 
-            self.configError( 'Invalid Device Name', f'Audio{("input" if isInput else "Output")}Device' )
-        return (deviceIndex, deviceName)
+    # check if device was resolved
+    if deviceIndex == None or deviceName == None : 
+        __error( 'Неверное имя или индекс аудиоустройтсва', parameter )
 
-    def configError(self, message:str, parameter:str = None):
-        print(f'{os.path.basename(self.configName)}{("=>"+parameter if str(parameter)!="" else "")}: {message}')
-        logError( message )
-        quit(1);
+    channels = device.get('maxInputChannels') if isInput else device.get('maxOutputChannels')
+    if channels <=0 : 
+        __error( f'Устройство не имеет {"аудиовходов" if isInput else "аудиовыходов"}', parameter )
+
+    return (deviceIndex, deviceName)
+
+def __error( message:str, parameter:str = '' ):
+    global fileName
+    p = "=>"+parameter if parameter!='' else ''
+    print(f'{os.path.basename(fileName)}{p}: {message}')
+    logError( message )
+    quit(1)
 

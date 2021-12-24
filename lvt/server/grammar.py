@@ -1,21 +1,38 @@
 import pymorphy2
 
-morphy = None
+morphy = pymorphy2.MorphAnalyzer( lang='ru' )
 
-class Grammar():
-    """Just to export static initialization method uniformly"""
-    def initialize( gConfig ):
-        #global config
-        global morphy
-        #config = gConfig
-        morphy = pymorphy2.MorphAnalyzer( lang=gConfig.language )
-        pass
-### pymorphy2 isolation ################################################################
 #region
 def parseWord( word: str ):
     """Parse word using phmorphy2 library"""
     global morphy
     return morphy.parse( word )
+
+def parseText( text ):
+    """Convert text to array of parsed words"""
+    global morphy
+    text = wordsToList( normalizeWords( text ) )
+    parsedText = list()
+    for w in text:
+        parses = parseWord( w )
+        #Проигнорировать предикативы, наречия, междометия и частицы
+        #if {'PRED'} not in parses[0].tag and {'ADVB'} not in parses[0].tag
+        #and {'INTJ'} not in parses[0].tag and {'PRCL'} not in
+        #parses[0].tag :
+        #Проигнорировать междометия
+        if {'INTJ'} not in parses[0].tag :
+            parsedText.append( parses )
+
+    return parsedText
+
+def normalFormOf( word: str, tags=None ) -> str:
+    """Возвращает нормальную форму слова с учетом морфологических признаков"""
+    parses = parseWord( word )
+    for p in parses:
+        if ( tags == None ) or tags in p.tag: 
+            return p.normal_form#.replace( 'ё', 'e' )
+    return ''
+
 
 def changeGender( tags, gender ) :
     try:

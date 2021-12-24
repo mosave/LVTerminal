@@ -3,27 +3,27 @@ import importlib
 from lvt.const import *
 from lvt.logger import *
 from lvt.server.grammar import *
-from lvt.server.config import Config
+import lvt.server.config as config
 from lvt.server.entities import Entities
 
 class Skill:
     """Базовый класс скиллов
     Описания класса используются для автодокументирования возможностей ассистента.
     """
-    def __init__( this, terminal, moduleFileName: str, name: str, cfg: dict ):
-        this.terminal = terminal
-        this.moduleFileName = moduleFileName
-        this.name = name
-        this.cfg = cfg
-        this.subscriptions = set()
-        this.vocabulary = set()
+    def __init__( self, terminal, moduleFileName: str, name: str, cfg: dict ):
+        self.terminal = terminal
+        self.moduleFileName = moduleFileName
+        self.name = name
+        self.cfg = cfg
+        self.subscriptions = set()
+        self.vocabulary = set()
         # Чем выше значение приоритета, тем ближе к началу в цепочке
         # распознавания ставится скил
-        this.priority = 0
+        self.priority = 0
         # Переход в новое состояние
-        this.onLoad()
+        self.onLoad()
 
-    def onLoad( this ):
+    def onLoad( self ):
         """Вызывается при инициализации скилла. 
         Обазательная конфигурация:
           * Состояния, к которым необходимо прибиндить скил
@@ -32,16 +32,16 @@ class Skill:
 
         # Состояния, в которых скилл должен вызываться в при распозновании
         # фразы
-        # this.subscribe( TOPIC_ALL )
-        # this.subscribe( TOPIC_DEFAULT )
-        # this.unsubscribe( TOPIC_DEFAULT )
+        # self.subscribe( TOPIC_ALL )
+        # self.subscribe( TOPIC_DEFAULT )
+        # self.unsubscribe( TOPIC_DEFAULT )
 
-        # this.extendVocabulary("список слов словаря", {'теги'})
+        # self.extendVocabulary("список слов словаря", {'теги'})
         #
         #
         pass
 
-    def onText( this ):
+    def onText( self ):
         """Вызывается после завершения распознавания фразы в случае если скилл привязан к текущему состоянию
           * appeal - в фразе присутствует обращение к ассистенту
         Возвращаемое значение, tuple:
@@ -49,25 +49,16 @@ class Skill:
         """
         pass
 
-    def onPartialText( this ):
-        """Вызывается в процессе распознавания фразы если скилл привязан к текущему состоянию
-          * text
-          * appeal - в фразе присутствует обращение к ассистенту
-        Возвращаемое значение, tuple:
-        (<новое состояние>, <прервать дальнейшую обработку фразы> )
-        """
-        pass
-
-    def onTopicChange( this, newTopic:str, params={} ):
+    def onTopicChange( self, newTopic:str, params={} ):
         """Вызывается при переходе синтаксического анализатора в состояние, на которое подписан скилл
         """
         pass
         
-    def onTimer( this ):
+    def onTimer( self ):
         """Вызывается примерно 1 раз в секунду, в зависимости от """
         pass
 
-    def getSkillFileName( this, ext: str ) -> str:
+    def getSkillFileName( self, ext: str ) -> str:
         """Generate skill-related file name by adding extension"""
         if not isinstance( ext,str ) :
             ext = ''
@@ -75,95 +66,85 @@ class Skill:
             ext = '.' + ext
         # :)
         if ext == '.py': ext = '.py.dat'
-        return os.path.splitext( moduleFileName )[0] + ext
+        return os.path.splitext( self.moduleFileName )[0] + ext
 
 ### Terminal wrappers ##################################################################
 #region
     @property
-    def isAppealed( this ): return this.terminal.isAppealed
+    def isAppealed( self ): return self.terminal.isAppealed
     @property
-    def lastAppealed( this ): return this.terminal.lastAppealed
+    def lastAppealed( self ): return self.terminal.lastAppealed
     @property
-    def appealPos( this ): return this.terminal.appealPos
+    def appealPos( self ): return self.terminal.appealPos
     @property
-    def appeal( this ): return this.terminal.appeal
+    def appeal( self ): return self.terminal.appeal
     @property
-    def location( this ): return this.terminal.location
+    def location( self ): return self.terminal.location
     @property
-    def locations( this ): return this.terminal.locations
+    def locations( self ): return self.terminal.locations
     @property
-    def entities( this ) -> Entities: return this.terminal.entities
+    def entities( self ) -> Entities: return self.terminal.entities
 
     @property
-    def words( this ): return this.terminal.words
+    def words( self ): return self.terminal.words
     @property
-    def text( this ) -> str: return this.terminal.text
+    def text( self ) -> str: return self.terminal.text
     @property
-    def originalText( this ) -> str: return this.terminal.originalText
+    def originalText( self ) -> str: return self.terminal.originalText
     @property
-    def topic( this ) -> str: return this.terminal.topic
-    @property
-    def config( this ) -> Config: return this.terminal.config
+    def topic( self ) -> str: return self.terminal.topic
 
-    def animate( this, animation:str ): this.terminal.animate( animation )
-    def say( this, text ): this.terminal.say( text )
-    def play( this, waveFileName ): this.terminal.play( waveFileName )
-    def log( this, msg:str ): log( f'[{this.terminal.id}.{this.name}]: {msg}' )
-    def logError( this, msg:str ): logError( f'[{this.terminal.id}.{this.name}]: {msg}' )
-    def logDebug( this, msg:str ): logDebug( f'[{this.terminal.id}.{this.name}]: {msg}' )
+    def animate( self, animation:str ): self.terminal.animate( animation )
+    def say( self, text ): self.terminal.say( text )
+    def play( self, waveFileName ): self.terminal.play( waveFileName )
+    def log( self, msg:str ): log( f'[{self.terminal.id}.{self.name}]: {msg}' )
+    def logError( self, msg:str ): logError( f'[{self.terminal.id}.{self.name}]: {msg}' )
+    def logDebug( self, msg:str ): logDebug( f'[{self.terminal.id}.{self.name}]: {msg}' )
 #endregion
 
 ### Манипуляции словами и цепочками слов - поиск, удаление, подмена ####################
 #region
-    def getNormalFormOf( this, word: str, tags=None ) -> str:
-        """Возвращает нормальную форму слова с учетом морфологических признаков"""
-        parses = parseWord( word )
-        for p in parses:
-            if ( tags == None ) or tags in p.tag: 
-                return p.normal_form#.replace( 'ё', 'e' )
-        return ''
-
-    def getNormalForm( this, index: int, tags=None ) -> str:
+    def getNormalForm( self, index: int, tags=None ) -> str:
         """Возвращает нормальную форму слова в фразе с учетом морфологических признаков"""
-        for p in this.words[index]:
+        for p in self.words[index]:
             if ( tags == None ) or tags in p.tag: 
                return p.normal_form#.replace( 'ё', 'e' )
         return ''
 
-    def conformToAppeal( this, word: str ) -> str:
+    def conformToAppeal( self, word: str ) -> str:
         """Согласовать слово с обращением (мужской-женский-средний род)"""
         parse = parseWord( word )[0]
-        return parse.inflect( changeGender( parse.tag, this.terminal.gender ) ).word
+        return parse.inflect( changeGender( parse.tag, config.gender ) ).word
 
-    def isWord( this, index, word: str, tags=None ) -> bool:
+    def isWord( self, index, word: str, tags=None ) -> bool:
         """Сравнение слова со словом в фразе с учетом морфологических признаков"""
         if word == None or not isinstance( word, str ) : return False
 
-        nf = this.getNormalFormOf( word, tags )
-        for p in this.terminal.words[index]:
+        nf = normalFormOf( word, tags )
+        for p in self.terminal.words[index]:
             #if ( tags == None or tags in p.tag ) and ( p.normal_form.replace( 'ё', 'e' ) == nf ): 
             if ( tags == None or tags in p.tag ) and ( p.normal_form == nf ): 
                 return True
         return False
 
-    def isInTag( this, index, tags ) -> bool:
+    def isInTag( self, index, tags ) -> bool:
         """Проверка соответствия слова в фразе морфологическим признакам"""
-        for p in this.terminal.words[i]:
+        for p in self.terminal.words[i]:
             if tags in p.tag: 
                 return True
         return False
 
-    def findWord( this, word: str, tags=None ) -> int:
+    def findWord( self, word: str, tags=None ) -> int:
         """Поиск в фразе слова с заданными морфологическими признаками"""
-        nf = this.getNormalFormOf( word,tags )
-        for index in range( len( this.terminal.words ) ):
-            for p in this.terminal.words[index]:
+        nf = normalFormOf( word,tags )
+        for index in range( len( self.terminal.words ) ):
+            for p in self.terminal.words[index]:
                 #if ( tags == None or tags in p.tag ) and p.normal_form.replace( 'ё', 'e' ) == nf: 
                 if ( tags == None or tags in p.tag ) and p.normal_form == nf: 
                     return index
         return -1
 
-    def findWordChain( this, chain: str, startIndex: int=0 ) :
+    def findWordChain( self, chain: str, startIndex: int=0 ) :
         """Поиск в фразе цепочки слов по шаблону
        Возвращает индекс первого слова в цепочке и длину
        Поддерживаемые шаблоны: 
@@ -172,8 +153,8 @@ class Skill:
        """
 
         cWords = wordsToList( chain )
-        txt = wordsToList(this.terminal.text)
-        lenW = len( this.terminal.words )
+        txt = wordsToList(self.terminal.text)
+        lenW = len( self.terminal.words )
         lenCW = len( cWords )
         if lenW<=0 : return(-1,0)
         if lenCW<=0 : return(startIndex,0)
@@ -187,7 +168,7 @@ class Skill:
                     return(-1, 0)
                 elif cWords[iCW] == '*' :
                     iCW += 1
-                    (p,l) = this.findWordChain( ' '.join( cWords[iCW:] ), iW )
+                    (p,l) = self.findWordChain( ' '.join( cWords[iCW:] ), iW )
                     if p<0 : found = False
                     iW = p+l
                     iCW = lenCW
@@ -195,7 +176,7 @@ class Skill:
                 elif cWords[iCW] == '?' :
                     iW += 1
                     iCW += 1
-                elif this.isWord( iW, cWords[iCW] ) : 
+                elif self.isWord( iW, cWords[iCW] ) : 
                     iW += 1
                     iCW += 1
                 else :
@@ -206,39 +187,39 @@ class Skill:
 
         return (-1, 0)
 
-    def findWordChainB( this, chain: str, startIndex: int=0 ) -> bool:
+    def findWordChainB( self, chain: str, startIndex: int=0 ) -> bool:
         """Поиск в фразе цепочки слов по шаблону
         Возвращает True если цепочка найдена в 
         Поддерживаемые шаблоны: 
         ? - одно любое слово
         * - ноль или больше любых слов
         """
-        (start, len) = this.findWordChain( chain, startIndex )
+        (start, len) = self.findWordChain( chain, startIndex )
         return ( start >= 0 )
 
-    def deleteWord( this, index: int, wordsToDelete:int=1 ):
+    def deleteWord( self, index: int, wordsToDelete:int=1 ):
         """ Удаление одного или нескольких слов из фразы"""
-        while wordsToDelete > 0 and index < len( this.terminal.words ):
-           this.terminal.words.pop( index )
+        while wordsToDelete > 0 and index < len( self.terminal.words ):
+           self.terminal.words.pop( index )
            wordsToDelete -= 1
 
-    def insertWords( this, index:int, words: str ):
+    def insertWords( self, index:int, words: str ):
         """Вставить слово или цепочку слов в фразу"""
         words = wordsToList( words )
 
         for i in range( len( words ) ):
             p = parseWord( words[-i - 1] )
             # ?  do something with tags
-            this.terminal.words.insert( index, p )
+            self.terminal.words.insert( index, p )
 
-    def replaceWordChain( this, chain: str, replaceWithChain: str ) -> bool:
+    def replaceWordChain( self, chain: str, replaceWithChain: str ) -> bool:
         """Найти в фразе цепочку слов chain и заменить ее на replaceWithChain """
         found = False
         while True:
-            (p,l) = this.findWordChain( chain )
+            (p,l) = self.findWordChain( chain )
             if p >= 0:
-                this.deleteWord( p, l )
-                this.insertWords( p, replaceWithChain )
+                self.deleteWord( p, l )
+                self.insertWords( p, replaceWithChain )
                 found = True
             else:
                 break
@@ -249,54 +230,54 @@ class Skill:
 
 ### Методы конфигурации скила и управление ходом разбора фразы #########################
 #region
-    def subscribe( this, *topics ):
+    def subscribe( self, *topics ):
         """Привязать вызов process к состоянию"""
-        for t in topics : this.subscriptions.add( str( t ) )
+        for t in topics : self.subscriptions.add( str( t ) )
 
-    def unsubscribe( this, *topics ):
+    def unsubscribe( self, *topics ):
         """Привязать вызов process к состоянию"""
-        for t in topics : this.remove( str( t ) )
+        for t in topics : self.remove( str( t ) )
 
-    def isSubscribed( this, topic ):
+    def isSubscribed( self, topic ):
         """Возвращает True если скилл подписан на Topic с учетом маски *, """
         topic = str( topic ).strip()
-        for s in this.subscriptions:
+        for s in self.subscriptions:
             if s == "*" :return True
             ab = s.split( '*' )
             if len( ab ) == 1 and ab[0] == topic : return True
             if len( ab ) > 1 and topic.startswith( ab[0] ) and topic.endswith( ab[-1] ): return True
 
-    def extendVocabulary( this, words, tags=None ):
+    def extendVocabulary( self, words, tags=None ):
         """Расширить словарь словоформами, удовлетворяющим тегам
         По умолчанию (tags = None) слова добавляется в том виде как они были переданы
         Принимает списки слов как в виде строк так и в виде массивов (рекурсивно)
         """
-        this.vocabulary.update( wordsToVocabulary( words, tags ) )
+        self.vocabulary.update( wordsToVocabulary( words, tags ) )
 
-    def changeTopic( this, newTopic, *params, **kwparams ):
-        """Изменить текущий топик. Выполняется ПОСЛЕ выхода из обработчика onText/onPartialText"""
-        this.terminal.newTopic = str( newTopic )
+    def changeTopic( self, newTopic, *params, **kwparams ):
+        """Изменить текущий топик. Выполняется ПОСЛЕ выхода из обработчика onText"""
+        self.terminal.newTopic = str( newTopic )
 
         p = kwparams
         if len( params ) == 1 and isinstance( params[0],dict ) : 
             p.update( params[0] )
         elif len( params ) > 0 : 
             p.update( {'params':params} )
-        this.terminal.newTopicParams = p
-        this.terminal.logDebug( f'{this.name}.changeTopic("{newTopic}", {p}) ]' )
+        self.terminal.newTopicParams = p
+        self.terminal.logDebug( f'{self.name}.changeTopic("{newTopic}", {p}) ]' )
 
-    def stopParsing( this, animation: str=None ):
-        """Прервать исполнение цепочки скиллов после выхода из обработчика onText/onPartialText"""
+    def stopParsing( self, animation: str=None ):
+        """Прервать исполнение цепочки скиллов после выхода из обработчика onText"""
         if animation != None : 
-            this.terminal.animate( animation )
+            self.terminal.animate( animation )
             #if animation not in ANIMATION_STICKY :
-            #    this.terminal.animate( ANIMATION_NONE )
-        this.terminal.parsingStopped = True
+            #    self.terminal.animate( ANIMATION_NONE )
+        self.terminal.parsingStopped = True
 
-    def restartParsing( this ):
-        """Прервать исполнение цепочки скиллов и перезапустить процесс анализа после выхода из обработчика onText/onPartialText"""
-        this.terminal.parsingStopped = True
-        this.terminal.parsingRestart = True
+    def restartParsing( self ):
+        """Прервать исполнение цепочки скиллов и перезапустить процесс анализа после выхода из обработчика onText"""
+        self.terminal.parsingStopped = True
+        self.terminal.parsingRestart = True
 #endregion
 
 

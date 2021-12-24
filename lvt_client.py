@@ -21,14 +21,14 @@ from lvt.const import *
 from lvt.protocol import *
 from lvt.logger import *
 from lvt.client.microphone import Microphone
-from lvt.client.config import Config
-from lvt.client.updater import Updater
+from lvt.client.animator import Animator
+import lvt.client.config as config
+import lvt.client.updater as updater
 
-audio = None
-config = None
+audio : pyaudio.PyAudio
 shared = None
-microphone = None
-animator = None
+microphone : Microphone
+animator : Animator
 
 ### showHelp(), showDevices() ##########################################################
 #region
@@ -59,7 +59,7 @@ async def printStatusThread():
     global shared
     global microphone
     while not shared.isTerminated:
-        if not shared.quiet and microphone != None and animator!=None :
+        if not shared.quiet and animator!=None :
             width = 38
             scale = 5000
             rms = microphone.rms
@@ -78,7 +78,7 @@ async def printStatusThread():
             graph = graph[:pL] + '|' + graph[pL:pR] + '|' + graph[pR + 1:]
 
             face = 'O_O' if microphone.active else '-_-'
-            face = f'x(){face})x' if microphone.muted else f'@({face})@'
+            face = f'x({face})x' if microphone.muted else f'o({face})o'
             sys.__stdout__.write( f'[{animator.animation:^10}] {face} CH:{microphone.channel} RMS:{microphone.rms:>5} VAD:{microphone.vadLevel:>3} [{graph}]  \r' )
             await asyncio.sleep(1)
 #endregion
@@ -86,7 +86,6 @@ async def printStatusThread():
 ### GetVolume() / SetVolume() ##########################################################
 #region
 def getVolume():
-    global config
     global alsaaudio
     if config.volumeControl != None:
         return alsaaudio.Mixer(cardindex=config.volumeCardIndex, control=config.volumeControl ).getvolume()[0]
@@ -94,7 +93,6 @@ def getVolume():
         return None
 
 def getVolumePlayer():
-    global config
     global alsaaudio
     if config.volumeControl != None:
         return alsaaudio.Mixer(cardindex=config.volumeCardIndex, control=config.volumeControlPlayer ).getvolume()[0]
@@ -118,9 +116,9 @@ def setVolumePlayer( volume ):
 #region
 def play( data ):
     global audio
-    global microphone
     global shared
-    global config
+    global microphone
+    global animator
 
     volumePlayer = getVolumePlayer()
     if volumePlayer != None:
@@ -162,7 +160,7 @@ def play( data ):
             channels=nchannels,
             rate=framerate,
             output=True,
-            output_device_index=config.audioOutputDevice,
+            output_device_index=int(config.audioOutputDevice),
             frames_per_buffer = nframes - 4
         )
         startTime = time.time()
@@ -250,8 +248,7 @@ async def processMessage( message ):
             if p != None: 
                 try:
                     package = json.loads( p )
-                    updater = Updater()
-                    if updater.update( package ) :
+                    if updater.updateClient( package ) :
                         shared.isTerminated = True
                         restartClient()
                 except Exception as e:
@@ -285,7 +282,7 @@ async def microphoneThread( connection ):
             if microphone.active : 
                 try:
                     if not _active and shared.serverStatus['StoreAudio']=='True' :
-                        await connection.send(MESSAGE(MSG_TEXT,f'Selecting CH#{microphone.channel}: RMS={microphone.rms} MAX={microphone.max} VAD={microphone.vadLevel}'))
+                        await connection.send(MESSAGE(MSG_TEXT,f'CH:{microphone.channel}: RMS {microphone.rms} MAXPP {microphone.maxpp}, VAD:{microphone.vadLevel}'))
                 except Exception as e:
                     print( f'{e}' )
                     pass
@@ -380,7 +377,7 @@ def onCtrlC():
     """ Gracefuly terminate program """
     global shared
     try:
-        if not shared.isTerminated: 
+        if not shared.isTerminated:
             print()
             print( "Terminating..." )
         shared.isTerminated = True
@@ -409,8 +406,8 @@ if __name__ == '__main__':
     print("============= Инициализация завершена =============")
     print("")
 
-    Config.initialize(audio)
-    config = Config()
+    config.init( audio )
+    loggerInit( config )
 
     shared = multiprocessing.Manager().Namespace()
     shared.quiet = False
@@ -419,7 +416,6 @@ if __name__ == '__main__':
     shared.isConnected = False
     shared.terminalStatus = '{"Terminal":""}'
     shared.serverStatus = '{}'
-    Logger.initialize( config )
 
     for arg in sys.argv[1:]:
         a = arg.strip().lower()
@@ -437,16 +433,15 @@ if __name__ == '__main__':
         else:
             printError( f'Неизвестный параметр: "{arg}"' )
 
-    Microphone.initialize( config, audio )
-    Updater.initialize( config, shared )
+    Microphone.init( audio )
 
     if config.animator == "text":
         from lvt.client.animator import Animator
-        animator = Animator( config,shared )
+        animator = Animator( shared )
         animator.start()
     elif config.animator == "apa102":
         from lvt.client.animator_apa102 import APA102Animator
-        animator = APA102Animator( config,shared )
+        animator = APA102Animator( shared )
         animator.start()
         animator.animate(ANIMATION_THINK)
     else:
@@ -512,7 +507,7 @@ if __name__ == '__main__':
         else:
             printError( f'Unhandled exception: {e}' )
     except:
-        onCtrlC();
+        onCtrlC()
 
     shared.isTerminated = True
     time.sleep(0.5)

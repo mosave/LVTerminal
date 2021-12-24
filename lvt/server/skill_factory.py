@@ -3,32 +3,31 @@ import importlib
 from lvt.const import *
 from lvt.logger import *
 from lvt.server.grammar import *
-from lvt.server.config import Config
+import lvt.server.config as config
 from lvt.server.skill import Skill
 
 class SkillFactory():
-    def __init__( this, terminal ):
-        this.terminal = terminal
+    def __init__( self, terminal ):
+        self.terminal = terminal
         pass
-    def loadSkills( this, config: Config ) -> list():
+    def loadSkills( self ) -> list():
         """Returns list of skill instances.
           * Scans lvt/skills directory recursively
           * Loads all module found there
           * Creates instance of every lvt.skill.Skill successor class
         """
-        this.config = config
-        this.skills = list()
-        this.skillCount = 0
-        this.skillErrors = 0
-        this.loadSkillsFromDir(
+        self.skills = list()
+        self.skillCount = 0
+        self.skillErrors = 0
+        self.loadSkillsFromDir(
             os.path.join( ROOT_DIR,'lvt','server','skills' ), 
             "lvt.server.skills"
         )
-        this.skills.sort( key = lambda s:s.priority, reverse=True)
-        return this.skills
+        self.skills.sort( key = lambda s:s.priority, reverse=True)
+        return self.skills
 
-    def loadSkillsFromDir( this, directory:str, prefix:str ):
-        """Recursively Load modules starting from folder specified and place Skill instancess in this.skills
+    def loadSkillsFromDir( self, directory:str, prefix:str ):
+        """Recursively Load modules starting from folder specified and place Skill instancess in self.skills
         """
         dirsAndFiles = os.listdir( directory )
         for fileName in dirsAndFiles:
@@ -39,7 +38,7 @@ class SkillFactory():
             if os.path.isdir( filePath ) and not fileName.startswith( '.' ) :
                 # recursively scan for subdirectories ignoring those started
                 # with "."
-                this.loadSkillsFromDir( filePath, moduleName )
+                self.loadSkillsFromDir( filePath, moduleName )
             elif os.path.isfile( filePath ) and ext == '.py':
                 try: # Try load module file and search for Skill successors
                     module = importlib.import_module( moduleName, filePath )
@@ -47,22 +46,22 @@ class SkillFactory():
                     for className in dir( module ):
                         try:
                             cls = getattr( module, className )
-                            if this.isSkillClass( cls ) :
+                            if self.isSkillClass( cls ) :
                                 sn = className.lower()
-                                cfg = this.config.skills[sn] if sn in this.config.skills else {'enable':True}
+                                cfg = config.skills[sn] if sn in config.skills else {'enable':True}
                                 if cfg['enable'] :
-                                    this.skills.append( cls( this.terminal, filePath, className, cfg ) )
-                                    this.skillCount += 1
+                                    self.skills.append( cls( self.terminal, filePath, className, cfg ) )
+                                    self.skillCount += 1
                                 else:
-                                    this.terminal.logDebug(f'Skill "className" disabled in configuration')
+                                    self.terminal.logDebug(f'Skill "{className}" disabled in configuration')
                         except Exception as e:
-                            this.skillErrors += 1
-                            this.terminal.logError( f'Exception creating class {moduleName}.{className}: {e}' )
+                            self.skillErrors += 1
+                            self.terminal.logError( f'Exception creating class {moduleName}.{className}: {e}' )
                 except Exception as e:
-                    this.skillErrors += 1
-                    this.terminal.logError( f'Exception loading module {moduleName}: {e}' )
+                    self.skillErrors += 1
+                    self.terminal.logError( f'Exception loading module {moduleName}: {e}' )
 
-    def isSkillClass( this, cls ):
+    def isSkillClass( self, cls ):
         if not hasattr( cls, '__name__' ) or not hasattr( cls, '__base__' ) : return False
         base = cls.__base__
         while base != None :
