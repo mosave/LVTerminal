@@ -13,7 +13,7 @@ from lvt.config_parser import ConfigParser
 from lvt.server.grammar import *
 import lvt.server.config as config
 import lvt.server.speakers as speakers
-from lvt.server.entities import Entities
+import lvt.server.entities as entities
 from lvt.server.skill import Skill
 from lvt.server.skill_factory import SkillFactory
 
@@ -44,11 +44,14 @@ class Terminal():
     def __init__( self, id ):
         self.id = id
         self.logDebug( f'Initializing terminal' )
-        self.entities = Entities()
         
         self.password = config.terminals[id]['password']
         self.name = config.terminals[id]['name']
-        self.defaultLocation = self.entities.findLocation(config.terminals[id]['location'])
+        self.locations = entities.get('location', id)
+        self.defaultLocation = config.terminals[id]['location']
+
+        #len()[l for l in self.locations if l.id==str(self.defaultLocation).lower()]>0)
+
         self.ipAddress = ''
         self.autoUpdate = config.terminals[id]['autoupdate']
 
@@ -219,11 +222,6 @@ class Terminal():
 #endregion
 
 #region Properties
-
-    @property
-    def locations( self ):
-        """Список локаций, распознанные при анализе фразы либо локация, заданная в конфигурации терминала"""
-        return ( self.parsedLocations if len( self.parsedLocations ) > 0 else [self.defaultLocation] )
 
     @property
     def text( self ) -> str:
@@ -420,10 +418,8 @@ class Terminal():
 
         self.extendVocabulary( 'эй слушай' )
 
-        self.extendVocabulary( self.entities.vocabulary )
-        self.extendVocabulary( self.entities.acronyms )
-        self.extendVocabulary( self.entities.locations )
-        
+        self.extendVocabulary( self.locations.getVocabulary() )
+      
         for skill in self.skills:
             self.vocabulary.update( skill.vocabulary )
 #endregion
@@ -523,7 +519,7 @@ def TerminalFind( terminalId:str ):
             return( t )
     return None
 
-def TerminalInit():
+def terminalInit():
     """Initialize module' config variable for easier access """
     global terminals
     global ttsRHVoice
@@ -533,14 +529,14 @@ def TerminalInit():
         try:
             ttsRHVoice = rhvoiceWrapper.TTS( 
                 threads = 1,
-                lib_path = config.rhvParams['lib_path'] if 'lib_path' in config.rhvParams else object(),
-                data_path = config.rhvParams['data_path'] if 'data_path' in config.rhvParams else object(), 
-                resources = config.rhvParams['resources'] if 'resources' in config.rhvParams else object(),
-                lame_path = config.rhvParams['lame_path'] if 'lame_path' in config.rhvParams else object(),
-                opus_path = config.rhvParams['opus_path'] if 'opus_path' in config.rhvParams else object(),
-                flac_path = config.rhvParams['flac_path'] if 'flac_path' in config.rhvParams else object(),
+                lib_path = config.rhvParams['lib_path'] if 'lib_path' in config.rhvParams else None,
+                data_path = config.rhvParams['data_path'] if 'data_path' in config.rhvParams else None, 
+                resources = config.rhvParams['resources'] if 'resources' in config.rhvParams else None,
+                lame_path = config.rhvParams['lame_path'] if 'lame_path' in config.rhvParams else None,
+                opus_path = config.rhvParams['opus_path'] if 'opus_path' in config.rhvParams else None,
+                flac_path = config.rhvParams['flac_path'] if 'flac_path' in config.rhvParams else None,
                 quiet = True,
-                config_path = config.rhvParams['config_path'] if '' in config.rhvParams else object()
+                config_path = ""#config.rhvParams['config_path'] if 'config_path' in config.rhvParams else None
                 )
                 
         except Exception as e:

@@ -3,6 +3,7 @@ import os
 # Program start directory
 #ROOT_DIR = os.path.abspath( os.curdir )
 ROOT_DIR = os.path.abspath( os.path.join( os.path.dirname( __file__ ),'../' ) )
+CONFIG_DIR = os.path.join( ROOT_DIR,'config' )
 
 LOGLEVEL_NONE = 0
 LOGLEVEL_ERROR = 1

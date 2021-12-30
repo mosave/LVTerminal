@@ -9,7 +9,7 @@ sys.path.append(os.path.abspath( os.path.join( os.path.dirname( __file__ ),'../'
 from lvt.const import *
 from lvt.protocol import *
 from lvt.logger import *
-from lvt.server.config import Config
+import lvt.server.config
 from lvt.server.skill import Skill
 from lvt.server.skills.yes_no import YesNoParams
 

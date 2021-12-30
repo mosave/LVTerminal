@@ -6,7 +6,7 @@ from lvt.const import *
 from lvt.protocol import *
 from lvt.server.grammar import *
 from lvt.server.skill import Skill
-from lvt.server.entities import Entities
+import lvt.server.entities as entities
 
 # Как часто проверять версию терминала (раз в день?)
 CHECK_VERSION_TIMEOUT = 60 * 60 * 24
@@ -51,7 +51,7 @@ class ServerConfigSkill(Skill):
 
     def updateDevices( this ):
         try:
-            Entities.initialize( this.config )
+            entities.init()
             this.terminal.updateVocabulary()
         except Exception as e:
             pass

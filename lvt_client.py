@@ -252,7 +252,7 @@ async def processMessage( message ):
                         shared.isTerminated = True
                         restartClient()
                 except Exception as e:
-                    printError( f'Ошибка при обновлении клиента: {e}' )
+                    logError( f'Ошибка при обновлении клиента: {e}' )
         elif m == MSG_REBOOT:
             print( 'Перезагрузка устройства еще не реализована. Перезапускаю клиент...' )
             restartClient()
@@ -355,9 +355,9 @@ async def websockClient( serverUrl, sslContext):
             if isinstance( e, websockets.exceptions.ConnectionClosedOK ) :
                 print( 'Disconnected' )
             elif isinstance( e, websockets.exceptions.ConnectionClosedError ):
-                printError( f'Отключение в результате ошибки: {e} ' )
+                logError( f'Отключение в результате ошибки: {e} ' )
             else:
-                printError( f'Websock Client error: {e}' )
+                logError( f'Websock Client error: {e}' )
                 try: await connection.send( MSG_DISCONNECT )
                 except:pass
                 await asyncio.sleep( 10 )
@@ -431,7 +431,7 @@ if __name__ == '__main__':
             #config parameter is already processed
             pass
         else:
-            printError( f'Неизвестный параметр: "{arg}"' )
+            logError( f'Неизвестный параметр: "{arg}"' )
 
     Microphone.init( audio )
 
@@ -457,18 +457,18 @@ if __name__ == '__main__':
         try:
             volumeControls = alsaaudio.mixers(config.volumeCardIndex)
         except alsaaudio.ALSAAudioError:
-            printError(f"Неправильный индекс устройства alsamixer ({config.volumeCardIndex})" )
+            logError(f"Неправильный индекс устройства alsamixer ({config.volumeCardIndex})" )
             config.volumeCardIndex = 0
             config.volumeControl = None
             config.volumeControlPlayer = None
             volumeControls = []
         showControls = False
         if config.volumeControl != None and config.volumeControl not in volumeControls:
-            printError( f"Неправильное название громкости LVT: {config.volumeControl}" )
+            logError( f"Неправильное название громкости LVT: {config.volumeControl}" )
             config.volumeControl = None
             showControls = True
         if config.volumeControlPlayer != None and config.volumeControlPlayer not in volumeControls:
-            printError( f"Неправильное название громкости аудиоплеера: {config.volumeControlPlayer}" )
+            logError( f"Неправильное название громкости аудиоплеера: {config.volumeControlPlayer}" )
             config.volumeControlPlayer = None
             showControls = True
         if showControls:
@@ -501,11 +501,11 @@ if __name__ == '__main__':
         if isinstance( e, websockets.exceptions.ConnectionClosedOK ) :
             print( f'Disconnected' )
         elif isinstance( e, websockets.exceptions.ConnectionClosedError ):
-            printError( f'Disconnected by error' )
+            logError( f'Disconnected by error' )
         elif isinstance( e, KeyboardInterrupt ):
             onCtrlC()
         else:
-            printError( f'Unhandled exception: {e}' )
+            logError( f'Unhandled exception: {e}' )
     except:
         onCtrlC()
 

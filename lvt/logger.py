@@ -47,13 +47,10 @@ class Logger:
         global __printLevel
         global __logLevel
 
-        if __printLevel != None :
-            return
+        if __printLevel != None and messageLevel >= __printLevel:
+                sys.__stdout__.write( message if message.endswith('\n') else f'{message}\n' )
 
-        if messageLevel >= __printLevel:
-            sys.__stdout__.write( message if message.endswith('\n') else f'{message}\n' )
-
-        if str( message ).strip() != "" :
+        if __logLevel != None and str( message ).strip() != "" :
             if messageLevel >= logging.ERROR : 
                 prefix = "E"
             elif messageLevel >= logging.WARNING : 
@@ -77,43 +74,29 @@ class Logger:
 #endregion
 
 #region exported functions
-def log( message:str ):
+def log( message:str, level = logging.INFO ):
     """Вывод сообщения на экран и в журнал. Синоним для print()"""
-    print( message )
+    global __printLevel
+
+    if __writer != None :
+        __writer.logMessage( level, message )
+    elif __printLevel!=None and level >= __printLevel :
+        print( message )
+
+def logDebug( message:str ):
+    """Вывод отладочного сообщения на экран и в журнал"""
+    log( message, logging.DEBUG )
 
 def logError( message: str ):
     """Вывод сообщения об ошибке на экран и в журнал"""
+    log( message, logging.ERROR )
+
+def fatalError( message: str ):
     global __printLevel
-    if __printLevel == None:
-       return
-    if __writer != None :
-        __writer.logMessage( logging.ERROR, message )
-    elif logging.ERROR >= __printLevel:
-        print( message )
-
-def printError( message:str ):
-    """Вывод сообщения об ошибке на экран и в журнал, синоним logError()"""
-    logError( message )
-
-def fatalError():
-    printError()
+    __printLevel = logging.ERROR
+    log( message, logging.CRITICAL )
     quit(1)
 
-
-def printDebug( message:str ):
-    """Вывод отладочного сообщения на экран и в журнал"""
-    global __printLevel
-    if __printLevel == None:
-       return
-
-    if __writer != None :
-        __writer.logMessage( logging.DEBUG, message )
-    elif logging.DEBUG >= __printLevel:
-        print( message )
-
-def logDebug( message: str ):
-    """Вывод отладочного сообщения на экран и в журнал, синоним logDebug()"""
-    printDebug( message )
 
 def loggerInit( config ):
     """Инициализация журнала"""

@@ -50,7 +50,7 @@ def init():
     global sslCertFile
     global sslKeyFile
     global model
-    global fullModel 
+    global gModel 
     global storeAudio
     global recognitionThreads
 
@@ -85,7 +85,7 @@ def init():
     if not withConfig:
         ConfigParser.checkConfigFiles( [
             'server.cfg',
-            'acronyms', 'locations', 'vocabulary', 'persons'
+            'location.entity'
             ])
     p = ConfigParser( fileName )
     section = 'LVTServer'
@@ -96,21 +96,24 @@ def init():
     sslCertFile = p.getValue( section, 'SSLCertFile','' )
     sslKeyFile = p.getValue( section, 'SSLKeyFile','' )
 
-    ### Voice recognition configuration 
-    model = p.getValue( section, 'Model','' ).strip()
-    if model=='' :
-        __error( 'Не указана модель для распознавания со словарем', 'Model', section )
-
-    fullModel = p.getValue( section, 'FullModel','' ).strip()
-
     storeAudio = bool(p.getValue(section,'StoreAudio','0') != '0')
 
+    ### Voice recognition configuration 
     recognitionThreads = p.getIntValue( section, 'RecognitionThreads',int(str(os.cpu_count())) )
-    if( recognitionThreads < 4 ): recognitionThreads = 4
+    if( recognitionThreads < 2 ): recognitionThreads = 2
+
+    model = p.getValue( section, 'Model','' ).strip()
+    gModel = p.getValue( section, 'GModel','' ).strip()
+    if model=='' and gModel == '':
+        __error( 'Необходимо указать хотя бы одну голосовую модель для распознавания', 'Model, GModel', section )
+
 
     ### Speaker identification config
     spkModel = p.getValue( section, 'SpkModel','' ).strip()
-    if( spkModel != "" ) :
+    if( spkModel != '' ) :
+        if model=='' :
+            __error( 'Идентификация по голосу работает только совместно с "полной" голосовой модель (параметр Model)', 'SpkModel', section )
+
         voiceSimilarity = p.getFloatValue( section, 'VoiceSimilarity', 0.6 )
         if( voiceSimilarity<0.1 or voiceSimilarity>1 ): 
             __error( '"Коэффициент похожести" голоса должен находиться в диапазоне 0.1 .. 1.0', 'VoiceSimilarity', section )

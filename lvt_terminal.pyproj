@@ -12,7 +12,7 @@
     <Name>LVTerminal</Name>
     <RootNamespace>LVTerminal</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>--config=server_mosave1.cfg</CommandLineArguments>
+    <CommandLineArguments>--config=x:\asdfg\server_mosave1.cfg</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <IsWindowsApplication>False</IsWindowsApplication>
     <InterpreterId>Global|PythonCore|3.9</InterpreterId>
@@ -40,11 +40,8 @@
     <Compile Include="lvt\server\grammar.py" />
     <Compile Include="lvt\protocol.py" />
     <Compile Include="lvt\server\config.py" />
-    <Compile Include="lvt\server\skills\acronyms.py" />
     <Compile Include="lvt\server\skills\datetime_detector.py" />
     <Compile Include="lvt\server\skills\debug.py" />
-    <Compile Include="lvt\server\skills\location_detector.py" />
-    <Compile Include="lvt\server\skills\one_word_commands.py" />
     <Compile Include="lvt\server\skills\server_config.py" />
     <Compile Include="lvt\server\skills\time_teller.py" />
     <Compile Include="lvt\server\skills\yes_no.py" />
@@ -75,13 +72,10 @@
     <InterpreterReference Include="Global|PythonCore|3.9" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="config.default\acronyms" />
-    <Content Include="config.default\actions" />
     <Content Include="config.default\client.cfg" />
-    <Content Include="config.default\locations" />
+    <Content Include="config.default\location.entity" />
     <Content Include="config.default\persons" />
     <Content Include="config.default\server.cfg" />
-    <Content Include="config.default\vocabulary" />
     <Content Include="docs\Configuration - Server.md" />
     <Content Include="docs\Configuration - Terminal.md" />
     <Content Include="docs\LVT Protocol.md" />

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3 
 import json
+from logging import fatal
 import os
 import sys
 import asyncio
@@ -17,32 +18,9 @@ from lvt.server.grammar import *
 from lvt.protocol import *
 from lvt.logger import *
 import lvt.server.config as config
-from lvt.server.entities import *
+import lvt.server.entities as entities
 from lvt.server.terminal import *
 import lvt.server.speakers as speakers
-
-
-### processChunk() #####################################################################
-#region
-#def processVoice( waveChunk, recognizer: KaldiRecognizer):
-#    """ Recognize audio chunk and process with terminal.onText() """
-#    text = ''
-#    final = False
-#    try:
-#        final = recognizer.AcceptWaveform( waveChunk )
-#        if final: 
-#            j = json.loads( recognizer.FinalResult() )
-#            text = str( j['text'] ).strip() if 'text' in j else ''
-#        else:
-#            j = json.loads( recognizer.PartialResult() )
-#            text = str( j['partial'] ).strip() if 'partial' in j else ''
-
-#    except KeyboardInterrupt as e:
-#        onCtrlC()
-#        raise e
-#    except Exception as e:
-#        logError( f'Exception processing waveform chunk : {e}' )
-#    return (final, text)
 
 
 def processVoice( waveChunk, recognizer: KaldiRecognizer):
@@ -77,27 +55,25 @@ def processVoice( waveChunk, recognizer: KaldiRecognizer):
 async def websockServer( connection, path ):
     """Main service thread - websock server implementation """
     global model
+    global gModel
     global spkModel
-    global fullModel
     # Kaldi speech recognizer objects
     recognizer = None
-    # Kaldi speaker identification object
-    recognizerUncut = None
+    gRecognizer = None
+
     # Currently connected Terminal
     terminal = None
 
+    # Assistant names
     aNames = wordsToList(config.assistantNames)
 
-    # temp var to track Terminal
-    vocabulary = ''
+    # temp vars to track Terminal
     messageQueue = list()
     lastTickedOn = time.time()
     message = None
     voiceData = None
-    completed = False
-    isAppealed = False
+    isActive = False
     text = ''
-    textUncut = ''
     speakerSignature = None
     
     
@@ -111,43 +87,11 @@ async def websockServer( connection, path ):
         status = json.dumps(terminal.getStatus()) if terminal != None else '{"Terminal":"?","Name":"Not Registered","Connected":"false"}'
         sendMessage( MSG_STATUS, status )
 
-    #def createFilteredRecognizer():
-    #    return None
-
-    #def createFullRecognizer():
-    #    return None
-
-    #def createAppealRecognizer():
-    #    return getFilteredRecognizer()
-
     try:
         while True: # <== Breaking out of here will close connection
             while len( messageQueue ) > 0:
                 await connection.send( messageQueue[0] )
                 messageQueue.pop( 0 )
-
-            if( terminal != None ):
-                # Инициализация KaldiRecognizer занимает 30-100мс и не требует много памяти.
-
-                ## Убеждаемся, что первичная распознавалка создана с актуальным словарем
-                #v = terminal.getVocabulary()
-                #if recognizer == None or vocabulary != v :
-                #    vocabulary = v
-                #    # Основная распознавалка с фильтрацией по словарю:
-                #    recognizer = KaldiRecognizer( model, VOICE_SAMPLING_RATE, json.dumps( list( vocabulary ), ensure_ascii=False ) )
-                #    words = normalizeWords( text )
-
-                # Создаем основную, нефильтрованную распознавалку
-                if recognizer == None :
-                    # Вычисляем базовую модель модель:
-                    m = fullModel if fullModel != None else model
-
-                    if( spkModel != None ): 
-                        # Включить идентификацию по голосу
-                        recognizer = KaldiRecognizer( m, VOICE_SAMPLING_RATE, spkModel )
-                    else: 
-                        # Не идентифицировать голос:
-                        recognizer = KaldiRecognizer( m, VOICE_SAMPLING_RATE )
 
             # Ждем сообщений, дергая terminal.onTimer примерно раз в секунду
             message = None
@@ -194,28 +138,69 @@ async def websockServer( connection, path ):
                         break
 
                 else:
-                    printError( f'Unknown message: "{message}"' )
+                    logError( f'Unknown message: "{message}"' )
                     break
-            # Получен аудиофрагмент приемлемой длины и терминал авторизован и 
+            # Получен аудиофрагмент приемлемой длины и терминал авторизован
             elif terminal != None and len(message)>=4000 and len(message)<=64000 :
-                # Сохраняем аудиофрагмент в буффере:
-                voiceData = message if voiceData==None else voiceData + message
+                if not isActive:
+                    isActive = True
+                    # Сохраняем аудиофрагмент в буффере
+                    voiceData = message
+                    # Инициализация KaldiRecognizer занимает 30-100мс и не требует много памяти.
+
+                    # Нефильтрованная распознавалка:
+                    if model != None:
+                        if( spkModel != None ): 
+                            # Включить идентификацию по голосу
+                            recognizer = KaldiRecognizer( model, VOICE_SAMPLING_RATE, spkModel )
+                        else: 
+                            # Не идентифицировать голос:
+                            recognizer = KaldiRecognizer( model, VOICE_SAMPLING_RATE )
+                    else:
+                        recognizer = None
+
+                    # Распознавалка "со словарем"
+                    if  gModel != None:
+                        gRecognizer = KaldiRecognizer(
+                            gModel,
+                            VOICE_SAMPLING_RATE,
+                            json.dumps( list( terminal.getVocabulary() ), ensure_ascii=False )
+                        )
+                    else:
+                        gRecognizer = None
+
+                else:
+                    # Сохраняем аудиофрагмент в буффере:
+                    voiceData = message if voiceData==None else voiceData + message
 
                 # Распознаем очередной фрагмент голоса
-                (completed, text, signature) = await loop.run_in_executor( pool, processVoice, message, recognizer )
-                if signature != None : speakerSignature = signature
-                # Если фраза завершена и на входе есть хоть какой-то текст:
-                if completed and len(text)>0:
-                    # Создаем словарную распознавалку:
-                    recognizerFiltered = KaldiRecognizer( model, VOICE_SAMPLING_RATE, json.dumps( list( terminal.getVocabulary() ), ensure_ascii=False ) )
-                    # Распознаем фразу со словарем
-                    (_, textFiltered, _) = await loop.run_in_executor( pool, processVoice, voiceData, recognizerFiltered )
-                    recognizerFiltered = None
+                (completed, text, signature) = await loop.run_in_executor( 
+                    pool, 
+                    processVoice, 
+                    message, 
+                    recognizer if recognizer != None else gRecognizer
+                )
 
-                    isProcessed = terminal.onText( voiceData, textFiltered, text, speakerSignature )
+                if signature != None : speakerSignature = signature
+
+                # Если фраза завершена
+                if completed:
+                    # На входе есть хоть какой-то распознанный текст:
+                    if len(text)>0:
+                        # Если необходимо - распознаем речь повторно, используя словарь
+                        if recognizer != None and gRecognizer != None :
+                            (_, textFiltered, _) = await loop.run_in_executor( pool, processVoice, voiceData, gRecognizer )
+                        else:
+                            textFiltered = text
+
+                        isProcessed = terminal.onText( voiceData, textFiltered, text, speakerSignature )
+                    else:
+                        isProcessed = False
+                        textFiltered = ''
+
 
                     # Журналируем голос (если заказано в настройках)
-                    if (int(config.voiceLogLevel)>=2) or (not processed and int(config.voiceLogLevel)>0 ):
+                    if (int(config.voiceLogLevel)>=2) or (not isProcessed and int(config.voiceLogLevel)>0 ):
                         wavFileName = datetime.datetime.today().strftime(f'{terminal.id}_%Y%m%d_%H%M%S.wav')
                         wav = wave.open(os.path.join( config.voiceLogDir, wavFileName),'w')
                         wav.setnchannels(1)
@@ -227,15 +212,22 @@ async def websockServer( connection, path ):
                         wavFileName = ''
 
                     # Журналируем расспознанный текст (если заказано)
-                    if int(config.voiceLogLevel)>=3   or   not processed and int(config.voiceLogLevel)>0 :
+                    if int(config.voiceLogLevel)>=3   or   not isProcessed and int(config.voiceLogLevel)>0 :
                         with open(os.path.join( config.voiceLogDir, 'voice.log'), 'a') as voiceLog:
                             dt = datetime.datetime.today().strftime(f'%Y-%m-%d %H:%M:%S')
                             voiceLog.write( f'{dt}\t{terminal.id}\t{wavFileName}\n' +
                                 f'\t{text}\n' +
                                 f'\t{textFiltered}\n' )
 
+                    # Освобождаем память
+                    if recognizer!=None : del(recognizer)
+                    if gRecognizer!=None : del(gRecognizer)
+                    recognizer = None
+                    gRecognizer = None
+                    del(voiceData)
                     voiceData = None
                     speakerSignature = None
+                    isActive = False
 
                     # Переводим терминал в режим ожидания
                     sendMessage( MSG_IDLE )
@@ -251,13 +243,6 @@ async def websockServer( connection, path ):
                 #            if oneOfWords( normalFormOf(w), aNames ):
                 #                isAppealed = True
 
-                #    if isAppealed:
-                #        (textUncut, speakerSignature) = await loop.run_in_executor( pool, processVoiceUncut, voiceData, recognizerUncut )
-                #else:
-                #    (completed, text) = await loop.run_in_executor( pool, processVoice, message, recognizer )
-                #    (textUncut, speakerSignature) = await loop.run_in_executor( pool, processVoiceUncut, message, recognizerUncut )
-
-
                    
 
         sendMessage( MSG_DISCONNECT )
@@ -271,11 +256,11 @@ async def websockServer( connection, path ):
         if isinstance( e, websockets.exceptions.ConnectionClosedOK ) :
             print( f'{tn} disconnected' )
         elif isinstance( e, websockets.exceptions.ConnectionClosedError ):
-            printError( f'{tn} disconnected by error' )
+            logError( f'{tn} disconnected by error' )
         elif isinstance( e, KeyboardInterrupt ):
             onCtrlC()
         else:
-            printError( f'{tn}: unhandled exception {e}' )
+            logError( f'{tn}: unhandled exception {e}' )
     finally:
         try: terminal.onDisconnect()
         except: pass
@@ -375,13 +360,11 @@ for arg in sys.argv[1:]:
         fatalError( f'Invalid command line argument: "{arg}"' )
 
 
-Entities.initialize()
-TerminalInit()
+entities.init()
+terminalInit()
 speakers.init()
 
 
-# Set log level to reduce Kaldi/Vosk spuffing
-SetLogLevel( -1 )
 sslContext = None
 
 print( f'Listening port: {config.serverPort}' )
@@ -406,9 +389,36 @@ else:
     print( 'Speaker identification disabled' )
 
 #region Load models
-model = Model( config.model )
-fullModel = Model( config.fullModel ) if bool(config.fullModel) and config.fullModel != config.model else None
-spkModel = SpkModel( config.spkModel ) if bool(config.spkModel) else None
+model = None
+gModel = None
+spkModel = None
+if bool(config.model):
+    print()
+    print("=========== Загрузка основной голосовой модели ===========")
+    model = Model( config.model )
+    if model == None: fatalError(f'Ошибка при загрузке голосовой модели {config.model}')
+
+if bool(config.gModel):
+    if config.gModel==config.model :
+        gModel = model
+    else:
+        print()
+        print("===== Загрузка модели для распознавания со словарем ======")
+        gModel = Model( config.gModel )
+        if gModel == None: fatalError(f'Ошибка при загрузке голосовой модели для распознавания со словарем {config.gModel}')
+
+if bool(config.spkModel):
+    print("======== Загрузка модели для идентификации голоса ========")
+    spkModel = SpkModel( config.spkModel )
+    if spkModel == None: fatalError(f'Ошибка при загрузке модели идентификации голоса {config.spkModel}')
+
+print("============== Загрузка моделей завершена ================")
+print()
+
+# Set log level to reduce Kaldi/Vosk spuffing
+SetLogLevel( -1 )
+
+
 #endregion
 
 # Main server loop
@@ -424,6 +434,6 @@ try:
 except KeyboardInterrupt:
     onCtrlC()
 except Exception as e: 
-    printError( f'Exception in main terminal loop {e}' )
+    logError( f'Exception in main terminal loop {e}' )
 
 #endregion

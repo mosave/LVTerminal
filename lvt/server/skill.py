@@ -4,7 +4,7 @@ from lvt.const import *
 from lvt.logger import *
 from lvt.server.grammar import *
 import lvt.server.config as config
-from lvt.server.entities import Entities
+from lvt.server.entities import *
 
 class Skill:
     """Базовый класс скиллов
@@ -80,10 +80,6 @@ class Skill:
     def appeal( self ): return self.terminal.appeal
     @property
     def location( self ): return self.terminal.location
-    @property
-    def locations( self ): return self.terminal.locations
-    @property
-    def entities( self ) -> Entities: return self.terminal.entities
 
     @property
     def words( self ): return self.terminal.words

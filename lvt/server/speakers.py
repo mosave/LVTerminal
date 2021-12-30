@@ -30,7 +30,7 @@ def identify( signature ):
     """Идентифицирует говорящего по сигнатуре. Возвращает None если говорящий не идентифицирован"""
     global speakers
 
-    #printDebug(signature)
+    #logDebug(signature)
 
     if len(speakers)<1 : return None
 
@@ -39,7 +39,7 @@ def identify( signature ):
         diff.append( [ Speaker.getSimilarity(speaker.signature, signature ), speaker ] )
 
     diff.sort( key=lambda s:s[0], reverse=True)
-    #for d in diff: printDebug(f'{d[1].name}: diff={d[0]}')
+    #for d in diff: logDebug(f'{d[1].name}: diff={d[0]}')
 
     # Идентифицирован?
     # Проверка на минимально допустимый уровень похожести
@@ -47,7 +47,7 @@ def identify( signature ):
 
     # Проверка на селективность оценки
     if len(diff)>1 and diff[0][0]-diff[1][0] < config.voiceSelectivity: return None
-    printDebug(f'Говорит {diff[0][1].name}')
+    logDebug(f'Говорит {diff[0][1].name}')
     return diff[0][1]
 
 
@@ -68,11 +68,11 @@ def init():
     #                speakers.append( Speaker( speakerId, configParser ) )
     #            configParser = None
     #        except Exception as e:
-    #            printError( f'Exception loading  "{file}" : {e}' )
+    #            logError( f'Exception loading  "{file}" : {e}' )
     for i in range(0,len(speakers)-1):
         for j in range(i+1,len(speakers)):
             d = Speaker.getSimilarity(speakers[i].signature, speakers[j].signature)
             if d > config.voiceSimilarity:
-                printDebug( f'{speakers[i].name} and {speakers[j].name} have similar voices: {d:.2f}. You may have identification issues')
+                logDebug( f'{speakers[i].name} and {speakers[j].name} have similar voices: {d:.2f}. You may have identification issues')
 
 
