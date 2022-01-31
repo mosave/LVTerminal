@@ -99,6 +99,8 @@ class Terminal():
 
         self.appeal = wordsToList( config.assistantNames )[0]
 
+        self.volume = 30
+
         self.reset()
 
     def reset( self ):
@@ -132,7 +134,9 @@ class Terminal():
         self.lastSound = time.time()
 
         wfn = hashlib.sha256((config.ttsEngine+'-'+config.voice+'-'+text).encode()).hexdigest()
+        waveFileName = os.path.join( ROOT_DIR,'cache', wfn+'.wav' )
 
+        #todo: rewrite to optimize 
         isLocked = True
         while isLocked:
             ttsLock.acquire()
@@ -143,11 +147,8 @@ class Terminal():
             if isLocked:
                 time.sleep(0.1)
         try:
-            waveFileName = os.path.join( ROOT_DIR,'cache', wfn+'.wav' )
             #print(f'wave file name= {waveFileName}')
-            #self.sendMessage( MSG_TEXT
-            #
-            #, text )
+            #self.sendMessage( MSG_TEXT, text )
             if not os.path.isfile(waveFileName): 
                 self.log(f'generating wav, engine={config.ttsEngine} ')
                 if (config.ttsEngine == TTS_RHVOICE) and (ttsRHVoice != None):
@@ -467,11 +468,12 @@ class Terminal():
           Клиент при этом уже авторизован паролем
         """
         return {
-            'Terminal':self.id,
+            'Id':self.id,
             'Name':self.name,
             'Location': self.defaultLocation,
             'Connected':bool(self.isConnected),
             'Address':self.ipAddress,
+            'Volume': self.volume
         }
 
 
@@ -561,9 +563,12 @@ def TerminalDispose():
 #endregion 
 
 
-#region getLVTStatus() 
-def getLVTStatus():
+#region getLVTStatus(), getTerminalUpdates
+trmsCache = dict()
+
+def getLVTStatus() -> dict:
     global terminals
+    global trmsCache
     """Returns 'public' options and system state suitable for sending to terminal client """
     def formatSize( bytes, suffix='B' ):
         """ '1.20MB', '1.17GB'..."""
@@ -582,6 +587,7 @@ def getLVTStatus():
         for t in terminals :
             if t.isConnected : terminalsConnected += 1
             trms[t.id] = t.getStatus()
+        trmsCache = trms
         terminalsTotal = len(terminals)
 
     return {
@@ -606,6 +612,21 @@ def getLVTStatus():
         'MemUsed':formatSize(svmem.used),
         'MemLoad':f"{svmem.percent}%"
     }
+
+def getLVTUpdates() ->dict:
+    global terminals
+    global trmsCache
+    updates = dict()
+    if terminals != None :
+        for t in terminals :
+            tStatus = t.getStatus()
+            if t.id not in trmsCache:
+                trmsCache[t.id] = tStatus
+                updates[t.id] = tStatus
+            elif tStatus != trmsCache[t.id]:
+                trmsCache[t.id] = tStatus
+                updates[t.id] = tStatus
+    return updates
 
 #endregion
 

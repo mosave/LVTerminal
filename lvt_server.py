@@ -5,6 +5,7 @@ import os
 import sys
 import asyncio
 import ssl
+from typing import Any
 
 import websockets
 import concurrent.futures
@@ -75,7 +76,6 @@ async def websockServer( connection, path ):
     isActive = False
     text = ''
     speakerSignature = None
-    
     
     def sendDatagram( data ):
         messageQueue.append( data )
@@ -268,49 +268,117 @@ async def websockServer( connection, path ):
         spkRecognizer = None
 #endregion
 ### apiServer ######################################################################
-async def apiServer( reader, writer ):
-    data = await reader.readuntil(b'\0')
-    response = 'Ok'
-    try:
-        message = data.decode().strip('\0 \r\n')
-        if isinstance( message, str ): # Получено строковое сообщение
-            m, jsn = split2( message )
-            data = json.loads( jsn )
-            terminalId = data['terminal'] if 'terminal' in data else ''
-            message = data['message'] if 'message' in data else ''
-            terminal =  TerminalFind( terminalId ) if terminalId else None
+async def apiServer( connection, path ):
+    conn = connection
+    statusSent = 0
+    authorized = False
+    def getTerminalIds( terminals: dict[str, any] ) -> list:
+        ids = list()
+        for tId in terminals:
+            ids.append(tId)
+        return ids if ids else None
 
-            if m == MSG_API_STATUS : 
-                response = json.dumps(getLVTStatus())
-            elif terminal == None:
-                response = 'Invalid Terminal Id'
-            elif not terminal.isConnected:
-                response = 'Terminal is Offline'
-            elif m == MSG_API_SAY:
-                if message :
-                    terminal.say( message )
-                else:
-                    response = 'Message is empty'
-            elif m == MSG_API_ASK :
-                terminal.answerPrefix = data['answerPrefix'] if 'answerPrefix' in data else ''
-                if message:
-                    terminal.say( message )
-                terminal.changeTopic( TOPIC_MD_ASK )
-            elif m == MSG_API_YESNO :
-                terminal.answerPrefix = data['answerPrefix'] if 'answerPrefix' in data else ''
-                terminal.changeTopic( "YesNo", \
-                    message=message,
-                    topicYes = TOPIC_MD_YES,
-                    topicNo = TOPIC_MD_NO,
-                    topicCancel = TOPIC_MD_CANCEL
-                )
-            else:
-                response = 'Bad Command'
+    async def sendMessage( msg: str, statusCode: int = 0, status: str = None, terminalIds = None, data = None):
+        message = {
+                'Message': msg,
+                'StatusCode': statusCode
+                }
+        if status != None :
+            message['Status'] = str(status)
+        if terminalIds != None:
+            message['Terminals'] = json.dumps( list(terminalIds) )
+        if data != None:
+            message['Data'] = json.dumps( data )
+
+        await asyncio.wait_for( conn.send( json.dumps( message ) ), 5 )
+
+    async def sendLVTStatus():
+        data = getLVTStatus()
+        terminalIds = getTerminalIds(data['Terminals'])
+        await sendMessage( MSG_API_SERVER_STATUS, terminalIds = terminalIds, data=data )
+
+
+    log("API Thread: Starting")
+    try:
+        while True:
+            try:
+                # Отправляем состояние сервера раз в минуту:
+                if not authorized and config.apiServerPassword is None:
+                    await sendMessage( MSG_API_AUTHORIZE, 0, "Authorized" )
+                    authorized = True
+
+                # Отправляем состояние сервера раз в минуту:
+                if authorized and ((time.time() - statusSent) >= 60):
+                    log(f"API Thread: Sending status by timeout")
+                    await sendLVTStatus()
+                    statusSent = time.time()
+
+                try:
+                    requestString = await asyncio.wait_for( connection.recv(), timeout=1 )
+                    if isinstance(requestString, str):
+                        # Разбираем сообщение. Ошибки разбора тупо игнорируем
+                        request = json.loads( str(requestString) )
+                        message = str(request['Message'])
+                        data =  json.loads( str( request['Data'] ) ) if 'Data' in request else None
+                        terminalIds = set(request['Terminals']) if 'Terminals' in request else set()
+                    else:
+                        message = None
+                except asyncio.TimeoutError:
+                    message = None
+                except Exception as e:
+                    message = None
+
+                if message != None:
+                    if not authorized:
+                        if message == MSG_API_AUTHORIZE:
+                            if str(data) == str(config.apiServerPassword):
+                                await sendMessage( MSG_API_AUTHORIZE, statusCode=0, status="Authorized" )
+                                authorized = True
+                            else:
+                                await sendMessage( MSG_API_AUTHORIZE, statusCode=-1, status="Invalid Password" )
+
+                    elif message == MSG_API_SERVER_STATUS:
+                        await sendLVTStatus()
+                        statusSent = time.time()
+
+                    #elif m == MSG_API_SAY:
+                    #    if message :
+                    #        terminal.say( message )
+                    #    else:
+                    #        response = 'Message is empty'
+                    #elif m == MSG_API_ASK :
+                    #    terminal.answerPrefix = data['answerPrefix'] if 'answerPrefix' in data else ''
+                    #    if message:
+                    #        terminal.say( message )
+                    #    terminal.changeTopic( TOPIC_MD_ASK )
+                    #elif m == MSG_API_YESNO :
+                    #    terminal.answerPrefix = data['answerPrefix'] if 'answerPrefix' in data else ''
+                    #    terminal.changeTopic( "YesNo", \
+                    #        message=message,
+                    #        topicYes = TOPIC_MD_YES,
+                    #        topicNo = TOPIC_MD_NO,
+                    #        topicCancel = TOPIC_MD_CANCEL
+                    #    )
+                    else:
+                        raise Exception( 'Invalid Command' ) 
+                    #except Exception as e:
+                    #    logError( f'API Thread: Error processing message {message}: {e}' )
+                    #    await sendMessage( message, status=-1, errorMsg=str(e) )
+                elif authorized: # No message received - just send terminal status updates if any
+                    #log(f"checking updates")
+                    updates = getLVTUpdates()
+                    if updates:
+                        log(f"API Thread: Sending updates")
+                        terminalIds = getTerminalIds(updates)
+                        await sendMessage( MSG_API_TERMINAL_UPDATES, terminalIds=terminalIds, data=updates )
+            except:
+                break
+    except websockets.exceptions.ConnectionClosed as e:
+        log(f"API Thread: Connection closed {e}")
     except Exception as e:
-        response = f'Internal LVT error: {e}'
-    response = (response+'').encode()
-    writer.write( response)
-    writer.close()
+        log(f"API Thread: Exception {e}")
+    finally:
+        log("API Thread: Exiting")
 
 
 
@@ -424,8 +492,10 @@ SetLogLevel( -1 )
 # Main server loop
 try:
     pool = concurrent.futures.ThreadPoolExecutor( config.recognitionThreads )
+    #lvtServer = websockets.serve( websockServer, config.serverAddress, config.serverPort, ssl=sslContext )
+
     lvtServer = websockets.serve( websockServer, config.serverAddress, config.serverPort, ssl=sslContext )
-    lvtApiServer = asyncio.start_server( apiServer, config.serverAddress, config.apiServerPort )
+    lvtApiServer = websockets.serve( apiServer, config.serverAddress, config.apiServerPort )
     
     loop = asyncio.get_event_loop()
     loop.run_until_complete( lvtApiServer )

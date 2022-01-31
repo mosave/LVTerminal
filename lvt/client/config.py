@@ -198,9 +198,9 @@ def __getAudioDevice( audio: pyaudio.PyAudio, deviceIndex, isInput:bool ):
         device = audio.get_device_info_by_index( i )
         name = str(device.get( "name" ))
         # Resolve index by device name
-        if ( type( deviceIndex ) is str ) and name.lower().startswith( deviceIndex.lower() ) : deviceIndex = i
+        if isinstance( deviceIndex, str ) and name.lower().startswith( deviceIndex.lower() ) : deviceIndex = i
         # Assign original device name
-        if ( type( deviceIndex ) is int ) and ( deviceIndex == i ) :
+        if isinstance( deviceIndex,int ) and ( deviceIndex == i ) :
             deviceName = name
             break
 

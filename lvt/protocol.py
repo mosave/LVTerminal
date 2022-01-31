@@ -60,8 +60,18 @@ MSG_ALL = { \
     }
 
 #*** LVT API Commands
-# Запрос текущего статуса LVT сервера
-MSG_API_STATUS = 'GetStatus'
+
+# API Server Authorization
+MSG_API_AUTHORIZE = "Authorize"
+
+# Запрос текущего статуса LVT сервера и ответ на него
+MSG_API_SERVER_STATUS = 'ServerStatus'
+
+# Запрос или обновление состояния терминалов:
+MSG_API_TERMINAL_STATUS = 'Status'
+
+# Установить громкость терминалов
+MSG_API_VOLUME = 'Volume'
 
 #  Проговорить текст на треминале "TerminalId"
 MSG_API_SAY = 'Say' # {"terminal":"<terminalId>","message":"<фраза>"}
