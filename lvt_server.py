@@ -100,7 +100,7 @@ async def websockServer( connection, path ):
                     # Примерно раз в секунду дергаем terminal.onTime()
                     if terminal != None and int( time.time() ) != int( lastTickedOn ):
                         lastTickedOn = time.time()
-                        terminal.onTimer()
+                        await terminal.onTimer()
                         # Отправляем новые сообщения клиенту, если они
                         # появились
                         while len( messageQueue ) > 0:
@@ -129,9 +129,10 @@ async def websockServer( connection, path ):
                     terminal = TerminalAuthorize( id, password, version )
                     if terminal != None:
                         terminal.ipAddress = connection.remote_address[0]
-                        terminal.onConnect( messageQueue )
+                        terminal.version = version
+                        await terminal.onConnect( messageQueue )
                         if terminal.autoUpdate==2 and version != VERSION :
-                            terminal.updateClient()
+                            await terminal.updateClient()
                     else:
                         print( 'Not authorized. Disconnecting' )
                         sendMessage( MSG_TEXT,'Wrong terminal Id or password' )
@@ -193,7 +194,7 @@ async def websockServer( connection, path ):
                         else:
                             textFiltered = text
 
-                        isProcessed = terminal.onText( voiceData, textFiltered, text, speakerSignature )
+                        isProcessed = await terminal.onText( voiceData, textFiltered, text, speakerSignature )
                     else:
                         isProcessed = False
                         textFiltered = ''
@@ -278,7 +279,7 @@ async def apiServer( connection, path ):
             ids.append(tId)
         return ids if ids else None
 
-    async def sendMessage( msg: str, statusCode: int = 0, status: str = None, terminalIds = None, data = None):
+    async def sendMessage( msg: str, statusCode: int = 0, status: str = None, terminalIds = None, data = None) -> bool:
         message = {
                 'Message': msg,
                 'StatusCode': statusCode
@@ -290,12 +291,16 @@ async def apiServer( connection, path ):
         if data != None:
             message['Data'] = json.dumps( data )
 
-        await asyncio.wait_for( conn.send( json.dumps( message ) ), 5 )
+        try:
+            await asyncio.wait_for( conn.send( json.dumps( message ) ), 5 )
+            return True
+        except Exception:
+            return False
 
-    async def sendLVTStatus():
-        data = getLVTStatus()
+    async def sendLVTStatus() -> bool:
+        data = getLVTStatus(True)
         terminalIds = getTerminalIds(data['Terminals'])
-        await sendMessage( MSG_API_SERVER_STATUS, terminalIds = terminalIds, data=data )
+        return await sendMessage( MSG_API_SERVER_STATUS, terminalIds = terminalIds, data=data )
 
 
     log("API Thread: Starting")
@@ -304,13 +309,15 @@ async def apiServer( connection, path ):
             try:
                 # Отправляем состояние сервера раз в минуту:
                 if not authorized and config.apiServerPassword is None:
-                    await sendMessage( MSG_API_AUTHORIZE, 0, "Authorized" )
+                    if not await sendMessage( MSG_API_AUTHORIZE, 0, "Authorized" ):
+                        break
                     authorized = True
 
                 # Отправляем состояние сервера раз в минуту:
                 if authorized and ((time.time() - statusSent) >= 60):
-                    log(f"API Thread: Sending status by timeout")
-                    await sendLVTStatus()
+                    #logDebug(f"API Thread: Sending status by timeout")
+                    if not await sendLVTStatus() : 
+                        break
                     statusSent = time.time()
 
                 try:
@@ -332,28 +339,31 @@ async def apiServer( connection, path ):
                     if not authorized:
                         if message == MSG_API_AUTHORIZE:
                             if str(data) == str(config.apiServerPassword):
-                                await sendMessage( MSG_API_AUTHORIZE, statusCode=0, status="Authorized" )
+                                if not await sendMessage( MSG_API_AUTHORIZE, statusCode=0, status="Authorized" ):
+                                    break
                                 authorized = True
                             else:
-                                await sendMessage( MSG_API_AUTHORIZE, statusCode=-1, status="Invalid Password" )
+                                if not await sendMessage( MSG_API_AUTHORIZE, statusCode=-1, status="Invalid Password" ):
+                                    break
 
                     elif message == MSG_API_SERVER_STATUS:
-                        await sendLVTStatus()
+                        if not await sendLVTStatus():
+                            break
                         statusSent = time.time()
 
                     #elif m == MSG_API_SAY:
                     #    if message :
-                    #        terminal.say( message )
+                    #        await terminal.say( message )
                     #    else:
                     #        response = 'Message is empty'
                     #elif m == MSG_API_ASK :
                     #    terminal.answerPrefix = data['answerPrefix'] if 'answerPrefix' in data else ''
                     #    if message:
-                    #        terminal.say( message )
-                    #    terminal.changeTopic( TOPIC_MD_ASK )
+                    #        await terminal.say( message )
+                    #    await terminal.changeTopic( TOPIC_MD_ASK )
                     #elif m == MSG_API_YESNO :
                     #    terminal.answerPrefix = data['answerPrefix'] if 'answerPrefix' in data else ''
-                    #    terminal.changeTopic( "YesNo", \
+                    #    await terminal.changeTopic( "YesNo", \
                     #        message=message,
                     #        topicYes = TOPIC_MD_YES,
                     #        topicNo = TOPIC_MD_NO,
@@ -365,18 +375,19 @@ async def apiServer( connection, path ):
                     #    logError( f'API Thread: Error processing message {message}: {e}' )
                     #    await sendMessage( message, status=-1, errorMsg=str(e) )
                 elif authorized: # No message received - just send terminal status updates if any
-                    #log(f"checking updates")
+                    #logDebug(f"checking updates")
                     updates = getLVTUpdates()
                     if updates:
-                        log(f"API Thread: Sending updates")
+                        #logDebug(f"API Thread: Sending updates")
                         terminalIds = getTerminalIds(updates)
-                        await sendMessage( MSG_API_TERMINAL_UPDATES, terminalIds=terminalIds, data=updates )
+                        if not await sendMessage( MSG_API_TERMINAL_STATUS, terminalIds=terminalIds, data=updates ):
+                            break
             except:
                 break
     except websockets.exceptions.ConnectionClosed as e:
-        log(f"API Thread: Connection closed {e}")
+        logDebug(f"API Thread: Connection closed {e}")
     except Exception as e:
-        log(f"API Thread: Exception {e}")
+        logError(f"API Thread: Exception {e}")
     finally:
         log("API Thread: Exiting")
 

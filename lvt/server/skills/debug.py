@@ -23,13 +23,13 @@ class DebugSkill(Skill):
         this.subscribe( TOPIC_DEFAULT,  TOPIC_DEBUG_YES,TOPIC_DEBUG_NO, TOPIC_DEBUG_CANCEL,
                        TOPIC_DEBUG1,TOPIC_DEBUG2, TOPIC_DEBUG3, TOPIC_DEBUG4 )
 
-    def onText( this ):
+    async def onText( this ):
         if this.isAppealed :
             if this.findWordChainB("проверка поиска по шаблону") :
                 def failed( pattern, pos, len ) :
                     (p,l) = this.findWordChain( pattern )
                     if p != pos  or l != len :
-                        this.say(f'Ошибка при поиске {pattern}: ({p},{l})')
+                        await this.sayAsync(f'Ошибка при поиске {pattern}: ({p},{l})')
                         this.stopParsing(ANIMATION_CANCEL)
                         return True
                     else:
@@ -50,23 +50,23 @@ class DebugSkill(Skill):
                 if failed('три * три',-1,0) : return
 
                 this.stopParsing(ANIMATION_ACCEPT)
-                this.say('Поиск по шаблону работает')
+                await this.sayAsync('Поиск по шаблону работает')
 
             elif this.findWordChainB("проверка да или нет") :
                 this.stopParsing(ANIMATION_ACCEPT)
-                this.changeTopic( "YesNo", \
+                await this.changeTopic( "YesNo", \
                     message='Да или нет?',
                     topicYes = TOPIC_DEBUG_YES,
                     topicNo = TOPIC_DEBUG_NO,
                     topicCancel = TOPIC_DEBUG_CANCEL
                 )
-    def onTopicChange( this, newTopic: str, params = {} ):
+    async def onTopicChange( this, newTopic: str, params = {} ):
         if newTopic == TOPIC_DEBUG_YES :
-            this.say( 'Подтверждено' )
-            this.changeTopic(TOPIC_DEFAULT)
+            await this.sayAsync( 'Подтверждено' )
+            await this.changeTopic(TOPIC_DEFAULT)
         elif newTopic == TOPIC_DEBUG_NO :
-            this.say( 'отказано' )
-            this.changeTopic(TOPIC_DEFAULT)
+            await this.sayAsync( 'отказано' )
+            await this.changeTopic(TOPIC_DEFAULT)
         elif newTopic == TOPIC_DEBUG_CANCEL :
-            this.say( 'отмена' )
-            this.changeTopic(TOPIC_DEFAULT)
+            await this.sayAsync( 'отмена' )
+            await this.changeTopic(TOPIC_DEFAULT)

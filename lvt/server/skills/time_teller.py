@@ -17,13 +17,13 @@ class TellTheTimeSkill(Skill):
         this.subscribe( TOPIC_DEFAULT )
         this.extendVocabulary('сколько, сейчас времени, который час, какой сегодня день недели, скажи, число, дата')
 
-    def onText( this ):
+    async def onText( this ):
         if this.isAppealed :
             if this.findWordChainB('сколько * времени') or \
                 this.findWordChainB('который * час'):
                 this.stopParsing(ANIMATION_ACCEPT)
                 s = transcribeTime(  datetime.datetime.today() ).replace('часа', 'часа́')
-                this.say( s )
+                await this.sayAsync( s )
 
             elif this.findWordChainB('какой сегодня день') or \
                 this.findWordChainB('какой день недели') or \
@@ -33,4 +33,4 @@ class TellTheTimeSkill(Skill):
                 this.findWordChainB('какое сегодня число'):
                 this.stopParsing(ANIMATION_ACCEPT)
 
-                this.say('Сегодня '+ transcribeDate(datetime.datetime.today()) )
+                await this.sayAsync('Сегодня '+ transcribeDate(datetime.datetime.today()) )

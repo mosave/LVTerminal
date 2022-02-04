@@ -41,7 +41,7 @@ class Skill:
         #
         pass
 
-    def onText( self ):
+    async def onText( self ):
         """Вызывается после завершения распознавания фразы в случае если скилл привязан к текущему состоянию
           * appeal - в фразе присутствует обращение к ассистенту
         Возвращаемое значение, tuple:
@@ -49,12 +49,12 @@ class Skill:
         """
         pass
 
-    def onTopicChange( self, newTopic:str, params={} ):
+    async def onTopicChange( self, newTopic:str, params={} ):
         """Вызывается при переходе синтаксического анализатора в состояние, на которое подписан скилл
         """
         pass
         
-    def onTimer( self ):
+    async def onTimer( self ):
         """Вызывается примерно 1 раз в секунду, в зависимости от """
         pass
 
@@ -91,7 +91,7 @@ class Skill:
     def topic( self ) -> str: return self.terminal.topic
 
     def animate( self, animation:str ): self.terminal.animate( animation )
-    def say( self, text ): self.terminal.say( text )
+    async def sayAsync( self, text ): await self.terminal.sayAsync ( text )
     def play( self, waveFileName ): self.terminal.play( waveFileName )
     def log( self, msg:str ): log( f'[{self.terminal.id}.{self.name}]: {msg}' )
     def logError( self, msg:str ): logError( f'[{self.terminal.id}.{self.name}]: {msg}' )
@@ -250,7 +250,7 @@ class Skill:
         """
         self.vocabulary.update( wordsToVocabulary( words, tags ) )
 
-    def changeTopic( self, newTopic, *params, **kwparams ):
+    async def changeTopic( self, newTopic, *params, **kwparams ):
         """Изменить текущий топик. Выполняется ПОСЛЕ выхода из обработчика onText"""
         self.terminal.newTopic = str( newTopic )
 

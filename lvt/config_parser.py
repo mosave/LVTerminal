@@ -20,8 +20,12 @@ class ConfigParser:
     """
     def __init__( self, fileName:str, allowKeysOnly=False ):
         global CONFIG_DIR
-        fileDir, fileName =  os.path.split(fileName)
-        self.fileName = os.path.join( CONFIG_DIR, fileName )
+        if not os.path.isabs(fileName):
+            fileDir, fileName =  os.path.split(fileName)
+            if not fileDir: fileDir = CONFIG_DIR
+            self.fileName = os.path.join( fileDir, fileName )
+        else:
+            self.fileName = fileName
 
         with open( self.fileName, "r", encoding='utf-8' ) as f:
             lines = list( f.readlines() )

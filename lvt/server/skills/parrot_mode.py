@@ -18,7 +18,7 @@ class ParrotModeSkill(Skill):
         this.extendVocabulary( "повторяй за мной, включи режим попугая" )
         this.extendVocabulary( "выключи режим попугая, перестань повторять" )
 
-    def onText( this ):
+    async def onText( this ):
         if this.topic == TOPIC_PARROT_MODE:
             this.remindOn = time.time() + REMINDER_TIMEOUT
 
@@ -30,9 +30,9 @@ class ParrotModeSkill(Skill):
             iParrot = this.findWord( 'попугай' )
             if iOff >= 0 and iParrot > 0 or iStop >= 0 and iRepeat >= 0 :
                 this.stopParsing( ANIMATION_ACCEPT )
-                this.changeTopic( TOPIC_DEFAULT )
+                await this.changeTopic( TOPIC_DEFAULT )
             else:
-                this.say( this.terminal.originalTextUnfiltered )
+                await this.sayAsync( this.terminal.originalTextUnfiltered )
 
         else:
             if this.isAppealed :
@@ -40,22 +40,22 @@ class ParrotModeSkill(Skill):
                     this.findWordChainB( 'переключись * режим попугая' ) or \
                     this.findWordChainB( 'перейди в режим попугая' ) or \
                     this.findWordChainB( 'повторяй за мной' ) :
-                    this.changeTopic( TOPIC_PARROT_MODE )
+                    await this.changeTopic( TOPIC_PARROT_MODE )
                     this.stopParsing( ANIMATION_ACCEPT )
 
-    def onTopicChange( this, newTopic: str, params={} ):
+    async def onTopicChange( this, newTopic: str, params={} ):
         if this.topic == TOPIC_DEFAULT and newTopic == TOPIC_PARROT_MODE :
             this.animate( ANIMATION_AWAKE )
-            this.say( 'Окей, говорите и я буду повторять всё, что услышу!. ' + 'Для завершения скажите: "перестань за мной повторять"' )
+            await this.sayAsync( 'Окей, говорите и я буду повторять всё, что услышу!. ' + 'Для завершения скажите: "перестань за мной повторять"' )
             # Задаем время проговаривания напоминания
             this.remindOn = time.time() + REMINDER_TIMEOUT
         elif this.topic == TOPIC_PARROT_MODE :
-            this.say( 'Режим попугая выключен' )
+            await this.sayAsync( 'Режим попугая выключен' )
             this.remindOn = 0
        
-    def onTimer( this ):
+    async def onTimer( this ):
         if( this.topic == TOPIC_PARROT_MODE ):
             if time.time() > this.remindOn:
-                this.say( 'Для завершения скажите "выключить режим попугая" или "перестань за мной повторять"!' )
+                await this.sayAsync( 'Для завершения скажите "выключить режим попугая" или "перестань за мной повторять"!' )
                 this.remindOn = time.time() + REMINDER_TIMEOUT
 

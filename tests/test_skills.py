@@ -199,7 +199,7 @@ Speaker.initialize( config )
 messageQueue = list()
 
 terminal = Terminal.authorize( 'test', 'TestPassword', 'testscript' )
-terminal.onConnect( messageQueue )
+await terminal.onConnect( messageQueue )
 
 #print( transcribeDate(datetime.datetime.today()) )
 

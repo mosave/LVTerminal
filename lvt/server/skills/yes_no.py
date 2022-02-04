@@ -47,14 +47,14 @@ class YesNoSkill(Skill):
         this.dtRepeat = time.time()
         this.dtCancel = time.time()
 
-    def onText( this ):
+    async def onText( this ):
         if this.topic != TOPIC_YES_NO : 
             return
 
         if this.topicCancel != '' and ( \
             this.findWordChainB( 'отменить' ) or \
             this.findWordChainB( 'отмена' ) ) :
-            this.changeTopic( this.topicCancel,this.terminal.text )
+            await this.changeTopic( this.topicCancel,this.terminal.text )
             this.stopParsing( ANIMATION_CANCEL )
             return
         if this.findWordChainB( 'нет' ) or \
@@ -64,7 +64,7 @@ class YesNoSkill(Skill):
             this.findWordChainB( 'стой' ) or \
             this.findWordChainB( 'не уверен' ) or \
             this.findWordChainB( 'не нужно' ) :
-            this.changeTopic( this.topicNo,this.terminal.text )
+            await this.changeTopic( this.topicNo,this.terminal.text )
             this.stopParsing( ANIMATION_CANCEL )
             return
         if this.findWordChainB( 'да' ) or \
@@ -73,13 +73,13 @@ class YesNoSkill(Skill):
             this.findWordChainB( 'конечно' ) or \
             this.findWordChainB( 'поехали' ) or \
             this.findWordChainB( 'уверен' ) :
-            this.changeTopic( this.topicYes,this.terminal.text )
+            await this.changeTopic( this.topicYes,this.terminal.text )
             this.stopParsing( ANIMATION_ACCEPT )
             return
-        this.say('Извините, я не '+this.conformToAppeal('понял')+' что вы сказали. Скажите пожалуйста да или нет')
+        await this.sayAsync('Извините, я не '+this.conformToAppeal('понял')+' что вы сказали. Скажите пожалуйста да или нет')
         this.stopParsing()
 
-    def onTopicChange( this, newTopic: str, params={} ):
+    async def onTopicChange( this, newTopic: str, params={} ):
         if newTopic == TOPIC_YES_NO:
             this.dtRepeat = time.time() + TIMEOUT_REPEAT
             this.dtCancel = time.time() + TIMEOUT_CANCEL
@@ -94,25 +94,25 @@ class YesNoSkill(Skill):
             this.defaultAnimation = this.terminal.lastAnimation
 
             if this.message == '' or this.topicYes == '' or this.topicNo == '' :
-                this.say( "В скилл Yes Or No переданы неправильные значения параметров" )
-                this.changeTopic( TOPIC_DEFAULT )
+                await this.sayAsync( "В скилл Yes Or No переданы неправильные значения параметров" )
+                await this.changeTopic( TOPIC_DEFAULT )
                 this.stopParsing( ANIMATION_CANCEL )
                 return
 
             this.animate( ANIMATION_AWAKE )
-            this.say( this.message )
+            await this.sayAsync( this.message )
         else:
             this.terminal.animate( this.defaultAnimation )
 
-    def onTimer( this ):
+    async def onTimer( this ):
         if( this.topic == TOPIC_YES_NO ):
             if this.topicCancel!='' and time.time() > this.dtCancel :
-                this.say('Извините, я так ничего и не услышала...')
-                this.changeTopic( this.topicCancel, 'Ответ не получен' )
+                await this.sayAsync('Извините, я так ничего и не услышала...')
+                await this.changeTopic( this.topicCancel, 'Ответ не получен' )
                 return
 
             if time.time() > this.dtRepeat :
                 this.dtRepeat = time.time() + TIMEOUT_REPEAT
-                this.say(this.message)
+                await this.sayAsync(this.message)
                 return
             

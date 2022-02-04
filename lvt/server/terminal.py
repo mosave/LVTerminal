@@ -16,19 +16,9 @@ import lvt.server.speakers as speakers
 import lvt.server.entities as entities
 from lvt.server.skill import Skill
 from lvt.server.skill_factory import SkillFactory
-
-#pip3 install pywin32
-# win32 should be imported globally. No other options but tru/except found
-try:
-    import win32com.client
-    import pythoncom
-except:
-    pass
+from lvt.server.tts import TTS
 
 terminals = list()
-ttsRHVoice = None
-ttsLock = Lock()
-ttsLocked = set()
 
 
 class Terminal():
@@ -54,7 +44,6 @@ class Terminal():
 
         self.ipAddress = ''
         self.autoUpdate = config.terminals[id]['autoupdate']
-
         self.clientVersion = ""
         # Использовать "словарный" режим
         self.vocabulary = set()
@@ -95,6 +84,12 @@ class Terminal():
 
         self.updateVocabulary()
 
+        if config.ttsEngine:
+            self.tts = TTS()
+        else:
+            self.tts = None
+
+
         self.lastAnimation = ''
 
         self.appeal = wordsToList( config.assistantNames )[0]
@@ -111,107 +106,22 @@ class Terminal():
         self.words = list()
 #endregion
 
-#region Say / Play
-    def say( self, text ):
+#region sayAsync / play
+    async def sayAsync( self, text ):
         """Проговорить сообщение на терминал. 
           Текст сообщения так же дублируется командой "Text"
         """
-        global ttsRHVoice
-        global ttsLock
-        global ttsLocked
+        if self.tts == None: return
+        voice = await self.tts.textToSpeech(text)
+        self.playVoice(voice)
 
-        if isinstance(text, list):
-            text = text[random.randint(len(text))]
+    def playVoice( self, voice ):
 
-        self.logDebug( f'Say "{text}" with {config.ttsEngine}' )
-
-        if not config.ttsEngine:
-            return
-
-        if time.time() - self.lastSound > 1 * 60:
-            self.play("ding.wav")
-
-        self.lastSound = time.time()
-
-        wfn = hashlib.sha256((config.ttsEngine+'-'+config.voice+'-'+text).encode()).hexdigest()
-        waveFileName = os.path.join( ROOT_DIR,'cache', wfn+'.wav' )
-
-        #todo: rewrite to optimize 
-        isLocked = True
-        while isLocked:
-            ttsLock.acquire()
-            if not (wfn in ttsLocked):
-                ttsLocked.add(wfn)
-                isLocked = False
-            ttsLock.release()
-            if isLocked:
-                time.sleep(0.1)
-        try:
-            #print(f'wave file name= {waveFileName}')
-            #self.sendMessage( MSG_TEXT, text )
-            if not os.path.isfile(waveFileName): 
-                self.log(f'generating wav, engine={config.ttsEngine} ')
-                if (config.ttsEngine == TTS_RHVOICE) and (ttsRHVoice != None):
-                    rhvParams = config.rhvParams
-                    # https://pypi.org/project/rhvoice-wrapper/
-
-                    frames = ttsRHVoice.get( text, 
-                        voice= rhvParams['voice'],
-                        format_='pcm', 
-                        sets=rhvParams
-                    )
-                    fn = os.path.join( ROOT_DIR, 'logs', datetime.datetime.today().strftime(f'%Y%m%d_%H%M%S_say') )
-                    f = open( fn+'.pcm','wb')
-                    f.write(frames)
-                    f.close()
-                    with wave.open( waveFileName, 'wb' ) as wav:
-                        sampwidth = wav.setsampwidth(2)
-                        nchannels = wav.setnchannels(1)
-                        framerate = wav.setframerate(24000)
-                        wav.writeframes( frames )
-
-                    #ttsRHVoice.to_file( 
-                    #    filename=waveFileName, 
-                    #    text=text, 
-                    #    voice=rhvParams['voice'], 
-                    #    format_='wav',
-                    #    sets=rhvParams )
-                    #wav = ttsRHVoice.get( text, 
-                    #    voice= rhvParams['voice'],
-                    #    format_='wav', 
-                    #    sets=rhvParams )
-                    ##self.sendMessage(MSG_MUTE)
-                    #self.sendDatagram( wav )
-                    ##self.sendMessage(MSG_UNMUTE)
-                elif (config.ttsEngine == TTS_SAPI):
-                    #https://docs.microsoft.com/en-us/previous-versions/windows/desktop/ms723602(v=vs.85)
-                    pythoncom.CoInitialize()
-                    sapi = win32com.client.Dispatch("SAPI.SpVoice")
-                    sapiStream = win32com.client.Dispatch("SAPI.SpFileStream")
-                    voices = sapi.GetVoices()
-                    v = config.voice.lower().strip()
-                    for voice in voices:
-                        if voice.GetAttribute("Name").lower().strip().startswith(v):
-                            sapi.Voice = voice
-                    sapi.Rate = config.sapiRate
-                    sapiStream.Open( waveFileName, 3 )
-                    sapi.AudioOutputStream = sapiStream
-                    sapi.Speak(text)
-                    sapi.WaitUntilDone(-1)
-                    sapiStream.Close()
-
-            if os.path.isfile(waveFileName): 
-                with open( waveFileName, 'rb' ) as f:
-                    self.sendDatagram( f.read( 5000 * 1024 ) )
-            else:
-                self.logError(f'File {waveFileName} not found')
-        except Exception as e:
-            self.logError( f'TTS Engine exception: {e}' )
-
-        ttsLock.acquire()
-        ttsLocked.remove(wfn)
-        ttsLock.release()
-
+        if voice != None:
+            if time.time() - self.lastSound > 1 * 60:
+                self.play("ding.wav")
+            self.lastSound = time.time()
+            self.sendDatagram( voice )
 
     def play( self, waveFileName: str ):
         self.lastSound = time.time()
@@ -248,11 +158,10 @@ class Terminal():
         # Кешируем морфологический разбор слов - для ускорения обработки фразы
         self.wordsUnfiltered = parseText( newTextUnfiltered)
 
-
 #endregion
 
 #region onConnect() / onDisconnect() 
-    def onConnect( self, messageQueue ):
+    async def onConnect( self, messageQueue ):
         """Метод вызывается при подключении терминального клиента
           messageQueue is synchronous message output queue
         """
@@ -272,10 +181,10 @@ class Terminal():
         self.sendMessage( MSG_LVT_STATUS, json.dumps(getLVTStatus()) )
         if self.sayOnConnect :
             self.sendMessage(MSG_MUTE)
-            self.say(self.sayOnConnect)
+            await self.sayAsync(self.sayOnConnect)
             self.sendMessage(MSG_UNMUTE)
             self.sayOnConnect = None
-        #self.say('Terminal Connected. Терминал подключен.')
+        #await self.sayAsync('Terminal Connected. Терминал подключен.')
     def onDisconnect( self ):
         """Вызывается при (после) завершения сессии"""
         self.log( 'Terminal disconnected' )
@@ -285,7 +194,7 @@ class Terminal():
 #endregion
 
 #region onText()
-    def onText( self, voice, text:str, textUnfiltered: str, speakerSignature ) -> bool:
+    async def onText( self, voice, text:str, textUnfiltered: str, speakerSignature ) -> bool:
         """Основная точка входа для обработки полностью распознанного фрагмента """
         self.voice = voice
         # Морфологический разбор слов текста (words и wordsUnfiltered)
@@ -317,7 +226,7 @@ class Terminal():
                 if skill.isSubscribed( self.topic ) : 
                     try:
                         # Отработать onText
-                        skill.onText()
+                        await skill.onText()
                         t1 = self.text
                         if t1 != t0:
                             self.logDebug( f'{skill.name}.onText(): text changed to "{text}"' )
@@ -331,7 +240,7 @@ class Terminal():
                     except Exception as e:
                         self.logError( f'{skill.name}.onText() exception: {e}' )
 
-            self.processTopicChange()
+            await self.processTopicChange()
 
             if not self.parsingRestart: break
             self.logDebug( 'Перезапуск анализа фразы' )
@@ -351,20 +260,20 @@ class Terminal():
 
 
 #region onTimer()
-    def onTimer( self ):
+    async def onTimer( self ):
 
         self.newTopic = None
         self.newTopicParams = {}
         for skill in self.skills: 
             try:
-                skill.onTimer()
+                await skill.onTimer()
             except Exception as e:
                 self.logError( f'{skill.name}.onTimer() exception: {e}' )
-        self.processTopicChange()
+        await self.processTopicChange()
 #endregion
 
 #region changeTopic / processTopicChange()
-    def processTopicChange( self ):
+    async def processTopicChange( self ):
         # Обработать изменения топика
         while self.newTopic != None and self.newTopic != self.topic:
             newTopic = self.newTopic
@@ -377,13 +286,13 @@ class Terminal():
             for skill in self.skills:
                 try:
                     if skill.isSubscribed( self.topic ) or skill.isSubscribed( newTopic ):
-                        skill.onTopicChange( newTopic, newTopicParams )
+                        await skill.onTopicChange( newTopic, newTopicParams )
                 except Exception as e:
                     self.logError( f'{skill.name}.onTopicChange() exception: {e}' )
 
             self.topic = newTopic
 
-    def changeTopic( self, newTopic, *params, **kwparams ):
+    async def changeTopic( self, newTopic, *params, **kwparams ):
         """Изменить текущий топик. Выполняется ПОСЛЕ выхода из обработчика onText"""
         self.newTopic = str( newTopic )
 
@@ -394,7 +303,7 @@ class Terminal():
             p.update( {'params':params} )
         self.newTopicParams = p
         self.logDebug( f'{self.name}.changeTopic("{newTopic}", {p}) ]' )
-        self.processTopicChange()
+        await self.processTopicChange()
 #endregion
 
 #region Vocabulary manipulations
@@ -426,7 +335,7 @@ class Terminal():
 #endregion
 
 #region Updating client
-    def updateClient( self ):
+    async def updateClient( self ):
         def packageFile( fileName ):
             with open( os.path.join( ROOT_DIR, fileName ), "r", encoding='utf-8' ) as f:
                 package.append( (fileName, f.readlines()) )
@@ -436,7 +345,7 @@ class Terminal():
                 if file.endswith( '.py' ) : 
                     packageFile( os.path.join( dir, file ) )
 
-        self.say("Обновление терминала.")
+        await self.sayAsync("Обновление терминала.")
 
         package = []
         packageFile( 'lvt_client.py' )
@@ -472,6 +381,8 @@ class Terminal():
             'Name':self.name,
             'Location': self.defaultLocation,
             'Connected':bool(self.isConnected),
+            'IPAddress': self.ipAddress,
+            'Version': self.clientVersion,
             'Address':self.ipAddress,
             'Volume': self.volume
         }
@@ -524,29 +435,6 @@ def TerminalFind( terminalId:str ):
 def terminalInit():
     """Initialize module' config variable for easier access """
     global terminals
-    global ttsRHVoice
-        
-    if config.ttsEngine == TTS_RHVOICE :
-        import rhvoice_wrapper as rhvoiceWrapper # https://pypi.org/project/rhvoice-wrapper/
-        try:
-            ttsRHVoice = rhvoiceWrapper.TTS( 
-                threads = 1,
-                lib_path = config.rhvParams['lib_path'] if 'lib_path' in config.rhvParams else None,
-                data_path = config.rhvParams['data_path'] if 'data_path' in config.rhvParams else None, 
-                resources = config.rhvParams['resources'] if 'resources' in config.rhvParams else None,
-                lame_path = config.rhvParams['lame_path'] if 'lame_path' in config.rhvParams else None,
-                opus_path = config.rhvParams['opus_path'] if 'opus_path' in config.rhvParams else None,
-                flac_path = config.rhvParams['flac_path'] if 'flac_path' in config.rhvParams else None,
-                quiet = True,
-                config_path = ""#config.rhvParams['config_path'] if 'config_path' in config.rhvParams else None
-                )
-                
-        except Exception as e:
-            logError( f'Exception initializing RHVoice engine: {e}' )
-    elif config.ttsEngine == TTS_SAPI:
-        pass
-    else:
-        pass
 
     terminals = list()
     for id in config.terminals: 
@@ -554,11 +442,7 @@ def terminalInit():
 
 
 def TerminalDispose():
-    if config.ttsEngine == TTS_RHVOICE :
-        try: ttsRHVoice.join()
-        except: pass
-    else:
-        pass
+    pass
 
 #endregion 
 
@@ -566,7 +450,7 @@ def TerminalDispose():
 #region getLVTStatus(), getTerminalUpdates
 trmsCache = dict()
 
-def getLVTStatus() -> dict:
+def getLVTStatus( resetUpdates: bool = False ) -> dict:
     global terminals
     global trmsCache
     """Returns 'public' options and system state suitable for sending to terminal client """
@@ -587,7 +471,8 @@ def getLVTStatus() -> dict:
         for t in terminals :
             if t.isConnected : terminalsConnected += 1
             trms[t.id] = t.getStatus()
-        trmsCache = trms
+        if resetUpdates:
+            trmsCache = trms
         terminalsTotal = len(terminals)
 
     return {

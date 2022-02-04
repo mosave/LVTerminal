@@ -11,6 +11,6 @@ class DateTimeDetectorSkill(Skill):
         this.priority = 9930
         this.subscribe( TOPIC_ALL )
 
-    def onText( this ):
+    async def onText( this ):
         pass
 

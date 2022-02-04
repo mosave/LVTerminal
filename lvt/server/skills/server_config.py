@@ -24,30 +24,30 @@ class ServerConfigSkill(Skill):
         this.extendVocabulary( "обнови пере запусти загрузи терминал" )
         this.nextVersionCheckOn = datetime.datetime.now()
 
-    def onText( this ):
+    async def onText( this ):
         if this.isAppealed :
 
             if this.findWordChainB( 'обнови * терминал' )  :
                 this.stopParsing( ANIMATION_THINK )
-                this.terminal.updateClient()
+                await this.terminal.updateClient()
 
             # Хак: в словаре малой модели отсутствуют слова "перезагрузи" и "перезапусти"
             elif this.findWordChainB( 'пере загрузи * терминал' ) or this.findWordChainB( 'пере запусти * терминал' ) or \
                 this.findWordChainB( 'загрузи * терминал' ) or this.findWordChainB( 'запусти * терминал' ) :
                 this.stopParsing( ANIMATION_THINK )
-                this.say( "Выполняется перезагрузка терминала." )
+                await this.sayAsync( "Выполняется перезагрузка терминала." )
                 this.terminal.reboot( "Терминал перезагружен." )
 
-    def onTimer( this ):
+    async def onTimer( this ):
         if this.topic == TOPIC_DEFAULT and this.lastAppealed :
             if datetime.datetime.now() > this.lastAppealed + datetime.timedelta( seconds=10 ) and datetime.datetime.now() > this.nextVersionCheckOn :
                 this.nextVersionCheckOn = datetime.datetime.today() + datetime.timedelta( hours=32 )
                 if this.terminal.clientVersion != VERSION :
                     if this.terminal.autoUpdate == 2 :
-                        this.terminal.updateClient()
+                        await this.terminal.updateClient()
                     if this.terminal.autoUpdate == 1 :
-                        this.say( 'Версия терминала устарела.' )
-                        this.say( 'Для обновления скажите "Обновить терминал".' )
+                        await this.sayAsync( 'Версия терминала устарела.' )
+                        await this.sayAsync( 'Для обновления скажите "Обновить терминал".' )
 
     def updateDevices( this ):
         try:
