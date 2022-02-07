@@ -18,8 +18,8 @@ from lvt.server.skill import Skill
 from lvt.server.skill_factory import SkillFactory
 from lvt.server.tts import TTS
 
-terminals = list()
-
+terminals = {}
+states = {}
 
 class Terminal():
     """Terminal class
@@ -32,6 +32,7 @@ class Terminal():
 
 #region init
     def __init__( self, id ):
+        global states
         self.id = id
         self.logDebug( f'Initializing terminal' )
         
@@ -94,7 +95,13 @@ class Terminal():
 
         self.appeal = wordsToList( config.assistantNames )[0]
 
-        self.volume = 30
+        self.__volume = 30
+        self.__filter = 0
+        if id in states:
+            if 'Volume' in states[id]:
+                self.__volume = int(states[id]['Volume'])
+            if 'Filter' in states[id]:
+                self.__filter = int(states[id]['Filter'])
 
         self.reset()
 
@@ -106,13 +113,14 @@ class Terminal():
         self.words = list()
 #endregion
 
-#region sayAsync / play
+#region sayAsync / playVoice / play
+    
     async def sayAsync( self, text ):
         """Проговорить сообщение на терминал. 
           Текст сообщения так же дублируется командой "Text"
         """
         if self.tts == None: return
-        voice = await self.tts.textToSpeech(text)
+        voice = await self.tts.textToSpeechAsync(text)
         self.playVoice(voice)
 
     def playVoice( self, voice ):
@@ -133,7 +141,6 @@ class Terminal():
 #endregion
 
 #region Properties
-
     @property
     def text( self ) -> str:
         """Сгенерировать текст фразы из разолранных слов """
@@ -158,6 +165,33 @@ class Terminal():
         # Кешируем морфологический разбор слов - для ускорения обработки фразы
         self.wordsUnfiltered = parseText( newTextUnfiltered)
 
+    @property
+    def volume(self) -> int:
+        return self.__volume
+
+    @volume.setter
+    def volume(self, newVolume: int ):
+        newVolume = int(newVolume)
+        if newVolume<0: newVolume=0
+        if newVolume>100: newVolume = 100
+        if self.__volume != newVolume:
+            self.sendMessage( MSG_VOLUME, newVolume )
+            self.__volume = newVolume
+            self.getState()
+
+    @property
+    def filter(self) -> int:
+        return self.__filter
+
+    @filter.setter
+    def filter(self, newFilter: int ):
+        newFilter = int(newFilter)
+        if newFilter<0: newFilter=0
+        if newFilter>4: newFilter = 4
+        if self.__filter != newFilter:
+            self.__filter = newFilter
+            self.getState()
+
 #endregion
 
 #region onConnect() / onDisconnect() 
@@ -178,7 +212,7 @@ class Terminal():
             self.reset()
 
         self.sendMessage( MSG_ANIMATE, ANIMATION_NONE )
-        self.sendMessage( MSG_LVT_STATUS, json.dumps(getLVTStatus()) )
+        self.sendMessage( MSG_LVT_STATUS, json.dumps(getState()) )
         if self.sayOnConnect :
             self.sendMessage(MSG_MUTE)
             await self.sayAsync(self.sayOnConnect)
@@ -257,7 +291,6 @@ class Terminal():
 
         return processed
 #endregion
-
 
 #region onTimer()
     async def onTimer( self ):
@@ -370,13 +403,12 @@ class Terminal():
         raise Exception( message )
 #endregion
 
-#region Messages, animate, getStatus
-    def getStatus( self ):
+#region Messages, animate, getState
+    def getState( self ):
         """JSON строка с описанием текущего состояния терминала на стороне сервера
-          Используется для передачи на сторону клиента.
-          Клиент при этом уже авторизован паролем
         """
-        return {
+        global states
+        states[self.id] = {
             'Id':self.id,
             'Name':self.name,
             'Location': self.defaultLocation,
@@ -384,9 +416,10 @@ class Terminal():
             'IPAddress': self.ipAddress,
             'Version': self.clientVersion,
             'Address':self.ipAddress,
-            'Volume': self.volume
+            'Volume': self.volume,
+            'Filter': self.filter
         }
-
+        return states[self.id]
 
     def animate( self, animation:str ):
         """Передать слиенту запрос на анимацию"""
@@ -415,45 +448,44 @@ class Terminal():
 #endregion
 
 #region Static methods
-def TerminalAuthorize( terminalId:str, password:str, clientVersion ):
+def authorize( terminalId:str, password:str, clientVersion ):
     """Авторизация терминала по terminalId и паролю"""
     terminalId = str( terminalId ).lower()
-    for t in terminals :
-        if t.id == terminalId and t.password == password: 
-            t.clientVersion = clientVersion
-            return( t )
+    if terminalId in terminals:
+        terminal = terminals[terminalId]
+        if terminal.password == password: 
+            terminal.clientVersion = clientVersion
+            return( terminal )
     return None
 
-def TerminalFind( terminalId:str ):
+def get( terminalId:str ):
     """Авторизация терминала по terminalId и паролю"""
     terminalId = str( terminalId ).lower()
-    for t in terminals :
-        if t.id == terminalId :
-            return( t )
+    if terminalId in terminals:
+        return( terminals[terminalId] )
     return None
 
-def terminalInit():
+def init():
     """Initialize module' config variable for easier access """
     global terminals
+    global states
 
-    terminals = list()
+    terminals = {}
     for id in config.terminals: 
-        terminals.append( Terminal( id ) )
+        terminals[id] = Terminal( id )
+    states = {}
+    for _, t in terminals.items():
+        t.getState()
 
-
-def TerminalDispose():
-    pass
 
 #endregion 
 
+#region getState(), getUpdates
 
-#region getLVTStatus(), getTerminalUpdates
-trmsCache = dict()
-
-def getLVTStatus( resetUpdates: bool = False ) -> dict:
+def getState( ) -> dict:
     global terminals
-    global trmsCache
-    """Returns 'public' options and system state suitable for sending to terminal client """
+    global states
+    """Returns 'public' options and state suitable for sending to terminal client """
     def formatSize( bytes, suffix='B' ):
         """ '1.20MB', '1.17GB'..."""
         factor = 1024
@@ -464,16 +496,10 @@ def getLVTStatus( resetUpdates: bool = False ) -> dict:
 
     cpufreq = psutil.cpu_freq()
     svmem = psutil.virtual_memory()
-    terminalsTotal = 0
     terminalsConnected = 0
-    trms = dict()
-    if terminals != None :
-        for t in terminals :
-            if t.isConnected : terminalsConnected += 1
-            trms[t.id] = t.getStatus()
-        if resetUpdates:
-            trmsCache = trms
-        terminalsTotal = len(terminals)
+    for _, t in terminals.items() :
+        if t.isConnected : terminalsConnected += 1
+        t.getState()
 
     return {
         'Model': config.model,
@@ -486,9 +512,9 @@ def getLVTStatus( resetUpdates: bool = False ) -> dict:
         'LogLevel': config.logLevel,
         'PrintLevel': config.printLevel,
         'StoreAudio':config.storeAudio,
-        'TerminalsTotal': terminalsTotal,
+        'TerminalsTotal': len(terminals),
         'TerminalsConnected': terminalsConnected,
-        'Terminals': trms,
+        'Terminals': states,
         'CpuCores': os.cpu_count(),
         'CpuFreq':f"{cpufreq.current:.2f}Mhz",
         'CpuLoad': f"{psutil.cpu_percent()}%",
@@ -498,19 +524,18 @@ def getLVTStatus( resetUpdates: bool = False ) -> dict:
         'MemLoad':f"{svmem.percent}%"
     }
 
-def getLVTUpdates() ->dict:
+def getUpdates() ->dict:
     global terminals
-    global trmsCache
+    global __trmsCache
     updates = dict()
-    if terminals != None :
-        for t in terminals :
-            tStatus = t.getStatus()
-            if t.id not in trmsCache:
-                trmsCache[t.id] = tStatus
-                updates[t.id] = tStatus
-            elif tStatus != trmsCache[t.id]:
-                trmsCache[t.id] = tStatus
-                updates[t.id] = tStatus
+    for _, t in terminals.items() :
+        tStatus = t.getState()
+        if t.id not in __trmsCache:
+            __trmsCache[t.id] = tStatus
+            updates[t.id] = tStatus
+        elif tStatus != __trmsCache[t.id]:
+            __trmsCache[t.id] = tStatus
+            updates[t.id] = tStatus
     return updates
 
 #endregion

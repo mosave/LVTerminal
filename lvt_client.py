@@ -30,8 +30,7 @@ shared = None
 microphone : Microphone
 animator : Animator
 
-### showHelp(), showDevices() ##########################################################
-#region
+#region showHelp(), showDevices() ######################################################
 def showHelp():
     """Display usage instructions"""
     print( "Использование: lvt_client.py [параметры]" )
@@ -53,8 +52,7 @@ def showDevices():
     audio.terminate()
 #endregion
 
-### printStatus() ######################################################################
-#region
+#region printStatus() ##################################################################
 async def printStatusThread():
     global shared
     global microphone
@@ -83,8 +81,7 @@ async def printStatusThread():
             await asyncio.sleep(1)
 #endregion
 
-### GetVolume() / SetVolume() ##########################################################
-#region
+#region GetVolume() / SetVolume() ######################################################
 def getVolume():
     global alsaaudio
     if config.volumeControl != None:
@@ -99,21 +96,25 @@ def getVolumePlayer():
     else:
         return None
 
-def setVolume( volume ):
+def setVolume( volume: int ):
+    volume = int(volume)
+    volume = 100 if volume>100 else (0 if volume<0 else volume)
+
     try:
         alsaaudio.Mixer(cardindex=config.volumeCardIndex, control=config.volumeControl ).setvolume(volume)
     except Exception as e:
         pass
 
 def setVolumePlayer( volume ):
+    volume = int(volume)
+    volume = 100 if volume>100 else (0 if volume<0 else volume)
     try:
         alsaaudio.Mixer(cardindex=config.volumeCardIndex, control=config.volumeControlPlayer ).setvolume(volume)
     except Exception as e:
         pass
 #endregion
 
-### play() #############################################################################
-#region
+#region play() #########################################################################
 def play( data ):
     global audio
     global shared
@@ -192,8 +193,7 @@ def play( data ):
 
 #endregion
 
-### processMessage()? messageProcessorThread() #########################################
-#region
+#region processMessage()? messageProcessorThread() #####################################
 async def processMessage( message ):
     try:
         m,p = parseMessage( message )
@@ -202,7 +202,9 @@ async def processMessage( message ):
             play(message)
         elif m == MSG_STATUS:
             try:
-                if p != None : shared.terminalStatus = json.loads(p)
+                if p != None : 
+                    shared.terminalStatus = json.loads(p)
+                    setVolume(int(shared.terminalStatus['Terminals'][config.terminalId]['Volume']))
             except:
                 pass
         elif m == MSG_LVT_STATUS:
@@ -228,8 +230,6 @@ async def processMessage( message ):
             animator.muted = False
         elif m == MSG_VOLUME: 
             try:
-                p = int(p)
-                p = 100 if p>100 else (0 if p<0 else p)
                 setVolume(p)
             except:
                 pass
@@ -241,7 +241,7 @@ async def processMessage( message ):
             except:
                 pass
         elif m == MSG_ANIMATE:
-            if p == None : p = ANIMATE_NONE
+            if p == None : p = ANIMATION_NONE
             if animator != None and p in ANIMATION_ALL:
                 animator.animate( p )
         elif m == MSG_UPDATE:
@@ -268,8 +268,7 @@ async def messageProcessorThread( connection ):
         await processMessage(message)
 #endregion
 
-### microphoneThread() #################################################################
-#region
+#region microphoneThread() #############################################################
 async def microphoneThread( connection ):
     global shared
     global microphone
@@ -299,8 +298,7 @@ async def microphoneThread( connection ):
     microphone = None
 #endregion
 
-### tracemallocThread() ################################################################
-#region
+#region tracemallocThread() ############################################################
 async def tracemallocThread():
     global shared
     tracemalloc.start(10)
@@ -325,8 +323,7 @@ async def tracemallocThread():
         await asyncio.sleep( 60 )
 #endregion
 
-### websockClient() ####################################################################
-#region
+#region websockClient() ################################################################
 async def websockClient( serverUrl, sslContext):
     global lastMessageReceived
     global pingAreadySent
@@ -371,8 +368,7 @@ async def websockClient( serverUrl, sslContext):
     log( "Finishing Client thread" )
 #endregion
 
-### onCtrlC(), restartClient ###########################################################
-#region
+#region onCtrlC(), restartClient #######################################################
 def onCtrlC():
     """ Gracefuly terminate program """
     global shared
@@ -394,8 +390,7 @@ def restartClient():
     shared.exitCode = 42 # перезапуск
 #endregion
 
-### Main program #######################################################################
-#region
+#region Main program ###################################################################
 if __name__ == '__main__':
     print()
     print( f'Lite Voice Terminal Client v{VERSION}' )

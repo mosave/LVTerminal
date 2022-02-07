@@ -1,4 +1,3 @@
-import sys
 import time
 from lvt.const import *
 from lvt.server.grammar import *
@@ -35,84 +34,84 @@ class YesNoSkill(Skill):
     Для формирования параметров можно использовать враппер YesNoParams
     
     """
-    def onLoad( this ):
-        this.priority = 0
-        this.subscribe( TOPIC_YES_NO )
-        this.extendVocabulary( "нет, не согласен, отказ, стой, отмена, отменить, не хочу, прекрати, не надо, не нужно" )
-        this.extendVocabulary( "да, согласен, конечно, продолжить, уверен, поехали" )
-        this.message = "вы уверены? Скажите да или нет"
-        this.topicYes = ''
-        this.topicNo = ''
-        this.topicCancel = ''
-        this.dtRepeat = time.time()
-        this.dtCancel = time.time()
+    def onLoad( self ):
+        self.priority = 0
+        self.subscribe( TOPIC_YES_NO )
+        self.extendVocabulary( "нет, не согласен, отказ, стой, отмена, отменить, не хочу, прекрати, не надо, не нужно" )
+        self.extendVocabulary( "да, согласен, конечно, продолжить, уверен, поехали" )
+        self.message = "вы уверены? Скажите да или нет"
+        self.topicYes = ''
+        self.topicNo = ''
+        self.topicCancel = ''
+        self.dtRepeat = time.time()
+        self.dtCancel = time.time()
 
-    async def onText( this ):
-        if this.topic != TOPIC_YES_NO : 
+    async def onText( self ):
+        if self.topic != TOPIC_YES_NO : 
             return
 
-        if this.topicCancel != '' and ( \
-            this.findWordChainB( 'отменить' ) or \
-            this.findWordChainB( 'отмена' ) ) :
-            await this.changeTopic( this.topicCancel,this.terminal.text )
-            this.stopParsing( ANIMATION_CANCEL )
+        if self.topicCancel != '' and ( \
+            self.findWordChainB( 'отменить' ) or \
+            self.findWordChainB( 'отмена' ) ) :
+            await self.changeTopic( self.topicCancel,self.terminal.text )
+            self.stopParsing( ANIMATION_CANCEL )
             return
-        if this.findWordChainB( 'нет' ) or \
-            this.findWordChainB( 'отмена' ) or \
-            this.findWordChainB( 'не согласен' ) or \
-            this.findWordChainB( 'отказ' ) or \
-            this.findWordChainB( 'стой' ) or \
-            this.findWordChainB( 'не уверен' ) or \
-            this.findWordChainB( 'не нужно' ) :
-            await this.changeTopic( this.topicNo,this.terminal.text )
-            this.stopParsing( ANIMATION_CANCEL )
+        if self.findWordChainB( 'нет' ) or \
+            self.findWordChainB( 'отмена' ) or \
+            self.findWordChainB( 'не согласен' ) or \
+            self.findWordChainB( 'отказ' ) or \
+            self.findWordChainB( 'стой' ) or \
+            self.findWordChainB( 'не уверен' ) or \
+            self.findWordChainB( 'не нужно' ) :
+            await self.changeTopic( self.topicNo,self.terminal.text )
+            self.stopParsing( ANIMATION_CANCEL )
             return
-        if this.findWordChainB( 'да' ) or \
-            this.findWordChainB( 'согласен' ) or \
-            this.findWordChainB( 'продолжай' ) or \
-            this.findWordChainB( 'конечно' ) or \
-            this.findWordChainB( 'поехали' ) or \
-            this.findWordChainB( 'уверен' ) :
-            await this.changeTopic( this.topicYes,this.terminal.text )
-            this.stopParsing( ANIMATION_ACCEPT )
+        if self.findWordChainB( 'да' ) or \
+            self.findWordChainB( 'согласен' ) or \
+            self.findWordChainB( 'продолжай' ) or \
+            self.findWordChainB( 'конечно' ) or \
+            self.findWordChainB( 'поехали' ) or \
+            self.findWordChainB( 'уверен' ) :
+            await self.changeTopic( self.topicYes,self.terminal.text )
+            self.stopParsing( ANIMATION_ACCEPT )
             return
-        await this.sayAsync('Извините, я не '+this.conformToAppeal('понял')+' что вы сказали. Скажите пожалуйста да или нет')
-        this.stopParsing()
+        await self.sayAsync('Извините, я не '+self.conformToAppeal('понял')+' что вы сказали. Скажите пожалуйста да или нет')
+        self.stopParsing()
 
-    async def onTopicChange( this, newTopic: str, params={} ):
+    async def onTopicChange( self, newTopic: str, params={} ):
         if newTopic == TOPIC_YES_NO:
-            this.dtRepeat = time.time() + TIMEOUT_REPEAT
-            this.dtCancel = time.time() + TIMEOUT_CANCEL
+            self.dtRepeat = time.time() + TIMEOUT_REPEAT
+            self.dtCancel = time.time() + TIMEOUT_CANCEL
 
-            this.message = str( params['message'] ).strip() if 'message' in params else ''
-            this.topicYes = str( params['topicYes'] ).strip() if 'topicYes' in params else ''
-            this.topicNo = str( params['topicNo'] ).strip() if 'topicNo' in params else ''
+            self.message = str( params['message'] ).strip() if 'message' in params else ''
+            self.topicYes = str( params['topicYes'] ).strip() if 'topicYes' in params else ''
+            self.topicNo = str( params['topicNo'] ).strip() if 'topicNo' in params else ''
             if 'topicCancel' in params and params['topicCancel']!=None :
-                this.topicCancel = str( params['topicCancel'] ).strip() 
+                self.topicCancel = str( params['topicCancel'] ).strip() 
             else:
-                this.topicCancel = ''
-            this.defaultAnimation = this.terminal.lastAnimation
+                self.topicCancel = ''
+            self.defaultAnimation = self.terminal.lastAnimation
 
-            if this.message == '' or this.topicYes == '' or this.topicNo == '' :
-                await this.sayAsync( "В скилл Yes Or No переданы неправильные значения параметров" )
-                await this.changeTopic( TOPIC_DEFAULT )
-                this.stopParsing( ANIMATION_CANCEL )
+            if self.message == '' or self.topicYes == '' or self.topicNo == '' :
+                await self.sayAsync( "В скилл Yes Or No переданы неправильные значения параметров" )
+                await self.changeTopic( TOPIC_DEFAULT )
+                self.stopParsing( ANIMATION_CANCEL )
                 return
 
-            this.animate( ANIMATION_AWAKE )
-            await this.sayAsync( this.message )
+            self.animate( ANIMATION_AWAKE )
+            await self.sayAsync( self.message )
         else:
-            this.terminal.animate( this.defaultAnimation )
+            self.terminal.animate( self.defaultAnimation )
 
-    async def onTimer( this ):
-        if( this.topic == TOPIC_YES_NO ):
-            if this.topicCancel!='' and time.time() > this.dtCancel :
-                await this.sayAsync('Извините, я так ничего и не услышала...')
-                await this.changeTopic( this.topicCancel, 'Ответ не получен' )
+    async def onTimer( self ):
+        if( self.topic == TOPIC_YES_NO ):
+            if self.topicCancel!='' and time.time() > self.dtCancel :
+                await self.sayAsync('Извините, я так ничего и не услышала...')
+                await self.changeTopic( self.topicCancel, 'Ответ не получен' )
                 return
 
-            if time.time() > this.dtRepeat :
-                this.dtRepeat = time.time() + TIMEOUT_REPEAT
-                await this.sayAsync(this.message)
+            if time.time() > self.dtRepeat :
+                self.dtRepeat = time.time() + TIMEOUT_REPEAT
+                await self.sayAsync(self.message)
                 return
             

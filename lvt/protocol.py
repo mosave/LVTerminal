@@ -70,9 +70,6 @@ MSG_API_SERVER_STATUS = 'ServerStatus'
 # Запрос или обновление состояния терминалов:
 MSG_API_TERMINAL_STATUS = 'Status'
 
-# Установить громкость терминалов
-MSG_API_VOLUME = 'Volume'
-
 #  Проговорить текст на треминале "TerminalId"
 MSG_API_SAY = 'Say' # {"terminal":"<terminalId>","message":"<фраза>"}
 

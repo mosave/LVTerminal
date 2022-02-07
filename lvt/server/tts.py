@@ -1,10 +1,7 @@
 from asyncio import Lock
 import time
-import datetime
-import json
 import hashlib
 import wave
-import psutil
 from numpy import random
 from lvt.const import *
 from lvt.logger import *
@@ -13,11 +10,10 @@ import lvt.server.config as config
 ttsLock = Lock()
 ttsLocked = set()
 
-
 rhvoiceWrapper = None
 
 class TTS():
-    """TTS class
+    """TTS Engine
     """
 
     def __init__( self ):
@@ -49,7 +45,7 @@ class TTS():
     def __rhvp(self, parameter: str)->str:
         return config.rhvParams[parameter] if parameter in config.rhvParams else None
 
-    async def textToSpeech( self, text )->bytes:
+    async def textToSpeechAsync( self, text )->bytes:
         """Cached conversion of text to audio
         """
         global ttsLock

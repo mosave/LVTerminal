@@ -18,6 +18,7 @@ model = None
 fullModel = None
 storeAudio = False
 recognitionThreads : int = 4
+storageFile : str = None
 
 # Распознавание голоса
 spkModel = None
@@ -55,6 +56,7 @@ def init():
     global gModel 
     global storeAudio
     global recognitionThreads
+    global storageFile
 
     global spkModel
     global voiceSimilarity
@@ -99,6 +101,11 @@ def init():
 
     sslCertFile = p.getValue( section, 'SSLCertFile','' )
     sslKeyFile = p.getValue( section, 'SSLKeyFile','' )
+    storageFile = p.getValue( section, 'StorageFile',None )
+    if bool(storageFile):
+        if not os.path.isabs(storageFile):
+            storageFile = os.path.join( ROOT_DIR, storageFile )
+
 
     storeAudio = bool(p.getValue(section,'StoreAudio','0') != '0')
 

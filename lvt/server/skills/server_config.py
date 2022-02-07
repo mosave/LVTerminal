@@ -18,40 +18,40 @@ class ServerConfigSkill(Skill):
     """Управление режимами сервера.
     Ключевые фразы скилла: "Включи (выключи) режим распознавания со словарем"
     """
-    def onLoad( this ):
-        this.priority = 5000
-        this.subscribe( TOPIC_DEFAULT )
-        this.extendVocabulary( "обнови пере запусти загрузи терминал" )
-        this.nextVersionCheckOn = datetime.datetime.now()
+    def onLoad( self ):
+        self.priority = 5000
+        self.subscribe( TOPIC_DEFAULT )
+        self.extendVocabulary( "обнови пере запусти загрузи терминал" )
+        self.nextVersionCheckOn = datetime.datetime.now()
 
-    async def onText( this ):
-        if this.isAppealed :
+    async def onText( self ):
+        if self.isAppealed :
 
-            if this.findWordChainB( 'обнови * терминал' )  :
-                this.stopParsing( ANIMATION_THINK )
-                await this.terminal.updateClient()
+            if self.findWordChainB( 'обнови * терминал' )  :
+                self.stopParsing( ANIMATION_THINK )
+                await self.terminal.updateClient()
 
             # Хак: в словаре малой модели отсутствуют слова "перезагрузи" и "перезапусти"
-            elif this.findWordChainB( 'пере загрузи * терминал' ) or this.findWordChainB( 'пере запусти * терминал' ) or \
-                this.findWordChainB( 'загрузи * терминал' ) or this.findWordChainB( 'запусти * терминал' ) :
-                this.stopParsing( ANIMATION_THINK )
-                await this.sayAsync( "Выполняется перезагрузка терминала." )
-                this.terminal.reboot( "Терминал перезагружен." )
+            elif self.findWordChainB( 'пере загрузи * терминал' ) or self.findWordChainB( 'пере запусти * терминал' ) or \
+                self.findWordChainB( 'загрузи * терминал' ) or self.findWordChainB( 'запусти * терминал' ) :
+                self.stopParsing( ANIMATION_THINK )
+                await self.sayAsync( "Выполняется перезагрузка терминала." )
+                self.terminal.reboot( "Терминал перезагружен." )
 
-    async def onTimer( this ):
-        if this.topic == TOPIC_DEFAULT and this.lastAppealed :
-            if datetime.datetime.now() > this.lastAppealed + datetime.timedelta( seconds=10 ) and datetime.datetime.now() > this.nextVersionCheckOn :
-                this.nextVersionCheckOn = datetime.datetime.today() + datetime.timedelta( hours=32 )
-                if this.terminal.clientVersion != VERSION :
-                    if this.terminal.autoUpdate == 2 :
-                        await this.terminal.updateClient()
-                    if this.terminal.autoUpdate == 1 :
-                        await this.sayAsync( 'Версия терминала устарела.' )
-                        await this.sayAsync( 'Для обновления скажите "Обновить терминал".' )
+    async def onTimer( self ):
+        if self.topic == TOPIC_DEFAULT and self.lastAppealed :
+            if datetime.datetime.now() > self.lastAppealed + datetime.timedelta( seconds=10 ) and datetime.datetime.now() > self.nextVersionCheckOn :
+                self.nextVersionCheckOn = datetime.datetime.today() + datetime.timedelta( hours=32 )
+                if self.terminal.clientVersion != VERSION :
+                    if self.terminal.autoUpdate == 2 :
+                        await self.terminal.updateClient()
+                    if self.terminal.autoUpdate == 1 :
+                        await self.sayAsync( 'Версия терминала устарела.' )
+                        await self.sayAsync( 'Для обновления скажите "Обновить терминал".' )
 
-    def updateDevices( this ):
+    def updateDevices( self ):
         try:
             entities.init()
-            this.terminal.updateVocabulary()
+            self.terminal.updateVocabulary()
         except Exception as e:
             pass

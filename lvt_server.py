@@ -20,10 +20,12 @@ from lvt.protocol import *
 from lvt.logger import *
 import lvt.server.config as config
 import lvt.server.entities as entities
-from lvt.server.terminal import *
+import lvt.server.terminal as terminals
 import lvt.server.speakers as speakers
+from lvt.server.tts import TTS
 
 
+#region processVoice ###################################################################
 def processVoice( waveChunk, recognizer: KaldiRecognizer):
     """ Recognize audio chunk and process with terminal.onText() """
     signature = None
@@ -51,8 +53,8 @@ def processVoice( waveChunk, recognizer: KaldiRecognizer):
     return (final, text, signature)
 
 #endregion
-### websockServer ######################################################################
-#region
+
+#region websockServer ##################################################################
 async def websockServer( connection, path ):
     """Main service thread - websock server implementation """
     global model
@@ -84,7 +86,7 @@ async def websockServer( connection, path ):
         sendDatagram( MESSAGE( msg,p1,p2 ) )
 
     def sendStatus():
-        status = json.dumps(terminal.getStatus()) if terminal != None else '{"Terminal":"?","Name":"Not Registered","Connected":"false"}'
+        status = json.dumps(terminal.getState()) if terminal != None else '{"Terminal":"?","Name":"Not Registered","Connected":"false"}'
         sendMessage( MSG_STATUS, status )
 
     try:
@@ -120,13 +122,13 @@ async def websockServer( connection, path ):
                     sendStatus()
                 elif m == MSG_LVT_STATUS:
                     if terminal == None : break
-                    sendMessage( MSG_LVT_STATUS, json.dumps(getLVTStatus()) )
+                    sendMessage( MSG_LVT_STATUS, json.dumps(terminals.getState()) )
                 elif m == MSG_TEXT:
                     if terminal == None : break
                     log(f'[{terminal.id}] {p}')
                 elif m == MSG_TERMINAL :
                     id, password, version = split3( p )
-                    terminal = TerminalAuthorize( id, password, version )
+                    terminal = terminals.authorize( id, password, version )
                     if terminal != None:
                         terminal.ipAddress = connection.remote_address[0]
                         terminal.version = version
@@ -266,28 +268,23 @@ async def websockServer( connection, path ):
         try: terminal.onDisconnect()
         except: pass
         recognizer = None
-        spkRecognizer = None
 #endregion
-### apiServer ######################################################################
+
+#region apiServer ######################################################################
 async def apiServer( connection, path ):
+    global api_tts
     conn = connection
     statusSent = 0
     authorized = False
-    def getTerminalIds( terminals: dict[str, any] ) -> list:
-        ids = list()
-        for tId in terminals:
-            ids.append(tId)
-        return ids if ids else None
+    tsCache = {}
 
-    async def sendMessage( msg: str, statusCode: int = 0, status: str = None, terminalIds = None, data = None) -> bool:
+    async def sendMessage( msg: str, statusCode: int = 0, status: str = None, data = None) -> bool:
         message = {
                 'Message': msg,
                 'StatusCode': statusCode
                 }
         if status != None :
             message['Status'] = str(status)
-        if terminalIds != None:
-            message['Terminals'] = json.dumps( list(terminalIds) )
         if data != None:
             message['Data'] = json.dumps( data )
 
@@ -298,9 +295,11 @@ async def apiServer( connection, path ):
             return False
 
     async def sendLVTStatus() -> bool:
-        data = getLVTStatus(True)
-        terminalIds = getTerminalIds(data['Terminals'])
-        return await sendMessage( MSG_API_SERVER_STATUS, terminalIds = terminalIds, data=data )
+        data = terminals.getState()
+        for id, state in terminals.states.items():
+            tsCache[id] = json.dumps(state)
+        savePersistentState()
+        return await sendMessage( MSG_API_SERVER_STATUS, data=data )
 
 
     log("API Thread: Starting")
@@ -319,6 +318,7 @@ async def apiServer( connection, path ):
                     if not await sendLVTStatus() : 
                         break
                     statusSent = time.time()
+                    savePersistentState()
 
                 try:
                     requestString = await asyncio.wait_for( connection.recv(), timeout=1 )
@@ -327,7 +327,6 @@ async def apiServer( connection, path ):
                         request = json.loads( str(requestString) )
                         message = str(request['Message'])
                         data =  json.loads( str( request['Data'] ) ) if 'Data' in request else None
-                        terminalIds = set(request['Terminals']) if 'Terminals' in request else set()
                     else:
                         message = None
                 except asyncio.TimeoutError:
@@ -351,11 +350,24 @@ async def apiServer( connection, path ):
                             break
                         statusSent = time.time()
 
-                    #elif m == MSG_API_SAY:
-                    #    if message :
-                    #        await terminal.say( message )
-                    #    else:
-                    #        response = 'Message is empty'
+                    elif message == MSG_API_TERMINAL_STATUS:
+                        for tid, status in data.items():
+                            terminal = terminals.get( tid )
+                            if terminal is not None:
+                                if 'Volume' in status:
+                                    terminal.volume = int( status['Volume'] )
+                                if 'Filter' in status:
+                                    terminal.filter = int( status['Filter'] )
+
+                    elif message == MSG_API_SAY:
+                        text = data["Text"]
+                        trms = data["Terminals"]
+                        voice = await api_tts.textToSpeechAsync(text)
+
+                        for tid in trms:
+                            terminal = terminals.get( tid )
+                            terminal.playVoice(voice)
+
                     #elif m == MSG_API_ASK :
                     #    terminal.answerPrefix = data['answerPrefix'] if 'answerPrefix' in data else ''
                     #    if message:
@@ -376,13 +388,17 @@ async def apiServer( connection, path ):
                     #    await sendMessage( message, status=-1, errorMsg=str(e) )
                 elif authorized: # No message received - just send terminal status updates if any
                     #logDebug(f"checking updates")
-                    updates = getLVTUpdates()
+                    updates = {}
+                    for id, t in terminals.terminals.items():
+                        s = json.dumps(t.getState())
+                        if tsCache[id] != s:
+                            tsCache[id] = s
+                            updates[id] = terminals.states[id]
                     if updates:
                         #logDebug(f"API Thread: Sending updates")
-                        terminalIds = getTerminalIds(updates)
-                        if not await sendMessage( MSG_API_TERMINAL_STATUS, terminalIds=terminalIds, data=updates ):
+                        if not await sendMessage( MSG_API_TERMINAL_STATUS, data=updates ):
                             break
-            except:
+            except Exception as e:
                 break
     except websockets.exceptions.ConnectionClosed as e:
         logDebug(f"API Thread: Connection closed {e}")
@@ -390,37 +406,63 @@ async def apiServer( connection, path ):
         logError(f"API Thread: Exception {e}")
     finally:
         log("API Thread: Exiting")
+#endregion
 
+#region restorePersistentState, savePersistentState ####################################
+persistentState = {}
+persistentState_ = ""
 
+def restorePersistentState():
+    global persistentState
+    global persistentState_
+    if bool(config.storageFile) and os.path.isfile(config.storageFile):
+        try:
+            with open(config.storageFile) as jf:
+                persistentState_ = jf.read()
+                persistentState = json.loads(persistentState_)
+                if 'Terminals' in persistentState:
+                    terminals.states = persistentState['Terminals']
+        except Exception as e:
+            logError(f"Error restoring persistent state from {config.storageFile}: {e}")
 
-### showHelp() #########################################################################
-#region
+def savePersistentState():
+    global persistentState
+    global persistentState_
+    if bool(config.storageFile):
+        try:
+            persistentState['Terminals'] = terminals.states
+            js = json.dumps( persistentState, indent=4)
+            if js != persistentState_ :
+                with open(config.storageFile, 'w') as jf:
+                    jf.write(js)
+                persistentState_ = js
+        except Exception as e:
+            logError(f"Error saving persistent state to {config.storageFile}: {e}")
+    
+#endregion
+
+#region showHelp() #####################################################################
 def showHelp():
     """Display usage instructions"""
     print( "usage: lvt_server.py [options]" )
     print( "Options available:" )
     print( " -h | --help                    show these notes" )
     print( " -l[=<file>] | --log[=<file>]   overwrite log file location defined in config file " )
-
 #endregion
-### onCtrlC/ restart ###################################################################
-#region
+
+#region onCtrlC/ restart ###############################################################
 def onCtrlC():
-    TerminalDispose()
     loop.stop()
     print()
     print( "Terminating..." )
 def restart():
-    TerminalDispose()
     loop.stop()
     print()
     print( "Restarting..." )
     sys.exit(42)
-
 #endregion
-### Main program #######################################################################
-#region
-#First thing first: save store script' folder as ROOT_DIR:
+
+#region Main ###########################################################################
 
 print()
 print( f'Lite Voice Terminal Server v{VERSION}' )
@@ -439,10 +481,11 @@ for arg in sys.argv[1:]:
         fatalError( f'Invalid command line argument: "{arg}"' )
 
 
-entities.init()
-terminalInit()
-speakers.init()
+restorePersistentState()
 
+entities.init()
+terminals.init()
+speakers.init()
 
 sslContext = None
 
@@ -497,6 +540,7 @@ print()
 # Set log level to reduce Kaldi/Vosk spuffing
 SetLogLevel( -1 )
 
+api_tts = TTS()
 
 #endregion
 
@@ -516,5 +560,7 @@ except KeyboardInterrupt:
     onCtrlC()
 except Exception as e: 
     logError( f'Exception in main terminal loop {e}' )
+finally:
+    savePersistentState()
 
 #endregion
