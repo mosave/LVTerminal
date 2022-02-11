@@ -1,6 +1,5 @@
 from genericpath import isfile
 import time
-import datetime
 import json
 import hashlib
 import wave
@@ -10,7 +9,6 @@ from threading import Lock, Thread
 from lvt.const import *
 from lvt.logger import *
 from lvt.protocol import *
-from lvt.config_parser import ConfigParser
 from lvt.server.grammar import *
 import lvt.server.config as config
 import lvt.server.speakers as speakers
@@ -104,6 +102,7 @@ class Terminal():
             if 'Filter' in states[id]:
                 self.__filter = int(states[id]['Filter'])
 
+        self.playerMuted = False
         self.reset()
 
     def reset( self ):
@@ -115,6 +114,15 @@ class Terminal():
 #endregion
 
 #region sayAsync / playVoice / play
+    def playerMute(self):
+        if not self.playerMuted:
+            self.playerMuted = True
+            self.sendMessage(MSG_MUTE_PLAYER)
+
+    def playerUnmute(self):
+        if self.playerMuted:
+            self.playerMuted = False
+            self.sendMessage(MSG_UNMUTE_PLAYER)
     
     async def sayAsync( self, text ):
         """Проговорить сообщение на терминал. 
@@ -125,14 +133,13 @@ class Terminal():
         self.playVoice(voice)
 
     def playVoice( self, voice ):
-
         if voice != None:
-            self.sendMessage(MSG_MUTE_PLAYER)
+            self.playerMute()
             if time.time() - self.lastSound > 1 * 60:
                 self.play("ding.wav")
             self.lastSound = time.time()
             self.sendDatagram( voice )
-            self.sendMessage(MSG_UNMUTE_PLAYER)
+            self.playerUnmute()
 
     def play( self, waveFileName: str ):
         self.lastSound = time.time()
@@ -151,7 +158,12 @@ class Terminal():
                 if isfile(wfn):
                     waveFileName = wfn
         with open( waveFileName, 'rb' ) as wave:
+            pm = self.playerMuted
+            if not pm:
+                self.playerMute()
             self.sendDatagram( wave.read( 500 * 1024 ) )
+            if not pm:
+                self.playerUnmute()
 #endregion
 
 #region Properties
