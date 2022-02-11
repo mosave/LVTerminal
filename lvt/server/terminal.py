@@ -1,3 +1,4 @@
+from genericpath import isfile
 import time
 import datetime
 import json
@@ -126,16 +127,29 @@ class Terminal():
     def playVoice( self, voice ):
 
         if voice != None:
+            self.sendMessage(MSG_MUTE_PLAYER)
             if time.time() - self.lastSound > 1 * 60:
                 self.play("ding.wav")
             self.lastSound = time.time()
             self.sendDatagram( voice )
+            self.sendMessage(MSG_UNMUTE_PLAYER)
 
     def play( self, waveFileName: str ):
         self.lastSound = time.time()
         """Проиграть wave файл на терминале. Максимальный размер файла 500к """
+        fn, ext = os.path.splitext( waveFileName )
+        if ext == '':
+            ext = ".wav"
+        waveFileName = fn + ext
+
         if os.path.dirname( waveFileName ) == '' :
-           waveFileName = os.path.join( ROOT_DIR,'lvt','sounds',waveFileName )
+            wfn = os.path.join( ROOT_DIR,'lvt','sounds',waveFileName )
+            if isfile(wfn):
+                waveFileName = wfn
+            else:
+                wfn = os.path.join( CONFIG_DIR, waveFileName )
+                if isfile(wfn):
+                    waveFileName = wfn
         with open( waveFileName, 'rb' ) as wave:
             self.sendDatagram( wave.read( 500 * 1024 ) )
 #endregion

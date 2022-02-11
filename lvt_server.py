@@ -203,7 +203,7 @@ async def websockServer( connection, path ):
 
 
                     # Журналируем голос (если заказано в настройках)
-                    if (int(config.voiceLogLevel)>=2) or (not isProcessed and int(config.voiceLogLevel)>0 ):
+                    if (int(config.voiceLogLevel)>=3) or (int(config.voiceLogLevel)==2 and not isProcessed  ):
                         wavFileName = datetime.datetime.today().strftime(f'{terminal.id}_%Y%m%d_%H%M%S.wav')
                         wav = wave.open(os.path.join( config.voiceLogDir, wavFileName),'w')
                         wav.setnchannels(1)
@@ -360,13 +360,21 @@ async def apiServer( connection, path ):
                                     terminal.filter = int( status['Filter'] )
 
                     elif message == MSG_API_SAY:
-                        text = data["Text"]
+                        text = data["Say"]
                         trms = data["Terminals"]
                         voice = await api_tts.textToSpeechAsync(text)
 
                         for tid in trms:
                             terminal = terminals.get( tid )
                             terminal.playVoice(voice)
+
+                    elif message == MSG_API_PLAY:
+                        sound = data["Sound"]
+                        trms = data["Terminals"]
+
+                        for tid in trms:
+                            terminal = terminals.get( tid )
+                            terminal.play(sound)
 
                     #elif m == MSG_API_ASK :
                     #    terminal.answerPrefix = data['answerPrefix'] if 'answerPrefix' in data else ''

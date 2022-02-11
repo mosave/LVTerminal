@@ -29,6 +29,7 @@ audio : pyaudio.PyAudio
 shared = None
 microphone : Microphone
 animator : Animator
+playerVolume : int = 100
 
 #region showHelp(), showDevices() ######################################################
 def showHelp():
@@ -89,10 +90,14 @@ def getVolume():
     else:
         return None
 
-def getVolumePlayer():
+def getPlayerVolume():
     global alsaaudio
-    if config.volumeControl != None:
-        return alsaaudio.Mixer(cardindex=config.volumeCardIndex, control=config.volumeControlPlayer ).getvolume()[0]
+    global playerVolume
+    if config.volumeControlPlayer != None:
+        volume = alsaaudio.Mixer(cardindex=config.volumeCardIndex, control=config.volumeControlPlayer ).getvolume()[0]
+        if volume>0: 
+            playerVolume = volume
+        return volume
     else:
         return None
 
@@ -105,9 +110,12 @@ def setVolume( volume: int ):
     except Exception as e:
         pass
 
-def setVolumePlayer( volume ):
+def setPlayerVolume( volume ):
+    global playerVolume
     volume = int(volume)
     volume = 100 if volume>100 else (0 if volume<0 else volume)
+    if volume>0: 
+        playerVolume = volume
     try:
         alsaaudio.Mixer(cardindex=config.volumeCardIndex, control=config.volumeControlPlayer ).setvolume(volume)
     except Exception as e:
@@ -120,10 +128,6 @@ def play( data ):
     global shared
     global microphone
     global animator
-
-    volumePlayer = getVolumePlayer()
-    if volumePlayer != None:
-        setVolumePlayer(0)
 
     muteUnmute = not microphone.muted
     if muteUnmute : 
@@ -188,13 +192,11 @@ def play( data ):
         microphone.muted = False
         animator.muted = False
 
-    if volumePlayer != None:
-        setVolumePlayer(volumePlayer)
-
 #endregion
 
 #region processMessage()? messageProcessorThread() #####################################
 async def processMessage( message ):
+    global playerVolume
     try:
         m,p = parseMessage( message )
         #if isinstance(m, str) : print(m)
@@ -233,11 +235,23 @@ async def processMessage( message ):
                 setVolume(p)
             except:
                 pass
+        elif m == MSG_MUTE_PLAYER:
+            v = getPlayerVolume()
+            if v is not None and v>0:
+                setPlayerVolume( 0 )
+                await asyncio.sleep(0.5)
+
+        elif m == MSG_UNMUTE_PLAYER:
+            v = getPlayerVolume()
+            if v is not None and v==0:
+                await asyncio.sleep(0.5)
+                setPlayerVolume( playerVolume )
+
         elif m == MSG_VOLUME_PLAYER: 
             try:
                 p = int(p)
                 p = 100 if p>100 else (0 if p<0 else p)
-                setVolumePlayer(p)
+                setPlayerVolume(p)
             except:
                 pass
         elif m == MSG_ANIMATE:
@@ -401,6 +415,10 @@ if __name__ == '__main__':
     print("============= Инициализация завершена =============")
     print("")
 
+    playerVolume = getPlayerVolume()
+    if playerVolume is None or playerVolume<=0:
+        playerVolume = 100
+
     config.init( audio )
     loggerInit( config )
 
@@ -475,7 +493,7 @@ if __name__ == '__main__':
         if config.volumeControl != None :
             print( f'Громкость LVT: {getVolume()}% ({config.volumeControl})' )
         if config.volumeControlPlayer != None :
-            print( f'Громкость плеера: {getVolumePlayer()}% ({config.volumeControlPlayer})' )
+            print( f'Громкость плеера: {getPlayerVolume()}% ({config.volumeControlPlayer})' )
 
     protocol = 'ws'
     sslContext = None

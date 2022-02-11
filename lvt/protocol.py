@@ -32,7 +32,9 @@ MSG_UNMUTE = "Unmute"
 # Server => Terminal: установить громкость терминала
 MSG_VOLUME = "Volume"
 
-# Server => Terminal: установить громкость терминала
+# Server => Terminal: поставить плеер на паузу (убрать громкость)
+MSG_MUTE_PLAYER = "MutePlayer"
+MSG_UNMUTE_PLAYER = "UnmutePlayer"
 MSG_VOLUME_PLAYER = "VolumePlayer"
 
 # Server => Terminal: terminal client update package
@@ -56,7 +58,8 @@ MSG_TERMINAL = "Terminal"# <TerminalId> <Password> <Version>
 MSG_ALL = { \
     MSG_IDLE, MSG_STATUS, MSG_LVT_STATUS, MSG_DISCONNECT, MSG_TERMINAL, MSG_REBOOT, \
     MSG_TEXT, MSG_ANIMATE, MSG_UPDATE, \
-    MSG_MUTE, MSG_UNMUTE, MSG_VOLUME, MSG_VOLUME_PLAYER \
+    MSG_MUTE, MSG_UNMUTE, MSG_VOLUME, \
+    MSG_MUTE_PLAYER, MSG_UNMUTE_PLAYER, MSG_VOLUME_PLAYER \
     }
 
 #*** LVT API Commands
@@ -70,14 +73,15 @@ MSG_API_SERVER_STATUS = 'ServerStatus'
 # Запрос или обновление состояния терминалов:
 MSG_API_TERMINAL_STATUS = 'Status'
 
-#  Проговорить текст на треминале "TerminalId"
-MSG_API_SAY = 'Say' # {"terminal":"<terminalId>","message":"<фраза>"}
+#  Проговорить текст
+MSG_API_SAY = 'Say' # {"Sound": sound, "Importance": importance, "Terminals": speakers}
 
-# Проговорить текст на треминале и перейти в режим ожидания голосовой команды
-MSG_API_ASK = 'Ask' # {"terminal":"<terminalId>","message":"<фраза>","answerPrefix":"<префикс ответа>"}
+#  Проиграть звуковой эффект
+MSG_API_PLAY = 'Play' # {"Say": text, "Importance": importance, "Terminals": speakers}
 
-# Проговорить текст на треминале и перейти в режим ожидания голосовой команды
-MSG_API_YESNO = 'YesNo' # {"terminal":"<terminalId>","message":"<фраза>","answerPrefix":"<префикс ответа>"}
+MSG_API_NEGOTIATE = 'Negotiate' 
+
+MSG_API_CONFIRM = 'Confirm' 
 
 
 def split2( s: str ):

@@ -44,10 +44,13 @@ TOPIC_WAIT_COMMAND = "WaitCommand"
 
 WAIT_COMMAND_TIMEOUT = 5 # время в режиме ожидания команды, секунд
 
+# Способы интеграции сервера аудиоплеером
 
-DEVICE_ACTIONS = frozenset({'none','get','post'})
-DEVICE_SOURCES = frozenset({'config'})
+PLAYER_INTEGRATION_NONE = 0
 
+# Управление громкостю аудиоплеера: во время проговаривания текста терминал будет выставлять громкость аудиоплеера в ноль
+PLAYER_INTEGRATION_VOLUME = 1
 
-
+# Интеграция с Logitech Media Server (squeezebox server)
+PLAYER_INTEGRATION_LMS = 1
 
