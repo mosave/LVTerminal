@@ -9,9 +9,9 @@ from lvt.logger import *
 
 class Animator:
     def __init__( self, shared ):
-        self.shared = shared
         # shared.animation - текущая анимация
         # shared.isTerminated - необходимо прекратить работу
+        self.shared = shared
         self.animation = ANIMATION_NONE
         self.locked = False
         self.timeout = 0.2
@@ -73,8 +73,8 @@ class Animator:
     def __run__( self ):
         muted = False
         locked = False
-        try:
-            while not self.shared.isTerminated:
+        while not self.shared.isTerminated:
+            try:
                 animation = self.animation
                 restart = False
                 if not locked:
@@ -97,13 +97,14 @@ class Animator:
 
                 #sleep 10ms
                 time.sleep(self.timeout)
-        except KeyboardInterrupt as e:
-            self.shared.isTerminated = True
-        except Exception as e:
-            logError( f'Exception in animator thread: {e} ')
-
-        try: self.off()
-        except: pass
+            except KeyboardInterrupt as e:
+                break
+            except Exception as e:
+                logError( f'Exception in animator thread: {e} ')
+        try: 
+            self.off()
+        except Exception:
+            pass
 
     def animate( self, animation ):
         self.queue.put_nowait( animation )

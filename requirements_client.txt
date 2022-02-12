@@ -1,6 +1,6 @@
 pyaudio
 pyalsaaudio
-websockets 
+aiohttp
 webrtcvad
 rhvoice_wrapper 
 numpy

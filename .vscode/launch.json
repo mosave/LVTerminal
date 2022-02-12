@@ -13,6 +13,16 @@
             "args": [
                 "--config=server_mosave1.cfg"
             ]
+        },
+        {
+            "name": "Python: Client on MOSAVE1",
+            "type": "python",
+            "request": "launch",
+            "module": "lvt_client",
+            "console": "integratedTerminal",
+            "args": [
+                "--config=client_mosave1.cfg"
+            ]
         }
     ]
 }

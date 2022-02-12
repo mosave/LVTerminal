@@ -70,7 +70,7 @@ sudo apt-get autoclean
 
     * pyaudio
     * pyalsaaudio (только для управления громкостью)
-    * websockets 
+    * aiohttp
     * webrtcvad
     * rhvoice_wrapper 
     * numpy

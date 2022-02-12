@@ -1,4 +1,5 @@
 #!/usr/bin/env python3 
+from asyncio import protocols
 import sys
 import time
 import io
@@ -7,9 +8,8 @@ import asyncio
 import pyaudio
 import wave
 import ssl
-import websockets
+import aiohttp
 import multiprocessing
-import subprocess
 #region leak troubleshooting:
 TRACE_MALLOC = False
 if TRACE_MALLOC :
@@ -57,6 +57,7 @@ def showDevices():
 async def printStatusThread():
     global shared
     global microphone
+    global animator
     while not shared.isTerminated:
         if not shared.quiet and animator!=None :
             width = 38
@@ -194,92 +195,86 @@ def play( data ):
 
 #endregion
 
-#region processMessage()? messageProcessorThread() #####################################
-async def processMessage( message ):
+#region messageThread() ################################################################
+async def messageThread( connection ):
     global playerVolume
-    try:
-        m,p = parseMessage( message )
-        #if isinstance(m, str) : print(m)
-        if not isinstance( message,str ) : # Wave data to play
-            play(message)
-        elif m == MSG_STATUS:
-            try:
-                if p != None : 
-                    shared.terminalStatus = json.loads(p)
-                    setVolume(int(shared.terminalStatus['Terminals'][config.terminalId]['Volume']))
-            except:
-                pass
-        elif m == MSG_LVT_STATUS:
-            try:
-                if p != None : shared.serverStatus = json.loads(p)
-            except:
-                pass
-        elif m == MSG_WAKEUP: 
-            microphone.active = True
-        elif m == MSG_IDLE: 
-            microphone.active = False
-        elif m == MSG_DISCONNECT:
-            shared.isConnected = True
-        elif m == MSG_TEXT:
-            if p != None :
-                print()
-                print( p )
-        elif m == MSG_MUTE: 
-            microphone.muted = True
-            animator.muted = True
-        elif m == MSG_UNMUTE: 
-            microphone.muted = False
-            animator.muted = False
-        elif m == MSG_VOLUME: 
-            try:
-                setVolume(p)
-            except:
-                pass
-        elif m == MSG_MUTE_PLAYER:
-            v = getPlayerVolume()
-            if v is not None and v>0:
-                setPlayerVolume( 0 )
-                await asyncio.sleep(0.5)
+    global shared
+    global microphone
+    while True:
+        try:
+            msg = await connection.receive()
+            m = None
+            if msg.type == aiohttp.WSMsgType.BINARY:
+                play(msg.data)
+                continue
+            elif msg.type == aiohttp.WSMsgType.TEXT:
+                m,p = parseMessage( msg.data )
+            
+                #region Handling message m
+                if m == MSG_STATUS:
+                    if p != None : 
+                        shared.terminalStatus = json.loads(p)
+                        setVolume(int(shared.terminalStatus['Terminals'][config.terminalId]['Volume']))
+                elif m == MSG_LVT_STATUS:
+                    if p != None : shared.serverStatus = json.loads(p)
+                elif m == MSG_WAKEUP: 
+                    microphone.active = True
+                elif m == MSG_IDLE: 
+                    microphone.active = False
+                elif m == MSG_DISCONNECT:
+                    shared.isConnected = True
+                elif m == MSG_TEXT:
+                    if p != None :
+                        print()
+                        print( p )
+                elif m == MSG_MUTE: 
+                    microphone.muted = True
+                    animator.muted = True
+                elif m == MSG_UNMUTE: 
+                    microphone.muted = False
+                    animator.muted = False
+                elif m == MSG_VOLUME: 
+                    setVolume(p)
+                elif m == MSG_MUTE_PLAYER:
+                    v = getPlayerVolume()
+                    if v is not None and v>0:
+                        setPlayerVolume( 0 )
+                        await asyncio.sleep(0.5)
 
-        elif m == MSG_UNMUTE_PLAYER:
-            v = getPlayerVolume()
-            if v is not None and v==0:
-                await asyncio.sleep(0.5)
-                setPlayerVolume( playerVolume )
+                elif m == MSG_UNMUTE_PLAYER:
+                    v = getPlayerVolume()
+                    if v is not None and v==0:
+                        await asyncio.sleep(0.5)
+                        setPlayerVolume( playerVolume )
 
-        elif m == MSG_VOLUME_PLAYER: 
-            try:
-                p = int(p)
-                p = 100 if p>100 else (0 if p<0 else p)
-                setPlayerVolume(p)
-            except:
-                pass
-        elif m == MSG_ANIMATE:
-            if p == None : p = ANIMATION_NONE
-            if animator != None and p in ANIMATION_ALL:
-                animator.animate( p )
-        elif m == MSG_UPDATE:
-            if p != None: 
-                try:
-                    package = json.loads( p )
-                    if updater.updateClient( package ) :
-                        shared.isTerminated = True
-                        restartClient()
-                except Exception as e:
-                    logError( f'Ошибка при обновлении клиента: {e}' )
-        elif m == MSG_REBOOT:
-            print( 'Перезагрузка устройства еще не реализована. Перезапускаю клиент...' )
-            restartClient()
-        else:
-            print( f'Unknown message received: "{m}"' )
-            pass
-    except Exception as e:
-        print( f'Exception processing message "{message}": {e}' )
-        pass
-
-async def messageProcessorThread( connection ):
-    async for message in connection:
-        await processMessage(message)
+                elif m == MSG_VOLUME_PLAYER: 
+                    p = int(p)
+                    p = 100 if p>100 else (0 if p<0 else p)
+                    setPlayerVolume(p)
+                elif m == MSG_ANIMATE:
+                    if p == None : p = ANIMATION_NONE
+                    if animator != None and p in ANIMATION_ALL:
+                        animator.animate( p )
+                elif m == MSG_UPDATE:
+                    if p != None: 
+                        package = json.loads( p )
+                        if updater.updateClient( package ) :
+                            shared.isTerminated = True
+                            restartClient()
+                elif m == MSG_REBOOT:
+                    print( 'Перезагрузка устройства еще не реализована. Перезапускаю клиент...' )
+                    restartClient()
+                else:
+                    print( f'Unknown message received: "{m}"' )
+                #endregion
+            elif msg.type == aiohttp.WSMsgType.CLOSED:
+                break
+        except asyncio.TimeoutError:
+            continue
+        except KeyboardInterrupt:
+            break
+        except Exception as e:
+            print( f'Message "{m}" processing {type(e).__name__}: {e}' )
 #endregion
 
 #region microphoneThread() #############################################################
@@ -288,10 +283,8 @@ async def microphoneThread( connection ):
     global microphone
     with Microphone() as mic:
         microphone = mic
-        await connection.send( MESSAGE( MSG_TERMINAL, config.terminalId, config.password, VERSION ) )
         _active = False
         while not shared.isTerminated:
-            #await processMessages( connection )
             if microphone.active : 
                 try:
                     if not _active and shared.serverStatus['StoreAudio']=='True' :
@@ -302,8 +295,7 @@ async def microphoneThread( connection ):
                 _active = True
                 data = microphone.read()
                 if not microphone.muted and data != None : 
-                    await connection.send( data )
-
+                    await connection.send_bytes( data )
             else:
                 _active = False
                 pass
@@ -312,72 +304,47 @@ async def microphoneThread( connection ):
     microphone = None
 #endregion
 
-#region tracemallocThread() ############################################################
-async def tracemallocThread():
-    global shared
-    tracemalloc.start(10)
-    while not shared.isTerminated:
-        gc.collect()
-        snapshot = tracemalloc.take_snapshot().filter_traces((
-            tracemalloc.Filter(True, "*asyncio*"),
-            #tracemalloc.Filter(False, "<unknown>"),
-        ))
-
-        top_stats = snapshot.statistics('traceback')
-        s ='Top10 memory usage\r\n'
-        for index, stat in enumerate(top_stats[:5], 1):
-            myCode = False
-            s = s + ("#%s: %s objects, %.1f KiB\r\n" % (index, stat.count, stat.size / 1024))
-            for frame in reversed(stat.traceback):
-                my = 'lvterminal' in  frame.filename.lower()
-                if my: myCode = True
-                if my or not myCode:
-                    s = s + ('%s#%s: %s \r\n'% (frame.filename, frame.lineno, linecache.getline(frame.filename, frame.lineno).strip()))
-        log(s)
-        await asyncio.sleep( 60 )
-#endregion
-
-#region websockClient() ################################################################
-async def websockClient( serverUrl, sslContext):
+#region client() #######################################################################
+async def client( serverUrl, sslContext ):
     global lastMessageReceived
     global pingAreadySent
     global microphone
+    global shared
 
     log( "Запуск Websock сервиса" )
     while not shared.isTerminated:
+        shared.isConnected = False
         try:
-            shared.isConnected = False
-            async with websockets.connect( serverUrl, ssl=sslContext ) as connection:
-                shared.isConnected = True
-                tasks = [
-                    asyncio.ensure_future( messageProcessorThread(connection) ),
-                    asyncio.ensure_future( microphoneThread(connection) )
-                    ]
-                if TRACE_MALLOC:
-                    tasks.append( asyncio.ensure_future( tracemallocThread() ) )
-                if not shared.quiet :
-                    tasks.append( asyncio.ensure_future( printStatusThread() ) )
-                done, pending = await asyncio.wait( tasks, return_when=asyncio.FIRST_COMPLETED, )
-                for task in pending:
-                    task.cancel()
+            async with aiohttp.ClientSession() as session:
+                async with session.ws_connect(
+                    serverUrl, 
+                    receive_timeout = 0.5,
+                    heartbeat=10, 
+                    ssl= ssl.SSLContext if sslContext is not None else None,
+                    ssl_context=sslContext ) as connection:
+                    shared.isConnected = True
+
+                    await connection.send_str( MESSAGE( MSG_TERMINAL, config.terminalId, config.password, VERSION ) )
+
+                    tasks = [
+                        asyncio.ensure_future( messageThread(connection) ),
+                        asyncio.ensure_future( microphoneThread(connection) )
+                        ]
+                    if not shared.quiet :
+                        tasks.append( asyncio.ensure_future( printStatusThread() ) )
+                    done, pending = await asyncio.wait( tasks, return_when=asyncio.FIRST_COMPLETED, )
+                    shared.isConnected = False
+                    for task in pending:
+                        task.cancel()
 
         except Exception as e:
-            shared.isConnected = False
-            if isinstance( e, websockets.exceptions.ConnectionClosedOK ) :
-                print( 'Disconnected' )
-            elif isinstance( e, websockets.exceptions.ConnectionClosedError ):
-                logError( f'Отключение в результате ошибки: {e} ' )
-            else:
-                logError( f'Websock Client error: {e}' )
-                try: await connection.send( MSG_DISCONNECT )
-                except:pass
-                await asyncio.sleep( 10 )
+            logError( f'Client error {type(e).__name__}: {e}' )
+            await asyncio.sleep( 10 )
         except:
             shared.isConnected = False
             onCtrlC()
         finally:
             shared.isConnected = False
-            pass
 
     log( "Finishing Client thread" )
 #endregion
@@ -393,13 +360,15 @@ def onCtrlC():
         shared.isTerminated = True
     except:
         pass
-    try: loop.stop()
-    except: pass
+    try: 
+        loop.stop()
+    except: 
+        pass
 
 def restartClient():
     """  Перезапуск клиента в надежде что он запущен из скрипта в цикле """
-    print( 'Перезапуск...' )
     global shared
+    print( 'Перезапуск...' )
     shared.isTerminated = True
     shared.exitCode = 42 # перезапуск
 #endregion
@@ -495,30 +464,28 @@ if __name__ == '__main__':
         if config.volumeControlPlayer != None :
             print( f'Громкость плеера: {getPlayerVolume()}% ({config.volumeControlPlayer})' )
 
-    protocol = 'ws'
+    # protocol = 'ws'
     sslContext = None
     if config.ssl :
-        protocol = 'wss'
         if config.sslAllowAny : # Disable host name and SSL certificate validation
             sslContext = ssl.SSLContext( ssl.PROTOCOL_TLS_CLIENT )
             sslContext.check_hostname = False
             sslContext.verify_mode = ssl.CERT_NONE
+    # url = f'{protocol}://{config.serverAddress}:{config.serverPort}'
 
-    url = f'{protocol}://{config.serverAddress}:{config.serverPort}'
+    url = f"http://{config.serverAddress}:{config.serverPort}"
+
     log( f'Сервер URL: {url}' )
 
     try:
         loop = asyncio.get_event_loop()
-        loop.run_until_complete( websockClient( url, sslContext) )
+        loop.run_until_complete( client( url, sslContext ) )
+
+        #loop.run_until_complete( websockClient( url, sslContext) )
+    except KeyboardInterrupt as e:
+        onCtrlC()
     except Exception as e:
-        if isinstance( e, websockets.exceptions.ConnectionClosedOK ) :
-            print( f'Disconnected' )
-        elif isinstance( e, websockets.exceptions.ConnectionClosedError ):
-            logError( f'Disconnected by error' )
-        elif isinstance( e, KeyboardInterrupt ):
-            onCtrlC()
-        else:
-            logError( f'Unhandled exception: {e}' )
+        logError( f'Unhandled exception {type(e).__name__}: {e}' )
     except:
         onCtrlC()
 
