@@ -3,8 +3,8 @@ pyalsaaudio
 aiohttp
 webrtcvad
 rhvoice_wrapper 
-numpy
 spidev
+numpy==1.21.4
 gpiozero
 rpi.gpio
 pkg_resources

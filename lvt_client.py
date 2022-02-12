@@ -305,22 +305,29 @@ async def microphoneThread( connection ):
 #endregion
 
 #region client() #######################################################################
-async def client( serverUrl, sslContext ):
+async def client( ):
     global lastMessageReceived
     global pingAreadySent
     global microphone
     global shared
 
     log( "Запуск Websock сервиса" )
+    sslContext = None
+    if config.ssl :
+        sslContext = ssl.SSLContext( ssl.PROTOCOL_TLS_CLIENT )
+        if config.sslAllowAny : # Disable host name and SSL certificate validation
+            sslContext.check_hostname = False
+            sslContext.verify_mode = ssl.CERT_NONE
+
     while not shared.isTerminated:
         shared.isConnected = False
         try:
             async with aiohttp.ClientSession() as session:
                 async with session.ws_connect(
-                    serverUrl, 
+                    f"http://{config.serverAddress}:{config.serverPort}", 
                     receive_timeout = 0.5,
                     heartbeat=10, 
-                    ssl= ssl.SSLContext if sslContext is not None else None,
+                    ssl= ssl.SSLContext if config.ssl else None,
                     ssl_context=sslContext ) as connection:
                     shared.isConnected = True
 
@@ -338,6 +345,7 @@ async def client( serverUrl, sslContext ):
                         task.cancel()
 
         except Exception as e:
+            shared.isConnected = False
             logError( f'Client error {type(e).__name__}: {e}' )
             await asyncio.sleep( 10 )
         except:
@@ -464,22 +472,9 @@ if __name__ == '__main__':
         if config.volumeControlPlayer != None :
             print( f'Громкость плеера: {getPlayerVolume()}% ({config.volumeControlPlayer})' )
 
-    # protocol = 'ws'
-    sslContext = None
-    if config.ssl :
-        if config.sslAllowAny : # Disable host name and SSL certificate validation
-            sslContext = ssl.SSLContext( ssl.PROTOCOL_TLS_CLIENT )
-            sslContext.check_hostname = False
-            sslContext.verify_mode = ssl.CERT_NONE
-    # url = f'{protocol}://{config.serverAddress}:{config.serverPort}'
-
-    url = f"http://{config.serverAddress}:{config.serverPort}"
-
-    log( f'Сервер URL: {url}' )
-
     try:
         loop = asyncio.get_event_loop()
-        loop.run_until_complete( client( url, sslContext ) )
+        loop.run_until_complete( client() )
 
         #loop.run_until_complete( websockClient( url, sslContext) )
     except KeyboardInterrupt as e:

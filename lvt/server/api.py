@@ -1,7 +1,7 @@
 import json
 import asyncio
+from aiohttp import web, WSMsgType
 
-import websockets
 import time
 
 from lvt.const import *
@@ -14,12 +14,14 @@ from lvt.server.tts import TTS
 
 api_tts = None
 
-async def server( connection, path ):
+async def server( request ):
     global api_tts
     if api_tts is None:
         api_tts = TTS()
 
-    conn = connection
+    connection = web.WebSocketResponse()
+    await connection.prepare(request)
+
     statusSent = 0
     authorized = False
     tsCache = {}
@@ -35,7 +37,7 @@ async def server( connection, path ):
             message['Data'] = json.dumps( data )
 
         try:
-            await asyncio.wait_for( conn.send( json.dumps( message ) ), 5 )
+            await asyncio.wait_for( connection.send_json( message ), 5 )
             return True
         except Exception:
             return False
@@ -49,36 +51,30 @@ async def server( connection, path ):
 
 
     log("API Thread: Starting")
-    try:
-        while True:
-            try:
-                # Отправляем состояние сервера раз в минуту:
-                if not authorized and config.apiServerPassword is None:
-                    if not await sendMessage( MSG_API_AUTHORIZE, 0, "Authorized" ):
-                        break
-                    authorized = True
+    while True: # <== Breaking out of here will close connection
+        try:
+            # Авторизуем клиента если пароль не задан:
+            if not authorized and config.apiServerPassword is None:
+                if not await sendMessage( MSG_API_AUTHORIZE, 0, "Authorized" ):
+                    break
+                authorized = True
 
-                # Отправляем состояние сервера раз в минуту:
-                if authorized and ((time.time() - statusSent) >= 60):
-                    #logDebug(f"API Thread: Sending status by timeout")
-                    if not await sendLVTStatus() : 
-                        break
-                    statusSent = time.time()
-                    persistent_state.save()
+            # Отправляем состояние сервера раз в минуту:
+            if authorized and ((time.time() - statusSent) >= 60):
+                #logDebug(f"API Thread: Sending status by timeout")
+                if not await sendLVTStatus() : 
+                    break
+                statusSent = time.time()
+                persistent_state.save()
 
-                try:
-                    requestString = await asyncio.wait_for( connection.recv(), timeout=1 )
-                    if isinstance(requestString, str):
-                        # Разбираем сообщение. Ошибки разбора тупо игнорируем
-                        request = json.loads( str(requestString) )
-                        message = str(request['Message'])
-                        data =  json.loads( str( request['Data'] ) ) if 'Data' in request else None
-                    else:
-                        message = None
-                except asyncio.TimeoutError:
-                    message = None
-                except Exception as e:
-                    message = None
+            message = await connection.receive(0.5)
+            if message.type == WSMsgType.CLOSED:
+                break
+            elif message.type == WSMsgType.TEXT: # Получено текстовое сообщение
+                # Разбираем сообщение. Ошибки разбора тупо игнорируем
+                request = json.loads( str(message.data) )
+                message = str(request['Message'])
+                data =  json.loads( str( request['Data'] ) ) if 'Data' in request else None
 
                 if message != None:
                     if not authorized:
@@ -137,9 +133,6 @@ async def server( connection, path ):
                     #    )
                     else:
                         raise Exception( 'Invalid Command' ) 
-                    #except Exception as e:
-                    #    logError( f'API Thread: Error processing message {message}: {e}' )
-                    #    await sendMessage( message, status=-1, errorMsg=str(e) )
                 elif authorized: # No message received - just send terminal status updates if any
                     #logDebug(f"checking updates")
                     updates = {}
@@ -152,11 +145,12 @@ async def server( connection, path ):
                         #logDebug(f"API Thread: Sending updates")
                         if not await sendMessage( MSG_API_TERMINAL_STATUS, data=updates ):
                             break
-            except Exception as e:
-                break
-    except websockets.exceptions.ConnectionClosed as e:
-        logDebug(f"API Thread: Connection closed {e}")
-    except Exception as e:
-        logError(f"API Thread: Exception {e}")
-    finally:
-        log("API Thread: Exiting")
+        except KeyboardInterrupt:
+            break
+        except asyncio.TimeoutError:
+            continue
+        except Exception as e:
+            logError(f"API Thread: {type(e).__name__}: {e}")
+            sendMessage( MSG_API_ERROR, statusCode=-1, status=f"{type(e).__name__}: {e}" )
+
+    log("API Thread: Exiting")

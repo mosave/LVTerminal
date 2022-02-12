@@ -56,7 +56,7 @@ sudo apt-get autoclean
 
 10. Устанавливаем Python3 и необходимые библиотеки для запуска терминального клиента:
     '''
-    sudo apt-get install python3 python3-venv python3-pyaudio python3-alsaaudio python3-rpi.gpio libatlas-base-dev 
+    sudo apt-get install python3 python3-venv python3-pyaudio python3-alsaaudio python3-numpy python3-rpi.gpio libatlas-base-dev 
 
     '''
 

@@ -10,7 +10,6 @@ from lvt.config_parser import ConfigParser
 fileName : str = 'server.cfg'
 serverAddress : str = '0.0.0.0'
 serverPort : int = 2700
-apiServerPort : int = 7999
 apiServerPassword : str = None
 sslCertFile = None
 sslKeyFile = None
@@ -51,7 +50,6 @@ def init():
     global fileName
     global serverAddress
     global serverPort
-    global apiServerPort
     global apiServerPassword
     global sslCertFile
     global sslKeyFile
@@ -101,7 +99,6 @@ def init():
     ### Network configuration
     serverAddress = p.getValue( section, 'ServerAddress','0.0.0.0' )
     serverPort = p.getIntValue( section, 'ServerPort',2700 )
-    apiServerPort = p.getIntValue( section, 'APIServerPort', 7999 )
     apiServerPassword = p.getValue( section, 'APIServerPassword', None )
 
     sslCertFile = p.getValue( section, 'SSLCertFile','' )

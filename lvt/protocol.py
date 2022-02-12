@@ -83,6 +83,8 @@ MSG_API_NEGOTIATE = 'Negotiate'
 
 MSG_API_CONFIRM = 'Confirm' 
 
+MSG_API_ERROR = 'Confirm' 
+
 
 def split2( s: str ):
     """Разбивает строку на "первое ключевое слово и все остальное" """

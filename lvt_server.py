@@ -6,7 +6,7 @@ import sys
 import asyncio
 import ssl
 
-import websockets
+from aiohttp import web, WSMsgType
 import concurrent.futures
 import time
 import wave
@@ -26,7 +26,7 @@ import lvt.server.api as api
 
 
 #region processVoice ###################################################################
-def processVoice( waveChunk, recognizer: KaldiRecognizer):
+async def processVoice( waveChunk, recognizer: KaldiRecognizer):
     """ Recognize audio chunk and process with terminal.onText() """
     signature = None
     text = ''
@@ -55,7 +55,7 @@ def processVoice( waveChunk, recognizer: KaldiRecognizer):
 #endregion
 
 #region websockServer ##################################################################
-async def websockServer( connection, path ):
+async def server( request ):
     """Main service thread - websock server implementation """
     global model
     global gModel
@@ -78,6 +78,7 @@ async def websockServer( connection, path ):
     isActive = False
     text = ''
     speakerSignature = None
+    terminal = None
     
     def sendDatagram( data ):
         messageQueue.append( data )
@@ -89,34 +90,29 @@ async def websockServer( connection, path ):
         status = json.dumps(terminal.getState()) if terminal != None else '{"Terminal":"?","Name":"Not Registered","Connected":"false"}'
         sendMessage( MSG_STATUS, status )
 
-    try:
-        while True: # <== Breaking out of here will close connection
+    connection = web.WebSocketResponse()
+    await connection.prepare(request)
+
+
+    while True: # <== Breaking out of here will close connection
+        try:
+            # Отправляем накопившиеся в очереди сообщения
             while len( messageQueue ) > 0:
-                await connection.send( messageQueue[0] )
-                messageQueue.pop( 0 )
+                message = messageQueue.pop( 0 )
+                if( isinstance(message,str) ):
+                    await connection.send_str( message )
+                else:
+                    await connection.send_bytes( message )
 
             # Ждем сообщений, дергая terminal.onTimer примерно раз в секунду
-            message = None
-            while message == None:
-                try:
-                    # Примерно раз в секунду дергаем terminal.onTime()
-                    if terminal != None and int( time.time() ) != int( lastTickedOn ):
-                        lastTickedOn = time.time()
-                        await terminal.onTimer()
-                        # Отправляем новые сообщения клиенту, если они
-                        # появились
-                        while len( messageQueue ) > 0:
-                            await connection.send( messageQueue[0] )
-                            messageQueue.pop( 0 )
+            message = await connection.receive(0.3)
 
-                    # Получаем сообщение или голосовой поток от клиента
-                    message = await asyncio.wait_for( connection.recv(), timeout=0.2 )
-                except asyncio.TimeoutError:
-                    message = None
-
-            if isinstance( message, str ): # Получено сообщение
-                m, p = parseMessage( message )
+            if message.type == WSMsgType.CLOSED:
+                break
+            elif message.type == WSMsgType.TEXT: # Получено текстовое сообщение
+                m, p = parseMessage( message.data )
                 if m == MSG_DISCONNECT:
+                    connection.close()
                     break
                 elif m == MSG_STATUS:
                     sendStatus()
@@ -130,7 +126,7 @@ async def websockServer( connection, path ):
                     id, password, version = split3( p )
                     terminal = terminals.authorize( id, password, version )
                     if terminal != None:
-                        terminal.ipAddress = connection.remote_address[0]
+                        terminal.ipAddress = request.remote
                         terminal.version = version
                         await terminal.onConnect( messageQueue )
                         if terminal.autoUpdate==2 and version != VERSION :
@@ -138,17 +134,18 @@ async def websockServer( connection, path ):
                     else:
                         print( 'Not authorized. Disconnecting' )
                         sendMessage( MSG_TEXT,'Wrong terminal Id or password' )
+                        sendMessage( MSG_DISCONNECT )
                         break
 
                 else:
                     logError( f'Unknown message: "{message}"' )
                     break
             # Получен аудиофрагмент приемлемой длины и терминал авторизован
-            elif terminal != None and len(message)>=4000 and len(message)<=64000 :
+            elif message.type == WSMsgType.BINARY and terminal != None:
                 if not isActive:
                     isActive = True
                     # Сохраняем аудиофрагмент в буффере
-                    voiceData = message
+                    voiceData = message.data
                     # Инициализация KaldiRecognizer занимает 30-100мс и не требует много памяти.
 
                     # Нефильтрованная распознавалка:
@@ -174,15 +171,19 @@ async def websockServer( connection, path ):
 
                 else:
                     # Сохраняем аудиофрагмент в буффере:
-                    voiceData = message if voiceData==None else voiceData + message
+                    voiceData = message.data if voiceData==None else voiceData + message.data
 
                 # Распознаем очередной фрагмент голоса
-                (completed, text, signature) = await loop.run_in_executor( 
-                    pool, 
-                    processVoice, 
-                    message, 
+                (completed, text, signature) = await processVoice( 
+                    message.data, 
                     recognizer if recognizer != None else gRecognizer
                 )
+                # (completed, text, signature) = await loop.run_in_executor( 
+                #     pool, 
+                #     processVoice, 
+                #     message.data, 
+                #     recognizer if recognizer != None else gRecognizer
+                # )
 
                 if signature != None : speakerSignature = signature
 
@@ -235,39 +236,21 @@ async def websockServer( connection, path ):
                     # Переводим терминал в режим ожидания
                     sendMessage( MSG_IDLE )
 
-
-
-                #if not isAppealed and not terminal.isAppealed:
-                #    (completed, text) = await loop.run_in_executor( pool, processVoice, message, recognizer )
-                #    if len(str(text))>0:
-                #        # Проверка, не содержится ли в аудиофрагменте обращения к ассистенту
-                #        words = wordsToList(normalizeWords( text ))
-                #        for w in words:
-                #            if oneOfWords( normalFormOf(w), aNames ):
-                #                isAppealed = True
-
-                   
-
-        sendMessage( MSG_DISCONNECT )
-        # send pending messages before disconnecting
-        while len( messageQueue ) > 0:
-            await connection.send( messageQueue[0] )
-            messageQueue.pop( 0 )
-
-    except Exception as e:
-        tn = f'Terminal {terminal.name}' if terminal != None else 'Session '
-        if isinstance( e, websockets.exceptions.ConnectionClosedOK ) :
-            print( f'{tn} disconnected' )
-        elif isinstance( e, websockets.exceptions.ConnectionClosedError ):
-            logError( f'{tn} disconnected by error' )
-        elif isinstance( e, KeyboardInterrupt ):
+        except asyncio.TimeoutError:
+            # Примерно раз в секунду дергаем terminal.onTime()
+            if terminal != None and int( time.time() ) != int( lastTickedOn ):
+                lastTickedOn = time.time()
+                await terminal.onTimer()
+        except KeyboardInterrupt:
             onCtrlC()
-        else:
-            logError( f'{tn}: unhandled exception {e}' )
-    finally:
-        try: terminal.onDisconnect()
-        except: pass
-        recognizer = None
+            break
+        except Exception as e:
+            logError( f'Server thread {type(e).__name__}: {e}' )
+        finally:
+            pass
+    if terminal is not None:
+        terminal.onDisconnect()
+    recognizer = None
 #endregion
 
 #region showHelp() #####################################################################
@@ -375,18 +358,23 @@ SetLogLevel( -1 )
 # Main server loop
 try:
     pool = concurrent.futures.ThreadPoolExecutor( config.recognitionThreads )
-
-    lvtServer = websockets.serve( websockServer, config.serverAddress, config.serverPort, ssl=sslContext )
-    lvtApiServer = websockets.serve( api.server, config.serverAddress, config.apiServerPort )
-    
     loop = asyncio.get_event_loop()
-    loop.run_until_complete( lvtApiServer )
-    loop.run_until_complete( lvtServer )
-    loop.run_forever()
+ 
+    app = web.Application()
+    app.add_routes([web.get('', server)])    
+    app.add_routes([web.get('/api', api.server)])    
+    app.add_routes([web.get('/api/', api.server)])
+    web.run_app(
+        app,
+        host=config.serverAddress,
+        port=config.serverPort,
+        ssl_context = sslContext
+        )
+
 except KeyboardInterrupt:
     onCtrlC()
 except Exception as e: 
-    logError( f'Exception in main terminal loop {e}' )
+    logError( f'Main terminal {type(e).__name__}: {e}' )
 finally:
     persistent_state.save()
 
