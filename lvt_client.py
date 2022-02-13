@@ -312,23 +312,27 @@ async def client( ):
     global shared
 
     log( "Запуск Websock сервиса" )
-    sslContext = None
     if config.ssl :
         sslContext = ssl.SSLContext( ssl.PROTOCOL_TLS_CLIENT )
+        protocol = "https"
         if config.sslAllowAny : # Disable host name and SSL certificate validation
             sslContext.check_hostname = False
             sslContext.verify_mode = ssl.CERT_NONE
+    else:
+        sslContext = False
+        protocol = "http"
 
     while not shared.isTerminated:
         shared.isConnected = False
         try:
             async with aiohttp.ClientSession() as session:
                 async with session.ws_connect(
-                    f"http://{config.serverAddress}:{config.serverPort}", 
+                    f"{protocol}://{config.serverAddress}:{config.serverPort}", 
                     receive_timeout = 0.5,
-                    heartbeat=10, 
-                    ssl= ssl.SSLContext if config.ssl else None,
-                    ssl_context=sslContext ) as connection:
+                    heartbeat=10,
+                    ssl= sslContext,
+                    ) as connection: 
+
                     shared.isConnected = True
 
                     await connection.send_str( MESSAGE( MSG_TERMINAL, config.terminalId, config.password, VERSION ) )

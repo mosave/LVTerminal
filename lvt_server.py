@@ -306,11 +306,9 @@ if( bool(config.sslCertFile) and bool( config.sslKeyFile ) ):
     print( f'Connection: Secured' )
     try:
         sslContext = ssl.SSLContext( ssl.PROTOCOL_TLS_SERVER )
-        sslContext.load_cert_chain( os.path.join( ROOT_DIR, config.sslCertFile ), os.path.join( ROOT_DIR, config.sslKeyFile ) )
+        sslContext.load_cert_chain( config.sslCertFile, config.sslKeyFile )
     except Exception as e:
-        sslContext = None
-        print( f'Error loading certificate files: {e}' )
-        exit( 1 )
+        fatalError( f'Loading certificates {type(e).__name__}: {e}' )
 else:
     print( f'Connection: Unsecured' )
 

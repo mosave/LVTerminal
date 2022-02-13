@@ -102,11 +102,16 @@ def init():
     apiServerPassword = p.getValue( section, 'APIServerPassword', None )
 
     sslCertFile = p.getValue( section, 'SSLCertFile','' )
+    if bool(sslCertFile) and not os.path.isabs(sslCertFile):
+        sslCertFile = os.path.join( ROOT_DIR, sslCertFile )
+
     sslKeyFile = p.getValue( section, 'SSLKeyFile','' )
+    if bool(sslKeyFile)and not os.path.isabs(sslKeyFile):
+        sslKeyFile = os.path.join( ROOT_DIR, sslKeyFile )
+
     storageFile = p.getValue( section, 'StorageFile',None )
-    if bool(storageFile):
-        if not os.path.isabs(storageFile):
-            storageFile = os.path.join( ROOT_DIR, storageFile )
+    if bool(storageFile) and not os.path.isabs(storageFile):
+        storageFile = os.path.join( ROOT_DIR, storageFile )
 
 
     storeAudio = bool(p.getValue(section,'StoreAudio','0') != '0')
