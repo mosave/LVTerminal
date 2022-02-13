@@ -6,11 +6,12 @@ from numpy import random
 from lvt.const import *
 from lvt.logger import *
 import lvt.server.config as config
+#from rhvoice_wrapper import TTS # https://pypi.org/project/rhvoice-wrapper/
 
 ttsLock = Lock()
 ttsLocked = set()
-
 rhvoiceWrapper = None
+
 
 class TTS():
     """TTS Engine
@@ -22,23 +23,12 @@ class TTS():
         self.ttsRHVoice = None
         
         if config.ttsEngine == TTS_RHVOICE :
-            try:
-                if rhvoiceWrapper is None:
+            if rhvoiceWrapper is None :
+                try:
                     import rhvoice_wrapper as rhvoiceWrapper # https://pypi.org/project/rhvoice-wrapper/
-                self.ttsRHVoice = rhvoiceWrapper.TTS( 
-                    threads = 1,
-                    lib_path = self.__rhvp('lib_path'),
-                    data_path = self.__rhvp('data_path'),
-                    resources = self.__rhvp('resources'),
-                    lame_path = self.__rhvp('lame_path'),
-                    opus_path = self.__rhvp('opus_path'),
-                    flac_path = self.__rhvp('flac_path'),
-                    quiet = True,
-                    config_path = ""#config.rhvParams['config_path'] if 'config_path' in config.rhvParams else None
-                    )
-                
-            except Exception as e:
-                logError( f'Exception initializing RHVoice engine: {e}' )
+                except Exception as e:
+                    logError( f'{type(e).__name__} importing RHVoice wrapper: {e}' )
+            pass
         elif config.ttsEngine != None:
             logError( f'{config.ttsEngine}: Not yet implemented' )
 
@@ -78,15 +68,28 @@ class TTS():
             #self.sendMessage( MSG_TEXT, text )
             if not os.path.isfile(waveFileName): 
                 logDebug(f'{config.ttsEngine}: Cache not found, generating')
-                if (config.ttsEngine == TTS_RHVOICE) and (self.ttsRHVoice != None):
-                    rhvParams = config.rhvParams
+                if (config.ttsEngine == TTS_RHVOICE):
+                    rhvoice = rhvoiceWrapper.TTS( 
+                        threads = 1,
+                        lib_path = self.__rhvp('lib_path'),
+                        data_path = self.__rhvp('data_path'),
+                        resources = self.__rhvp('resources'),
+                        lame_path = self.__rhvp('lame_path'),
+                        opus_path = self.__rhvp('opus_path'),
+                        flac_path = self.__rhvp('flac_path'),
+                        quiet = True,
+                        config_path = ""#config.rhvParams['config_path'] if 'config_path' in config.rhvParams else None
+                        )
+
                     # https://pypi.org/project/rhvoice-wrapper/
 
-                    frames = self.ttsRHVoice.get( text, 
-                        voice= rhvParams['voice'],
+                    frames = rhvoice.get( text, 
+                        voice= config.rhvParams['voice'],
                         format_='pcm', 
-                        sets=rhvParams
+                        sets=config.rhvParams
                     )
+                    rhvoice.join()
+
                     # fn = os.path.join( ROOT_DIR, 'logs', datetime.datetime.today().strftime(f'%Y%m%d_%H%M%S_say') )
                     # f = open( fn+'.pcm','wb')
                     # f.write(frames)

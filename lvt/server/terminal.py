@@ -89,7 +89,6 @@ class Terminal():
         else:
             self.tts = None
 
-
         self.lastAnimation = ''
 
         self.appeal = wordsToList( config.assistantNames )[0]

@@ -7,10 +7,10 @@ import time
 from lvt.const import *
 from lvt.protocol import *
 from lvt.logger import *
+from lvt.server.tts import TTS
 import lvt.server.config as config
 import lvt.server.terminal as terminals
 import lvt.server.persistent_state as persistent_state
-from lvt.server.tts import TTS
 
 api_tts = None
 

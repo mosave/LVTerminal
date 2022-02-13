@@ -7,7 +7,6 @@ import asyncio
 import ssl
 
 from aiohttp import web, WSMsgType
-import concurrent.futures
 import time
 import wave
 import datetime
@@ -54,7 +53,7 @@ async def processVoice( waveChunk, recognizer: KaldiRecognizer):
 
 #endregion
 
-#region websockServer ##################################################################
+#region server #########################################################################
 async def server( request ):
     """Main service thread - websock server implementation """
     global model
@@ -178,12 +177,6 @@ async def server( request ):
                     message.data, 
                     recognizer if recognizer != None else gRecognizer
                 )
-                # (completed, text, signature) = await loop.run_in_executor( 
-                #     pool, 
-                #     processVoice, 
-                #     message.data, 
-                #     recognizer if recognizer != None else gRecognizer
-                # )
 
                 if signature != None : speakerSignature = signature
 
@@ -193,7 +186,7 @@ async def server( request ):
                     if len(text)>0:
                         # Если необходимо - распознаем речь повторно, используя словарь
                         if recognizer != None and gRecognizer != None :
-                            (_, textFiltered, _) = await loop.run_in_executor( pool, processVoice, voiceData, gRecognizer )
+                            (_, textFiltered, _) = await processVoice( voiceData, gRecognizer )
                         else:
                             textFiltered = text
 
@@ -264,116 +257,115 @@ def showHelp():
 
 #region onCtrlC/ restart ###############################################################
 def onCtrlC():
-    loop.stop()
+    global app
     print()
     print( "Terminating..." )
+
 def restart():
-    loop.stop()
+    global app
     print()
     print( "Restarting..." )
     sys.exit(42)
 #endregion
 
 #region Main ###########################################################################
-
-print()
-print( f'Lite Voice Terminal Server v{VERSION}' )
-
-config.init()
-
-for arg in sys.argv[1:]:
-    a = arg.strip().lower()
-    if ( a == '-h' ) or ( a == '--help' ) or ( a == '/?' ) :
-        showHelp()
-        exit( 0 )
-    elif ( a.startswith('-c=') or a.startswith('--config=') ) :
-        #config parameter is already processed
-        pass
-    else:
-        fatalError( f'Invalid command line argument: "{arg}"' )
-
-
-persistent_state.restore()
-
-entities.init()
-terminals.init()
-speakers.init()
-
-sslContext = None
-
-print( f'Listening port: {config.serverPort}' )
-if( bool(config.sslCertFile) and bool( config.sslKeyFile ) ):
-    print( f'Connection: Secured' )
-    try:
-        sslContext = ssl.SSLContext( ssl.PROTOCOL_TLS_SERVER )
-        sslContext.load_cert_chain( config.sslCertFile, config.sslKeyFile )
-    except Exception as e:
-        fatalError( f'Loading certificates {type(e).__name__}: {e}' )
-else:
-    print( f'Connection: Unsecured' )
-
-print( f'Voice model: {config.model}' )
-print( f'Full voice model: {config.fullModel}' )
-
-if bool( config.spkModel ):
-    print( f'Speaker identification model: {config.spkModel}' )
-else:
-    print( 'Speaker identification disabled' )
-
-#region Load models
-model = None
-gModel = None
-spkModel = None
-if bool(config.model):
+if __name__ == '__main__':
     print()
-    print("=========== Загрузка основной голосовой модели ===========")
-    model = Model( config.model )
-    if model == None: fatalError(f'Ошибка при загрузке голосовой модели {config.model}')
+    print( f'Lite Voice Terminal Server v{VERSION}' )
 
-if bool(config.gModel):
-    if config.gModel==config.model :
-        gModel = model
+    config.init()
+
+    for arg in sys.argv[1:]:
+        a = arg.strip().lower()
+        if ( a == '-h' ) or ( a == '--help' ) or ( a == '/?' ) :
+            showHelp()
+            exit( 0 )
+        elif ( a.startswith('-c=') or a.startswith('--config=') ) :
+            #config parameter is already processed
+            pass
+        else:
+            fatalError( f'Invalid command line argument: "{arg}"' )
+
+
+    persistent_state.restore()
+    entities.init()
+    terminals.init()
+    speakers.init()
+
+    sslContext = None
+
+    print( f'Listening port: {config.serverPort}' )
+    if( bool(config.sslCertFile) and bool( config.sslKeyFile ) ):
+        print( f'Connection: Secured' )
+        try:
+            sslContext = ssl.SSLContext( ssl.PROTOCOL_TLS_SERVER )
+            sslContext.load_cert_chain( config.sslCertFile, config.sslKeyFile )
+        except Exception as e:
+            fatalError( f'Loading certificates {type(e).__name__}: {e}' )
     else:
+        print( f'Connection: Unsecured' )
+
+    print( f'Voice model: {config.model}' )
+    print( f'Full voice model: {config.fullModel}' )
+
+    if bool( config.spkModel ):
+        print( f'Speaker identification model: {config.spkModel}' )
+    else:
+        print( 'Speaker identification disabled' )
+
+    #region Load models
+    model = None
+    gModel = None
+    spkModel = None
+    if bool(config.model):
         print()
-        print("===== Загрузка модели для распознавания со словарем ======")
-        gModel = Model( config.gModel )
-        if gModel == None: fatalError(f'Ошибка при загрузке голосовой модели для распознавания со словарем {config.gModel}')
+        print("=========== Загрузка основной голосовой модели ===========")
+        model = Model( config.model )
+        if model == None: fatalError(f'Ошибка при загрузке голосовой модели {config.model}')
 
-if bool(config.spkModel):
-    print("======== Загрузка модели для идентификации голоса ========")
-    spkModel = SpkModel( config.spkModel )
-    if spkModel == None: fatalError(f'Ошибка при загрузке модели идентификации голоса {config.spkModel}')
+    if bool(config.gModel):
+        if config.gModel==config.model :
+            gModel = model
+        else:
+            print()
+            print("===== Загрузка модели для распознавания со словарем ======")
+            gModel = Model( config.gModel )
+            if gModel == None: fatalError(f'Ошибка при загрузке голосовой модели для распознавания со словарем {config.gModel}')
 
-print("============== Загрузка моделей завершена ================")
-print()
+    if bool(config.spkModel):
+        print("======== Загрузка модели для идентификации голоса ========")
+        spkModel = SpkModel( config.spkModel )
+        if spkModel == None: fatalError(f'Ошибка при загрузке модели идентификации голоса {config.spkModel}')
 
-# Set log level to reduce Kaldi/Vosk spuffing
-SetLogLevel( -1 )
+    print("============== Загрузка моделей завершена ================")
+    print()
+
+    # Set log level to reduce Kaldi/Vosk spuffing
+    SetLogLevel( -1 )
 
 
-#endregion
+    #endregion
 
-# Main server loop
-try:
-    pool = concurrent.futures.ThreadPoolExecutor( config.recognitionThreads )
-    loop = asyncio.get_event_loop()
- 
-    app = web.Application()
-    app.add_routes([web.get('', server)])    
-    app.add_routes([web.get('/api', api.server)])    
-    app.add_routes([web.get('/api/', api.server)])
-    web.run_app(
-        app,
-        host=config.serverAddress,
-        port=config.serverPort,
-        ssl_context = sslContext
-        )
+    # Main server loop
+    try:
+    
+        app = web.Application()
+        app.add_routes([web.get('', server)])    
+        app.add_routes([web.get('/api', api.server)])    
+        app.add_routes([web.get('/api/', api.server)])
+        web.run_app(
+            app,
+            host=config.serverAddress,
+            port=config.serverPort,
+            ssl_context = sslContext
+            )
 
-except KeyboardInterrupt:
-    onCtrlC()
-except Exception as e: 
-    logError( f'Main terminal {type(e).__name__}: {e}' )
-finally:
-    persistent_state.save()
+    except KeyboardInterrupt:
+        onCtrlC()
+    except Exception as e: 
+        logError( f'Main terminal {type(e).__name__}: {e}' )
+    finally:
+        persistent_state.save()
 
-#endregion
+    #endregion
+    print( "FINISHED" )
