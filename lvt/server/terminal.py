@@ -1,11 +1,8 @@
+import asyncio
 from genericpath import isfile
 import time
 import json
-import hashlib
-import wave
 import psutil
-from numpy import random
-from threading import Lock, Thread
 from lvt.const import *
 from lvt.logger import *
 from lvt.protocol import *
@@ -112,7 +109,7 @@ class Terminal():
         self.words = list()
 #endregion
 
-#region sayAsync / playVoice / play
+#region sayAsync / playVoiceAsync / playAsync / playerMute / playerUnmute
     def playerMute(self):
         if not self.playerMuted:
             self.playerMuted = True
@@ -129,18 +126,18 @@ class Terminal():
         """
         if self.tts == None: return
         voice = await self.tts.textToSpeechAsync(text)
-        self.playVoice(voice)
+        await self.playVoiceAsync(voice)
 
-    def playVoice( self, voice ):
+    async def playVoiceAsync( self, voice ):
         if voice != None:
             self.playerMute()
             if time.time() - self.lastSound > 1 * 60:
-                self.play("ding.wav")
+                await self.playAsync("ding.wav")
             self.lastSound = time.time()
             self.sendDatagram( voice )
             self.playerUnmute()
 
-    def play( self, waveFileName: str ):
+    async def playAsync( self, waveFileName: str ):
         self.lastSound = time.time()
         """Проиграть wave файл на терминале. Максимальный размер файла 500к """
         fn, ext = os.path.splitext( waveFileName )
@@ -308,7 +305,7 @@ class Terminal():
             self.logDebug( 'Анализ фразы завершен' )
             if self.playAppealOffIfNotStopped :
                 self.playAppealOffIfNotStopped = False
-                self.play( 'appeal_off.wav' )
+                await self.playAsync( 'appeal_off.wav' )
         
 
         if self.topic == TOPIC_DEFAULT and self.lastAnimation != ANIMATION_NONE : 

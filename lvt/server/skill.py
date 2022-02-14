@@ -92,7 +92,7 @@ class Skill:
 
     def animate( self, animation:str ): self.terminal.animate( animation )
     async def sayAsync( self, text ): await self.terminal.sayAsync ( text )
-    def play( self, waveFileName ): self.terminal.play( waveFileName )
+    async def playAsync( self, waveFileName ): await self.terminal.playAsync( waveFileName )
     def log( self, msg:str ): log( f'[{self.terminal.id}.{self.name}]: {msg}' )
     def logError( self, msg:str ): logError( f'[{self.terminal.id}.{self.name}]: {msg}' )
     def logDebug( self, msg:str ): logDebug( f'[{self.terminal.id}.{self.name}]: {msg}' )

@@ -85,10 +85,11 @@ class Microphone:
 
     @muted.setter
     def muted(self, mute ) :
-        self.__muted = mute
-        if mute : 
-            self.ignoreFirstFrame = True
-        self.buffer.clear()
+        if self.__muted != mute:
+            self.__muted = mute
+            if mute : 
+                self.ignoreFirstFrame = True
+            self.buffer.clear()
 
     @property
     def rms(self)->int:

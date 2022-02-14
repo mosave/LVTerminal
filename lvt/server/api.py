@@ -67,7 +67,21 @@ async def server( request ):
                 statusSent = time.time()
                 persistent_state.save()
 
-            message = await connection.receive(0.5)
+            try:
+                message = await connection.receive(0.5)
+            except asyncio.TimeoutError:
+                if authorized: # No message received - just send terminal status updates if any
+                    #logDebug(f"checking updates")
+                    updates = {}
+                    for id, t in terminals.terminals.items():
+                        s = json.dumps(t.getState())
+                        if tsCache[id] != s:
+                            tsCache[id] = s
+                            updates[id] = terminals.states[id]
+                    if bool(updates):
+                        await sendMessage( MSG_API_TERMINAL_STATUS, data=updates )
+                continue
+
             if message.type == WSMsgType.CLOSED:
                 break
             elif message.type == WSMsgType.TEXT: # Получено текстовое сообщение
@@ -108,7 +122,7 @@ async def server( request ):
 
                         for tid in trms:
                             terminal = terminals.get( tid )
-                            terminal.playVoice(voice)
+                            await terminal.playVoiceAsync(voice)
 
                     elif message == MSG_API_PLAY:
                         sound = data["Sound"]
@@ -116,7 +130,7 @@ async def server( request ):
 
                         for tid in trms:
                             terminal = terminals.get( tid )
-                            terminal.play(sound)
+                            await terminal.playAsync(sound)
 
                     #elif m == MSG_API_ASK :
                     #    terminal.answerPrefix = data['answerPrefix'] if 'answerPrefix' in data else ''
@@ -133,22 +147,8 @@ async def server( request ):
                     #    )
                     else:
                         raise Exception( 'Invalid Command' ) 
-                elif authorized: # No message received - just send terminal status updates if any
-                    #logDebug(f"checking updates")
-                    updates = {}
-                    for id, t in terminals.terminals.items():
-                        s = json.dumps(t.getState())
-                        if tsCache[id] != s:
-                            tsCache[id] = s
-                            updates[id] = terminals.states[id]
-                    if updates:
-                        #logDebug(f"API Thread: Sending updates")
-                        if not await sendMessage( MSG_API_TERMINAL_STATUS, data=updates ):
-                            break
         except KeyboardInterrupt:
             break
-        except asyncio.TimeoutError:
-            continue
         except Exception as e:
             logError(f"API Thread: {type(e).__name__}: {e}")
             sendMessage( MSG_API_ERROR, statusCode=-1, status=f"{type(e).__name__}: {e}" )

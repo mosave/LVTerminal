@@ -1,7 +1,5 @@
 import sys
-import time
 import os
-import getopt
 from lvt.const import *
 from lvt.logger import *
 from lvt.server.grammar import *
@@ -32,8 +30,6 @@ printLevel = None
 
 voiceLogLevel = None
 voiceLogDir = os.path.join( ROOT_DIR, "logs")
-
-playerIntegration = 0
 
 ttsEngine = None
 voice = ''
@@ -71,8 +67,6 @@ def init():
     global printLevel 
     global voiceLogLevel
     global voiceLogDir
-
-    global playerIntegration
 
     global ttsEngine
     global voice
@@ -170,17 +164,6 @@ def init():
     if not bool(voiceLogDir) :
         voiceLogDir = os.path.join( ROOT_DIR, "logs")
     voiceLogLevel = p.getIntValue( section, "VoiceLogLevel",None )
-
-    s = p.getValue( section, "PlayerIntegration",'None' ).lower()
-    if s=='volume':
-        playerIntegration = PLAYER_INTEGRATION_VOLUME
-    if s=='lms':
-        playerIntegration = PLAYER_INTEGRATION_LMS
-    elif s == "none":
-        playerIntegration = PLAYER_INTEGRATION_NONE
-    else:
-        __error( f'Неверный режим интеграции с аудиоплеером. Допустимые значения "None", "Volume" и "LMS" ','PlayerIntegration', section )
-    
 
     ### TTS Engine
     ttsEngine = p.getValue( section, 'TTSEngine', '' )

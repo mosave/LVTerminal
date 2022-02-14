@@ -1,6 +1,6 @@
 pyaudio
 pyalsaaudio
-aiohttp
+aiohttp==3.8.1
 webrtcvad
 rhvoice_wrapper 
 spidev
@@ -8,4 +8,5 @@ numpy==1.21.4
 gpiozero
 rpi.gpio
 pkg_resources
+pysqueezebox==0.5.5
 

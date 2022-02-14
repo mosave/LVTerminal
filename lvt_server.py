@@ -6,7 +6,7 @@ import sys
 import asyncio
 import ssl
 
-from aiohttp import web, WSMsgType
+from aiohttp import web, WSMsgType, ClientSession
 import time
 import wave
 import datetime
@@ -255,6 +255,19 @@ def showHelp():
     print( " -l[=<file>] | --log[=<file>]   overwrite log file location defined in config file " )
 #endregion
 
+#region background task start/cleanup ##################################################
+async def start_background_tasks(app):
+    pass
+    # if config.playerIntegration == PLAYER_INTEGRATION_LMS:
+    #     app['lms_client'] = asyncio.create_task(lms.client())
+
+async def cleanup_background_tasks(app):
+    pass
+    # if config.playerIntegration == PLAYER_INTEGRATION_LMS:
+    #     app['lms_client'].cancel()
+    #     await app['lms_client']
+#endregion
+
 #region onCtrlC/ restart ###############################################################
 def onCtrlC():
     global app
@@ -349,7 +362,12 @@ if __name__ == '__main__':
     # Main server loop
     try:
     
+        # loop = asyncio.get_event_loop()
+        # task = loop.create_task( lmsClient() )
+
         app = web.Application()
+        app.on_startup.append(start_background_tasks)
+        app.on_cleanup.append(cleanup_background_tasks)
         app.add_routes([web.get('', server)])    
         app.add_routes([web.get('/api', api.server)])    
         app.add_routes([web.get('/api/', api.server)])
@@ -368,4 +386,3 @@ if __name__ == '__main__':
         persistent_state.save()
 
     #endregion
-    print( "FINISHED" )

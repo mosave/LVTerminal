@@ -26,9 +26,16 @@ audioOutputName = None
 audioInputDevice = None
 audioInputName = None
 
+volumeCardIndex = 0
 volumeControl = None
 volumeControlPlayer = None
-volumeCardIndex = 0
+
+lmsAddress = None
+lmsPort = 9000
+lmsUser = None
+lmsPassword = None
+lmsPlayer = None
+lmsMode = LMS_MODE_PAUSE
 
 channels = 1
 microphones = [1]
@@ -57,9 +64,17 @@ def init( audio: pyaudio.PyAudio ):
     global audioOutputName
     global audioInputDevice 
     global audioInputName
+
+    global volumeCardIndex
     global volumeControl
     global volumeControlPlayer
-    global volumeCardIndex
+
+    global lmsAddress
+    global lmsPort
+    global lmsUser
+    global lmsPassword
+    global lmsPlayer
+    global lmsMode
 
     global channels
     global microphones
@@ -113,9 +128,25 @@ def init( audio: pyaudio.PyAudio ):
     #Audio output settings
     (audioOutputDevice, audioOutputName ) = __getAudioDevice( audio, p.getValue( "", 'AudioOutputDevice', None ), False )
 
-    volumeControl = p.getValue("","LVTVolumeControl",None)
+    volumeControl = p.getValue("","VolumeControl",None)
     volumeControlPlayer = p.getValue("","PlayerVolumeControl",None)
     volumeCardIndex = p.getIntValue("", "VolumeCardIndex", 0 )
+
+    lmsAddress = p.getValue("","LMSAddress", None)
+    lmsPort = p.getIntValue("","LMSPort", 9000)
+    lmsUser = p.getValue("","LMSUser", None)
+    lmsPassword = p.getValue("","LMSPassword", None)
+    lmsPlayer = p.getValue("","LMSPlayer", terminalId )
+
+    s = p.getValue( "", "LMSMode", 'mute' ).lower()
+    if s=='mute':
+        lmsMode = LMS_MODE_MUTE
+    elif s=='pause':
+        lmsMode = LMS_MODE_PAUSE
+    else:
+        __error( f'Неверный режим интеграции LMS. Допустимые значения "Volume" и "Pause"','LMSMode', "" )
+
+
 
     # Microphone settings
     (audioInputDevice, audioInputName) = __getAudioDevice( audio, p.getValue( "", 'AudioInputDevice', None ), True )

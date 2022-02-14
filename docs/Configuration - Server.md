@@ -82,6 +82,7 @@ cd LVTerminal
 * pymorphy2 
 * rhvoice_wrapper 
 * numpy
+* pysqueezebox
 
 ### 5. Установка серверной части в виде сервиса
 

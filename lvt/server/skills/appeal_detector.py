@@ -101,7 +101,7 @@ class AppealDetectorSkill(Skill):
         if newTopic == TOPIC_WAIT_COMMAND :
             # Задаем время ожидания команды
             self.waitUntil = time.time() + WAIT_COMMAND_TIMEOUT
-            self.play( 'appeal_on.wav' )
+            await self.playAsync( 'appeal_on.wav' )
         elif self.topic == TOPIC_WAIT_COMMAND :
             # Играем отбой
             self.waitUntil = 0
@@ -110,7 +110,7 @@ class AppealDetectorSkill(Skill):
         if( self.topic == TOPIC_WAIT_COMMAND ):
             if time.time() > self.waitUntil:
                 self.animate( ANIMATION_CANCEL )
-                self.play( 'appeal_off.wav' )
+                await self.playAsync( 'appeal_off.wav' )
                 await self.changeTopic( self.savedTopic )
                 self.terminal.playAppealOffIfNotStopped = False
 
