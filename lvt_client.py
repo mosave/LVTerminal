@@ -6,6 +6,7 @@ import io
 import json
 import asyncio
 import pyaudio
+import socket
 import wave
 import ssl
 import aiohttp
@@ -217,18 +218,40 @@ async def lmsThread( session ):
         try:
             lmsServer = lms.Server(session, config.lmsAddress, port=config.lmsPort, username=config.lmsUser, password=config.lmsPassword )
             players = await lmsServer.async_get_players()
+            if config.lmsPlayer is None:
+                id_host = str(socket.gethostname()).lower()
+                id_ip = str(socket.gethostbyname(socket.gethostname()))
+                if id_ip == "127.0.0.1":
+                    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                    s.connect(("8.8.8.8", 80))
+                    id_ip = s.getsockname()[0]
+                id_name = str(config.terminalId).lower()
+            else:
+                id_host = id_ip = id_name = str(config.lmsPlayer).lower()
+            #log( f'LMS thread: searching for name="{id_name}", host="{id_host}",  ip="{id_ip}" ')
+
             lmp = None
             if players is not None:
                 for p in players:
-                    if str(p.name).lower() == str(config.lmsPlayer).lower():
+                    await p.async_update()
+                    p_ip = p._status['player_ip'] if ( p._status is not None and 'player_ip' in p._status ) else ''
+                    p_ip = str(list((p_ip+':111').partition(':'))[0])
+                    #log( f'LMS thread, checking "{p.name}"/"{p._id}"/"{p_ip}"')
+                    if str(p.name).lower() == id_name \
+                        or str(p.name).lower() == id_host \
+                        or str(p._id).lower().replace(':','') == id_name.lower().replace(':','') \
+                        or p_ip == id_ip :
+                        if lmsPlayer is None or lmsPlayer.name != p.name:
+                            log( f'LMS thread, bound to player "{p.name}", MAC address: {p._id}, IP address: {p_ip}')
                         lmp = p
+                        break
             lmsPlayer = lmp
             if lmsPlayer is None:
                 await asyncio.sleep(10)
                 continue
             while lmsPlayer is not None:
                 await lmsPlayer.async_update()
-                await asyncio.sleep(1)
+                await asyncio.sleep(3)
         except Exception as e:
             logError( f'LMS thread {type(e).__name__}: {e}' )
             await asyncio.sleep( 10 )

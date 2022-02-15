@@ -136,7 +136,7 @@ def init( audio: pyaudio.PyAudio ):
     lmsPort = p.getIntValue("","LMSPort", 9000)
     lmsUser = p.getValue("","LMSUser", None)
     lmsPassword = p.getValue("","LMSPassword", None)
-    lmsPlayer = p.getValue("","LMSPlayer", terminalId )
+    lmsPlayer = p.getValue("","LMSPlayer", None )
 
     s = p.getValue( "", "LMSMode", 'mute' ).lower()
     if s=='mute':
