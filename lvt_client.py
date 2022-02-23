@@ -57,6 +57,8 @@ async def printStatusThread():
     global shared
     global microphone
     global animator
+    global lmsPlayer
+
     while not shared.isTerminated:
         if not shared.quiet and animator is not None and microphone is not None :
             width = 38
@@ -75,8 +77,11 @@ async def printStatusThread():
             if pL >= pR : pR = pL + 1
 
             graph = graph[:pL] + '|' + graph[pL:pR] + '|' + graph[pR + 1:]
-
-            face = 'O_O' if microphone.active else '-_-'
+            if lmsPlayer is not None and lmsPlayer.mode=="play" and lmsPlayer.volume>1:
+                mouth = '˳'
+            else:
+                mouth = '_'
+            face = f'O{mouth}O' if microphone.active else f'-{mouth}-'
             face = f'x({face})x' if microphone.muted else f'o({face})o'
             sys.__stdout__.write( f'[{animator.animation:^10}] {face} CH:{microphone.channel} RMS:{microphone.rms:>5} VAD:{microphone.vadLevel:>3} [{graph}]  \r' )
         await asyncio.sleep(1)
@@ -120,6 +125,7 @@ def setPlayerVolume( volume ):
         alsaaudio.Mixer(cardindex=config.volumeCardIndex, control=config.volumeControlPlayer ).setvolume(volume)
     except Exception as e:
         pass
+
 def playerMute() -> bool:
     v = getPlayerVolume()
     if v is not None and v>0:
@@ -334,18 +340,25 @@ async def messageThread( connection ):
     mutedByServer = False
     mutedByPlayer = False
 
-    playerMuted = 0
-    _playerMuted = 1
+    playerMuted = False
+    _playerMuted = True
 
     while True:
         try:
-            try:
-                if lmsPlayer is not None and lmsPlayer.mode=="play" and lmsPlayer.volume>1:
-                    mutedByPlayer = True
-                else:
-                    mutedByPlayer = False
-            except Exception:
-                pass
+            if lmsPlayer is not None:
+                try:
+                    if lmsPlayer.mode=="play" and lmsPlayer.volume>1:
+                        if playerMuted:
+                            await lmsPlayerMuteAsync()
+                            mutedByPlayer = False
+                        else:
+                            mutedByPlayer = True
+                    else:
+                        mutedByPlayer = False
+                except Exception:
+                    pass
+            else: # Other players are here
+                mutedByPlayer = False
 
             if microphone is not None and animator is not None:
                 if mutedByServer or mutedByPlayer:
@@ -356,17 +369,15 @@ async def messageThread( connection ):
                     animator.muted = False
 
             if playerMuted != _playerMuted:
-                if playerMuted>0 and _playerMuted<=0:
+                if not playerMuted:
                     pm = playerMute()
                     lpm = await lmsPlayerMuteAsync()
                     if pm and not lpm :
                         await asyncio.sleep(0.5)
-                elif playerMuted<=0 and _playerMuted>0:
+                else:
                     await asyncio.sleep(0.5)
                     playerUnmute()
                     await lmsPlayerUnmuteAsync()
-                if playerMuted<0 :
-                    playerMuted = 0
                 _playerMuted = playerMuted
 
             msg = await connection.receive()

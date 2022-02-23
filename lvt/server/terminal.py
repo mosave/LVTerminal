@@ -97,7 +97,7 @@ class Terminal():
             if 'Filter' in states[id]:
                 self.__filter = int(states[id]['Filter'])
 
-        self.playerMuted = False
+        self.playerMuted = 0
         self.reset()
 
     def reset( self ):
@@ -111,14 +111,15 @@ class Terminal():
 
 #region sayAsync / playVoiceAsync / playAsync / playerMute / playerUnmute
     def playerMute(self):
-        if not self.playerMuted:
-            self.playerMuted = True
+        if self.playerMuted<=0:
             self.sendMessage(MSG_MUTE_PLAYER)
+        self.playerMuted += 1
 
     def playerUnmute(self):
-        if self.playerMuted:
-            self.playerMuted = False
-            self.sendMessage(MSG_UNMUTE_PLAYER)
+        if self.playerMuted>0:
+            self.playerMuted -= 1
+            if self.playerMuted==0:
+                self.sendMessage(MSG_UNMUTE_PLAYER)
     
     async def sayAsync( self, text ):
         """Проговорить сообщение на терминал. 
@@ -131,15 +132,18 @@ class Terminal():
     async def playVoiceAsync( self, voice ):
         if voice != None:
             self.playerMute()
-            if time.time() - self.lastSound > 1 * 60:
-                await self.playAsync("ding.wav")
-            self.lastSound = time.time()
-            self.sendDatagram( voice )
-            self.playerUnmute()
+            try:
+                if time.time() - self.lastSound > 1 * 60:
+                    await self.playAsync("ding.wav")
+                self.lastSound = time.time()
+                self.sendDatagram( voice )
+            finally:
+                self.playerUnmute()
 
     async def playAsync( self, waveFileName: str ):
-        self.lastSound = time.time()
         """Проиграть wave файл на терминале. Максимальный размер файла 500к """
+
+        self.lastSound = time.time()
         fn, ext = os.path.splitext( waveFileName )
         if ext == '':
             ext = ".wav"
@@ -153,13 +157,12 @@ class Terminal():
                 wfn = os.path.join( CONFIG_DIR, waveFileName )
                 if isfile(wfn):
                     waveFileName = wfn
-        with open( waveFileName, 'rb' ) as wave:
-            pm = self.playerMuted
-            if not pm:
-                self.playerMute()
-            self.sendDatagram( wave.read( 500 * 1024 ) )
-            if not pm:
-                self.playerUnmute()
+        self.playerMute()
+        try:
+            with open( waveFileName, 'rb' ) as wave:
+                self.sendDatagram( wave.read( 500 * 1024 ) )
+        finally:
+            self.playerUnmute()
 #endregion
 
 #region Properties
@@ -233,6 +236,7 @@ class Terminal():
         self.connected = True
         self.connectedOn = time.time()
         self.messageQueue = messageQueue
+        self.playerMuted = 0
         # В случае, если предыдущая сессия закончилась недавно
         if self.disconnectedOn != None and self.connectedOn - self.disconnectedOn < 60 :
             while len( self.messages ) > 0:
@@ -359,6 +363,7 @@ class Terminal():
 
     async def changeTopicAsync( self, newTopic, *params, **kwparams ):
         """Изменить текущий топик. Выполняется ПОСЛЕ выхода из обработчика onText"""
+        oldTopic = self.topic
         self.newTopic = str( newTopic )
 
         p = kwparams
@@ -369,6 +374,11 @@ class Terminal():
         self.newTopicParams = p
         self.logDebug( f'{self.name}.changeTopicAsync("{newTopic}", {p}) ]' )
         await self.processTopicChange()
+        
+        if oldTopic == TOPIC_DEFAULT and self.topic != TOPIC_DEFAULT:
+            self.playerMute()
+        elif oldTopic != TOPIC_DEFAULT and self.topic == TOPIC_DEFAULT:
+            self.playerUnmute()
 #endregion
 
 #region Vocabulary manipulations

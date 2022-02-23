@@ -236,16 +236,9 @@ class Skill:
         self.vocabulary.update( wordsToVocabulary( words, tags ) )
 
     async def changeTopicAsync( self, newTopic, *params, **kwparams ):
-        """Изменить текущий топик. Выполняется ПОСЛЕ выхода из обработчика onText"""
-        self.terminal.newTopic = str( newTopic )
-
-        p = kwparams
-        if len( params ) == 1 and isinstance( params[0],dict ) : 
-            p.update( params[0] )
-        elif len( params ) > 0 : 
-            p.update( {'params':params} )
-        self.terminal.newTopicParams = p
-        self.terminal.logDebug( f'{self.name}.changeTopicAsync("{newTopic}", {p}) ]' )
+        """Изменить текущий топик. Выполняется ПОСЛЕ выхода из обработчика onText
+        Прокси на terminal.changeTopicAsync"""
+        await self.terminal.changeTopicAsync( newTopic, params, kwparams )
 
     def stopParsing( self, animation: str=None ):
         """Прервать исполнение цепочки скиллов после выхода из обработчика onText"""
