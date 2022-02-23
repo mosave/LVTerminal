@@ -36,7 +36,7 @@ class AppealDetectorSkill(Skill):
             # Ставим галочку в терминале что в случае необнаружения команды озвучить appeal_off
             self.terminal.playAppealOffIfNotStopped = True
             # И перезапустить распознавание без топика
-            await self.changeTopic( TOPIC_DEFAULT )
+            await self.changeTopicAsync( TOPIC_DEFAULT )
             self.restartParsing()
             return
 
@@ -49,7 +49,7 @@ class AppealDetectorSkill(Skill):
                 # В случае если фраза содержит только обращение - переходим в ожидание команды
                 if len( self.words ) == 1 :
                     self.savedTopic = self.topic
-                    await self.changeTopic( TOPIC_WAIT_COMMAND )
+                    await self.changeTopicAsync( TOPIC_WAIT_COMMAND )
                     self.stopParsing()
                 elif  self.findWordChainB( 'подай голос' ) or \
                     self.findWordChainB( 'скажи что-нибудь' ) or \
@@ -111,7 +111,7 @@ class AppealDetectorSkill(Skill):
             if time.time() > self.waitUntil:
                 self.animate( ANIMATION_CANCEL )
                 await self.playAsync( 'appeal_off.wav' )
-                await self.changeTopic( self.savedTopic )
+                await self.changeTopicAsync( self.savedTopic )
                 self.terminal.playAppealOffIfNotStopped = False
 
 

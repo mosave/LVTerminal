@@ -12,8 +12,14 @@ def updateClient( package ):
         print()
         print('Updating LVT Client files')
         for file in package:
-            print(f'    {file[0]}')
-            dir = os.path.abspath( os.path.join( targetDir, file[0]) )
+            fn = str(file[0]).split('\\')
+            fn2 = str(file[0]).split('/')
+            if len(fn2) > len(fn):
+                fn = fn2
+            fn = os.path.join( *fn )
+            print(f'    {fn}')
+            dir = os.path.abspath( os.path.join( targetDir, fn) )
+
             if dir.startswith( targetDir ) :
                 with open( dir, "w", encoding='utf-8' ) as f:
                     f.writelines(file[1])

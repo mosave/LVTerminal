@@ -81,9 +81,12 @@ MSG_API_PLAY = 'Play' # {"Say": text, "Importance": importance, "Terminals": spe
 
 MSG_API_NEGOTIATE = 'Negotiate' 
 
-MSG_API_CONFIRM = 'Confirm' 
+MSG_API_RESTART_TERMINAL = 'Restart' 
 
-MSG_API_ERROR = 'Confirm' 
+MSG_API_ERROR = 'Error' 
+
+MSG_API_SET_INTENTS = 'SetIntents'
+MSG_API_FIRE_INTENT = 'FireIntent'
 
 
 def split2( s: str ):

@@ -44,8 +44,6 @@ class Skill:
     async def onText( self ):
         """Вызывается после завершения распознавания фразы в случае если скилл привязан к текущему состоянию
           * appeal - в фразе присутствует обращение к ассистенту
-        Возвращаемое значение, tuple:
-        (<новое состояние>, <прервать дальнейшую обработку фразы> )
         """
         pass
 
@@ -58,18 +56,7 @@ class Skill:
         """Вызывается примерно 1 раз в секунду, в зависимости от """
         pass
 
-    def getSkillFileName( self, ext: str ) -> str:
-        """Generate skill-related file name by adding extension"""
-        if not isinstance( ext,str ) :
-            ext = ''
-        elif not ext.startswith( '.' ):
-            ext = '.' + ext
-        # :)
-        if ext == '.py': ext = '.py.dat'
-        return os.path.splitext( self.moduleFileName )[0] + ext
-
-### Terminal wrappers ##################################################################
-#region
+#region Terminal wrappers #############################################################
     @property
     def isAppealed( self ): return self.terminal.isAppealed
     @property
@@ -98,8 +85,7 @@ class Skill:
     def logDebug( self, msg:str ): logDebug( f'[{self.terminal.id}.{self.name}]: {msg}' )
 #endregion
 
-### Манипуляции словами и цепочками слов - поиск, удаление, подмена ####################
-#region
+#region Манипуляции словами и цепочками слов - поиск, удаление, подмена ###############
     def getNormalForm( self, index: int, tags=None ) -> str:
         """Возвращает нормальную форму слова в фразе с учетом морфологических признаков"""
         for p in self.words[index]:
@@ -224,8 +210,7 @@ class Skill:
 
 #endregion
 
-### Методы конфигурации скила и управление ходом разбора фразы #########################
-#region
+#region Методы конфигурации скила и управление ходом разбора фразы ####################
     def subscribe( self, *topics ):
         """Привязать вызов process к состоянию"""
         for t in topics : self.subscriptions.add( str( t ) )
@@ -250,7 +235,7 @@ class Skill:
         """
         self.vocabulary.update( wordsToVocabulary( words, tags ) )
 
-    async def changeTopic( self, newTopic, *params, **kwparams ):
+    async def changeTopicAsync( self, newTopic, *params, **kwparams ):
         """Изменить текущий топик. Выполняется ПОСЛЕ выхода из обработчика onText"""
         self.terminal.newTopic = str( newTopic )
 
@@ -260,7 +245,7 @@ class Skill:
         elif len( params ) > 0 : 
             p.update( {'params':params} )
         self.terminal.newTopicParams = p
-        self.terminal.logDebug( f'{self.name}.changeTopic("{newTopic}", {p}) ]' )
+        self.terminal.logDebug( f'{self.name}.changeTopicAsync("{newTopic}", {p}) ]' )
 
     def stopParsing( self, animation: str=None ):
         """Прервать исполнение цепочки скиллов после выхода из обработчика onText"""

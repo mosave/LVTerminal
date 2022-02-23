@@ -53,7 +53,7 @@ class YesNoSkill(Skill):
         if self.topicCancel != '' and ( \
             self.findWordChainB( 'отменить' ) or \
             self.findWordChainB( 'отмена' ) ) :
-            await self.changeTopic( self.topicCancel,self.terminal.text )
+            await self.changeTopicAsync( self.topicCancel,self.terminal.text )
             self.stopParsing( ANIMATION_CANCEL )
             return
         if self.findWordChainB( 'нет' ) or \
@@ -63,7 +63,7 @@ class YesNoSkill(Skill):
             self.findWordChainB( 'стой' ) or \
             self.findWordChainB( 'не уверен' ) or \
             self.findWordChainB( 'не нужно' ) :
-            await self.changeTopic( self.topicNo,self.terminal.text )
+            await self.changeTopicAsync( self.topicNo,self.terminal.text )
             self.stopParsing( ANIMATION_CANCEL )
             return
         if self.findWordChainB( 'да' ) or \
@@ -72,7 +72,7 @@ class YesNoSkill(Skill):
             self.findWordChainB( 'конечно' ) or \
             self.findWordChainB( 'поехали' ) or \
             self.findWordChainB( 'уверен' ) :
-            await self.changeTopic( self.topicYes,self.terminal.text )
+            await self.changeTopicAsync( self.topicYes,self.terminal.text )
             self.stopParsing( ANIMATION_ACCEPT )
             return
         await self.sayAsync('Извините, я не '+self.conformToAppeal('понял')+' что вы сказали. Скажите пожалуйста да или нет')
@@ -94,7 +94,7 @@ class YesNoSkill(Skill):
 
             if self.message == '' or self.topicYes == '' or self.topicNo == '' :
                 await self.sayAsync( "В скилл Yes Or No переданы неправильные значения параметров" )
-                await self.changeTopic( TOPIC_DEFAULT )
+                await self.changeTopicAsync( TOPIC_DEFAULT )
                 self.stopParsing( ANIMATION_CANCEL )
                 return
 
@@ -107,7 +107,7 @@ class YesNoSkill(Skill):
         if( self.topic == TOPIC_YES_NO ):
             if self.topicCancel!='' and time.time() > self.dtCancel :
                 await self.sayAsync('Извините, я так ничего и не услышала...')
-                await self.changeTopic( self.topicCancel, 'Ответ не получен' )
+                await self.changeTopicAsync( self.topicCancel, 'Ответ не получен' )
                 return
 
             if time.time() > self.dtRepeat :

@@ -210,48 +210,49 @@ def play( data ):
 #endregion
 
 #region lmsThread() / lmsPlayerMute / lmsPlayerUnmute ##################################
-async def lmsThread( session ):
+async def lmsThread():
     global shared
     global lmsPlayer
     log( "Starting LMS Thread" )
     while not shared.isTerminated:
         try:
-            lmsServer = lms.Server(session, config.lmsAddress, port=config.lmsPort, username=config.lmsUser, password=config.lmsPassword )
-            players = await lmsServer.async_get_players()
-            if config.lmsPlayer is None:
-                id_host = str(socket.gethostname()).lower()
-                id_ip = str(socket.gethostbyname(socket.gethostname()))
-                if id_ip == "127.0.0.1":
-                    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-                    s.connect(("8.8.8.8", 80))
-                    id_ip = s.getsockname()[0]
-                id_name = str(config.terminalId).lower()
-            else:
-                id_host = id_ip = id_name = str(config.lmsPlayer).lower()
-            #log( f'LMS thread: searching for name="{id_name}", host="{id_host}",  ip="{id_ip}" ')
+            async with aiohttp.ClientSession() as session:
+                lmsServer = lms.Server(session, config.lmsAddress, port=config.lmsPort, username=config.lmsUser, password=config.lmsPassword )
+                players = await lmsServer.async_get_players()
+                if config.lmsPlayer is None:
+                    id_host = str(socket.gethostname()).lower()
+                    id_ip = str(socket.gethostbyname(socket.gethostname()))
+                    if id_ip == "127.0.0.1":
+                        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                        s.connect(("8.8.8.8", 80))
+                        id_ip = s.getsockname()[0]
+                    id_name = str(config.terminalId).lower()
+                else:
+                    id_host = id_ip = id_name = str(config.lmsPlayer).lower()
+                #log( f'LMS thread: searching for name="{id_name}", host="{id_host}",  ip="{id_ip}" ')
 
-            lmp = None
-            if players is not None:
-                for p in players:
-                    await p.async_update()
-                    p_ip = p._status['player_ip'] if ( p._status is not None and 'player_ip' in p._status ) else ''
-                    p_ip = str(list((p_ip+':111').partition(':'))[0])
-                    #log( f'LMS thread, checking "{p.name}"/"{p._id}"/"{p_ip}"')
-                    if str(p.name).lower() == id_name \
-                        or str(p.name).lower() == id_host \
-                        or str(p._id).lower().replace(':','') == id_name.lower().replace(':','') \
-                        or p_ip == id_ip :
-                        if lmsPlayer is None or lmsPlayer.name != p.name:
-                            log( f'LMS thread, bound to player "{p.name}", MAC address: {p._id}, IP address: {p_ip}')
-                        lmp = p
-                        break
-            lmsPlayer = lmp
-            if lmsPlayer is None:
-                await asyncio.sleep(10)
-                continue
-            while lmsPlayer is not None:
-                await lmsPlayer.async_update()
-                await asyncio.sleep(3)
+                lmp = None
+                if players is not None:
+                    for p in players:
+                        await p.async_update()
+                        p_ip = p._status['player_ip'] if ( p._status is not None and 'player_ip' in p._status ) else ''
+                        p_ip = str(list((p_ip+':111').partition(':'))[0])
+                        #log( f'LMS thread, checking "{p.name}"/"{p._id}"/"{p_ip}"')
+                        if str(p.name).lower() == id_name \
+                            or str(p.name).lower() == id_host \
+                            or str(p._id).lower().replace(':','') == id_name.lower().replace(':','') \
+                            or p_ip == id_ip :
+                            if lmsPlayer is None or lmsPlayer.name != p.name:
+                                log( f'LMS thread, bound to player "{p.name}", MAC address: {p._id}, IP address: {p_ip}')
+                            lmp = p
+                            break
+                lmsPlayer = lmp
+                if lmsPlayer is None:
+                    await asyncio.sleep(10)
+                    continue
+                while lmsPlayer is not None:
+                    await lmsPlayer.async_update()
+                    await asyncio.sleep(3)
         except Exception as e:
             logError( f'LMS thread {type(e).__name__}: {e}' )
             await asyncio.sleep( 10 )
@@ -333,8 +334,8 @@ async def messageThread( connection ):
     mutedByServer = False
     mutedByPlayer = False
 
-    playerMuted = False
-    _playerMuted = True
+    playerMuted = 0
+    _playerMuted = 1
 
     while True:
         try:
@@ -355,16 +356,18 @@ async def messageThread( connection ):
                     animator.muted = False
 
             if playerMuted != _playerMuted:
-                _playerMuted = playerMuted
-                if playerMuted:
+                if playerMuted>0 and _playerMuted<=0:
                     pm = playerMute()
                     lpm = await lmsPlayerMuteAsync()
                     if pm and not lpm :
                         await asyncio.sleep(0.5)
-                else:
+                elif playerMuted<=0 and _playerMuted>0:
                     await asyncio.sleep(0.5)
                     playerUnmute()
                     await lmsPlayerUnmuteAsync()
+                if playerMuted<0 :
+                    playerMuted = 0
+                _playerMuted = playerMuted
 
             msg = await connection.receive()
             m = None
@@ -398,9 +401,9 @@ async def messageThread( connection ):
                 elif m == MSG_VOLUME: 
                     setVolume(p)
                 elif m == MSG_MUTE_PLAYER:
-                    playerMuted = True
+                    playerMuted += 1
                 elif m == MSG_UNMUTE_PLAYER:
-                    playerMuted = False
+                    playerMuted -= 1
                 elif m == MSG_VOLUME_PLAYER: 
                     p = int(p)
                     p = 100 if p>100 else (0 if p<0 else p)
@@ -453,7 +456,7 @@ async def client( ):
             async with aiohttp.ClientSession() as session:
                 tasks = []
                 if config.lmsAddress is not None:
-                    tasks.append(asyncio.ensure_future( lmsThread(session) ))
+                    tasks.append(asyncio.ensure_future( lmsThread() ))
                 if not shared.quiet :
                     tasks.append( asyncio.ensure_future( printStatusThread() ) )
 

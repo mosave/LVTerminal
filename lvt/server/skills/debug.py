@@ -54,7 +54,7 @@ class DebugSkill(Skill):
 
             elif self.findWordChainB("проверка да или нет") :
                 self.stopParsing(ANIMATION_ACCEPT)
-                await self.changeTopic( "YesNo", \
+                await self.changeTopicAsync( "YesNo", \
                     message='Да или нет?',
                     topicYes = TOPIC_DEBUG_YES,
                     topicNo = TOPIC_DEBUG_NO,
@@ -63,10 +63,10 @@ class DebugSkill(Skill):
     async def onTopicChange( self, newTopic: str, params = {} ):
         if newTopic == TOPIC_DEBUG_YES :
             await self.sayAsync( 'Подтверждено' )
-            await self.changeTopic(TOPIC_DEFAULT)
+            await self.changeTopicAsync(TOPIC_DEFAULT)
         elif newTopic == TOPIC_DEBUG_NO :
             await self.sayAsync( 'отказано' )
-            await self.changeTopic(TOPIC_DEFAULT)
+            await self.changeTopicAsync(TOPIC_DEFAULT)
         elif newTopic == TOPIC_DEBUG_CANCEL :
             await self.sayAsync( 'отмена' )
-            await self.changeTopic(TOPIC_DEFAULT)
+            await self.changeTopicAsync(TOPIC_DEFAULT)

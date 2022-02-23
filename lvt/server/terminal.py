@@ -65,11 +65,10 @@ class Terminal():
         self.speaker = None
 
         self.sayOnConnect = None
-        self.isConnected = False
+        self.connected = False
         self.connectedOn = None
         self.disconnectedOn = None
         self.playAppealOffIfNotStopped = False
-        self.answerPrefix = ''
         self.logDebug( 'Loading skills' )
 
         self.allTopics = set()
@@ -106,7 +105,8 @@ class Terminal():
         self.topicParams = None
         self.appealPos = None
         self.isAppealed = False
-        self.words = list()
+        self.words = []
+        self.originalText = ''
 #endregion
 
 #region sayAsync / playVoiceAsync / playAsync / playerMute / playerUnmute
@@ -216,13 +216,21 @@ class Terminal():
 
 #endregion
 
+#region skills access
+    def getSkill(self, skillName:str)-> Skill:
+        for skill in self.skills:
+            if skill.name.lower() == str(skillName).lower():
+                return skill
+        return None
+#endregion
+
 #region onConnect() / onDisconnect() 
     async def onConnect( self, messageQueue ):
         """Метод вызывается при подключении терминального клиента
           messageQueue is synchronous message output queue
         """
         self.log( f'Terminal connected, client version {self.clientVersion}' )
-        self.isConnected = True
+        self.connected = True
         self.connectedOn = time.time()
         self.messageQueue = messageQueue
         # В случае, если предыдущая сессия закончилась недавно
@@ -235,7 +243,7 @@ class Terminal():
 
         self.sendMessage( MSG_ANIMATE, ANIMATION_NONE )
         self.sendMessage( MSG_LVT_STATUS, json.dumps(getState()) )
-        if self.sayOnConnect :
+        if bool(self.sayOnConnect) :
             self.sendMessage(MSG_MUTE)
             await self.sayAsync(self.sayOnConnect)
             self.sendMessage(MSG_UNMUTE)
@@ -244,7 +252,7 @@ class Terminal():
     def onDisconnect( self ):
         """Вызывается при (после) завершения сессии"""
         self.log( 'Terminal disconnected' )
-        self.isConnected = False
+        self.connected = False
         self.disconnectedOn = time.time()
         self.messageQueue = None
 #endregion
@@ -311,6 +319,8 @@ class Terminal():
         if self.topic == TOPIC_DEFAULT and self.lastAnimation != ANIMATION_NONE : 
             self.animate( ANIMATION_NONE )
 
+        self.originalText = ''
+
         return processed
 #endregion
 
@@ -327,7 +337,7 @@ class Terminal():
         await self.processTopicChange()
 #endregion
 
-#region changeTopic / processTopicChange()
+#region changeTopicAsync / processTopicChange()
     async def processTopicChange( self ):
         # Обработать изменения топика
         while self.newTopic != None and self.newTopic != self.topic:
@@ -347,7 +357,7 @@ class Terminal():
 
             self.topic = newTopic
 
-    async def changeTopic( self, newTopic, *params, **kwparams ):
+    async def changeTopicAsync( self, newTopic, *params, **kwparams ):
         """Изменить текущий топик. Выполняется ПОСЛЕ выхода из обработчика onText"""
         self.newTopic = str( newTopic )
 
@@ -357,7 +367,7 @@ class Terminal():
         elif len( params ) > 0 : 
             p.update( {'params':params} )
         self.newTopicParams = p
-        self.logDebug( f'{self.name}.changeTopic("{newTopic}", {p}) ]' )
+        self.logDebug( f'{self.name}.changeTopicAsync("{newTopic}", {p}) ]' )
         await self.processTopicChange()
 #endregion
 
@@ -389,27 +399,6 @@ class Terminal():
             self.vocabulary.update( skill.vocabulary )
 #endregion
 
-#region Updating client
-    async def updateClient( self ):
-        def packageFile( fileName ):
-            with open( os.path.join( ROOT_DIR, fileName ), "r", encoding='utf-8' ) as f:
-                package.append( (fileName, f.readlines()) )
-        def packageDirectory( dir ):
-            files = os.listdir( os.path.join( ROOT_DIR, dir ) )
-            for file in files:
-                if file.endswith( '.py' ) : 
-                    packageFile( os.path.join( dir, file ) )
-
-        await self.sayAsync("Обновление терминала.")
-
-        package = []
-        packageFile( 'lvt_client.py' )
-        packageDirectory( 'lvt' )
-        packageDirectory( os.path.join( 'lvt','client' ) )
-        self.sendMessage( MSG_UPDATE, json.dumps( package, ensure_ascii=False ) )
-        self.sayOnConnect = 'Терминал обновлен.'
-#endregion
-
 #region Log wrappers
     def logError( self, message:str ):
         logError( f'[{self.id}] {message}' )
@@ -434,7 +423,7 @@ class Terminal():
             'Id':self.id,
             'Name':self.name,
             'Location': self.defaultLocation,
-            'Connected':bool(self.isConnected),
+            'Connected':bool(self.connected),
             'IPAddress': self.ipAddress,
             'Version': self.clientVersion,
             'Address':self.ipAddress,
@@ -444,7 +433,7 @@ class Terminal():
         return states[self.id]
 
     def animate( self, animation:str ):
-        """Передать слиенту запрос на анимацию"""
+        """Передать клиенту запрос на анимацию"""
         if animation != self.lastAnimation:
             self.lastAnimation = animation if animation in ANIMATION_STICKY  else ANIMATION_NONE
             self.sendMessage( MSG_ANIMATE, animation )
@@ -464,8 +453,35 @@ class Terminal():
             self.messageQueue.append( data )
         else:
             self.messages.append( data )
-    def reboot(self, sayOnConnect: str = None):
+    async def reboot(self, say: str = None, sayOnConnect: str = None):
+        if bool(say):
+            await self.sayAsync(say)
         self.sendMessage(MSG_REBOOT)
+        self.sayOnConnect = sayOnConnect
+        
+#endregion
+
+#region Updating client
+    async def updateClient( self, say='Обновление терминала', sayOnConnect='Терминал обновлен' ):
+        def packageFile( fileName, targetFileName=None ):
+            with open( os.path.join( ROOT_DIR, fileName ), "r", encoding='utf-8' ) as f:
+                package.append( (targetFileName if bool(targetFileName) else fileName, f.readlines()) )
+        def packageDirectory( dir ):
+            files = os.listdir( os.path.join( ROOT_DIR, dir ) )
+            for file in files:
+                if file.endswith( '.py' ) : 
+                    packageFile( os.path.join( dir, file ) )
+        if bool(say):
+            await self.sayAsync(say)
+        package = []
+        packageFile( 'lvt_client.py' )
+        packageDirectory( 'lvt' )
+        packageDirectory( os.path.join( 'lvt','client' ) )
+        cfg = os.path.join(CONFIG_DIR,f"client_{self.id}.cfg")
+        if os.path.isfile(cfg):
+            packageFile( cfg, os.path.join('config',f"client_{self.id}.cfg"))
+            packageFile( cfg, os.path.join('config','client.cfg'))
+        self.sendMessage( MSG_UPDATE, json.dumps( package, ensure_ascii=False ) )
         self.sayOnConnect = sayOnConnect
 #endregion
 
@@ -520,7 +536,7 @@ def getState( ) -> dict:
     svmem = psutil.virtual_memory()
     terminalsConnected = 0
     for _, t in terminals.items() :
-        if t.isConnected : terminalsConnected += 1
+        if t.connected : terminalsConnected += 1
         t.getState()
 
     return {

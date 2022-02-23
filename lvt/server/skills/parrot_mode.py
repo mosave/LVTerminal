@@ -30,7 +30,7 @@ class ParrotModeSkill(Skill):
             iParrot = self.findWord( 'попугай' )
             if iOff >= 0 and iParrot > 0 or iStop >= 0 and iRepeat >= 0 :
                 self.stopParsing( ANIMATION_ACCEPT )
-                await self.changeTopic( TOPIC_DEFAULT )
+                await self.changeTopicAsync ( TOPIC_DEFAULT )
             else:
                 await self.sayAsync( self.terminal.originalTextUnfiltered )
 
@@ -40,7 +40,7 @@ class ParrotModeSkill(Skill):
                     self.findWordChainB( 'переключись * режим попугая' ) or \
                     self.findWordChainB( 'перейди в режим попугая' ) or \
                     self.findWordChainB( 'повторяй за мной' ) :
-                    await self.changeTopic( TOPIC_PARROT_MODE )
+                    await self.changeTopicAsync( TOPIC_PARROT_MODE )
                     self.stopParsing( ANIMATION_ACCEPT )
 
     async def onTopicChange( self, newTopic: str, params={} ):

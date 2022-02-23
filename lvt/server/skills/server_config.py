@@ -35,8 +35,7 @@ class ServerConfigSkill(Skill):
             elif self.findWordChainB( 'пере загрузи * терминал' ) or self.findWordChainB( 'пере запусти * терминал' ) or \
                 self.findWordChainB( 'загрузи * терминал' ) or self.findWordChainB( 'запусти * терминал' ) :
                 self.stopParsing( ANIMATION_THINK )
-                await self.sayAsync( "Выполняется перезагрузка терминала." )
-                self.terminal.reboot( "Терминал перезагружен." )
+                await self.terminal.reboot()
 
     async def onTimer( self ):
         if self.topic == TOPIC_DEFAULT and self.lastAppealed :

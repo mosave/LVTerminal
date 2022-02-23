@@ -13,9 +13,37 @@ import lvt.server.terminal as terminals
 import lvt.server.persistent_state as persistent_state
 
 api_tts = None
+api_queue = []
+
+def sendMessage( msg: str, statusCode: int = 0, status: str = None, data = None) -> bool:
+    global api_queue
+    message = {
+            'Message': msg,
+            'StatusCode': statusCode
+            }
+    if status != None :
+        message['Status'] = str(status)
+    if data != None:
+        message['Data'] = json.dumps( data )
+
+    api_queue.append( message )
+
+def sendError( errorCode: int, errorMessage: str ):
+    sendMessage( MSG_API_ERROR, errorCode, errorMessage )
+
+def fireIntent( intent_type: str, speaker_id: str, text: str, intent_data ):
+    data = {
+        'Intent': intent_type,
+        'Terminal': speaker_id,
+        'Text': text,
+        'Data' : intent_data
+    }
+
+    sendMessage( MSG_API_FIRE_INTENT, data = data )
 
 async def server( request ):
     global api_tts
+    global api_queue
     if api_tts is None:
         api_tts = TTS()
 
@@ -26,44 +54,33 @@ async def server( request ):
     authorized = False
     tsCache = {}
 
-    async def sendMessage( msg: str, statusCode: int = 0, status: str = None, data = None) -> bool:
-        message = {
-                'Message': msg,
-                'StatusCode': statusCode
-                }
-        if status != None :
-            message['Status'] = str(status)
-        if data != None:
-            message['Data'] = json.dumps( data )
-
-        try:
-            await asyncio.wait_for( connection.send_json( message ), 5 )
-            return True
-        except Exception:
-            return False
-
-    async def sendLVTStatus() -> bool:
+    def sendLVTStatus():
         data = terminals.getState()
         for id, state in terminals.states.items():
             tsCache[id] = json.dumps(state)
         persistent_state.save()
-        return await sendMessage( MSG_API_SERVER_STATUS, data=data )
+        sendMessage( MSG_API_SERVER_STATUS, data=data )
 
 
     log("API Thread: Starting")
     while True: # <== Breaking out of here will close connection
         try:
+            # send messages in queue
+            while len(api_queue)>0:
+                try:
+                    await asyncio.wait_for( connection.send_json( api_queue.pop(0) ), 5 )
+                except Exception:
+                    break
+
             # Авторизуем клиента если пароль не задан:
             if not authorized and config.apiServerPassword is None:
-                if not await sendMessage( MSG_API_AUTHORIZE, 0, "Authorized" ):
-                    break
+                sendMessage( MSG_API_AUTHORIZE, 0, "Authorized" )
                 authorized = True
 
             # Отправляем состояние сервера раз в минуту:
             if authorized and ((time.time() - statusSent) >= 60):
                 #logDebug(f"API Thread: Sending status by timeout")
-                if not await sendLVTStatus() : 
-                    break
+                sendLVTStatus()
                 statusSent = time.time()
                 persistent_state.save()
 
@@ -79,7 +96,7 @@ async def server( request ):
                             tsCache[id] = s
                             updates[id] = terminals.states[id]
                     if bool(updates):
-                        await sendMessage( MSG_API_TERMINAL_STATUS, data=updates )
+                        sendMessage( MSG_API_TERMINAL_STATUS, data=updates )
                 continue
 
             if message.type == WSMsgType.CLOSED:
@@ -94,16 +111,14 @@ async def server( request ):
                     if not authorized:
                         if message == MSG_API_AUTHORIZE:
                             if str(data) == str(config.apiServerPassword):
-                                if not await sendMessage( MSG_API_AUTHORIZE, statusCode=0, status="Authorized" ):
-                                    break
+                                sendMessage( MSG_API_AUTHORIZE, statusCode=0, status="Authorized" )
                                 authorized = True
                             else:
-                                if not await sendMessage( MSG_API_AUTHORIZE, statusCode=-1, status="Invalid Password" ):
-                                    break
+                                sendMessage( MSG_API_AUTHORIZE, statusCode=-1, status="Invalid Password" )
+                                break
 
                     elif message == MSG_API_SERVER_STATUS:
-                        if not await sendLVTStatus():
-                            break
+                        sendLVTStatus()
                         statusSent = time.time()
 
                     elif message == MSG_API_TERMINAL_STATUS:
@@ -117,7 +132,7 @@ async def server( request ):
 
                     elif message == MSG_API_SAY:
                         text = data["Say"]
-                        trms = data["Terminals"]
+                        trms = data["Terminals"] if isinstance(data["Terminals"], list ) else [str(data["Terminals"])]
                         voice = await api_tts.textToSpeechAsync(text)
 
                         for tid in trms:
@@ -126,25 +141,80 @@ async def server( request ):
 
                     elif message == MSG_API_PLAY:
                         sound = data["Sound"]
-                        trms = data["Terminals"]
+                        trms = data["Terminals"] if isinstance(data["Terminals"], list ) else [str(data("Terminals"))]
 
                         for tid in trms:
                             terminal = terminals.get( tid )
                             await terminal.playAsync(sound)
 
-                    #elif m == MSG_API_ASK :
-                    #    terminal.answerPrefix = data['answerPrefix'] if 'answerPrefix' in data else ''
-                    #    if message:
-                    #        await terminal.say( message )
-                    #    await terminal.changeTopic( TOPIC_MD_ASK )
-                    #elif m == MSG_API_YESNO :
-                    #    terminal.answerPrefix = data['answerPrefix'] if 'answerPrefix' in data else ''
-                    #    await terminal.changeTopic( "YesNo", \
-                    #        message=message,
-                    #        topicYes = TOPIC_MD_YES,
-                    #        topicNo = TOPIC_MD_NO,
-                    #        topicCancel = TOPIC_MD_CANCEL
-                    #    )
+                    elif message == MSG_API_RESTART_TERMINAL:
+                        say = data["Say"] if "Say" in data else ""
+                        say_on_connect = data["SayOnConnect"] if "SayOnConnect" in data else ""
+                        force_update = bool(data["Update"]) if "Update" in data else False
+                        trms = data["Terminals"] if isinstance(data["Terminals"], list ) else [str(data("Terminals"))]
+
+
+                        for tid in trms:
+                            terminal = terminals.get( tid )
+                            if terminal != None and terminal.connected:
+                                if force_update:
+                                    await terminal.updateClient(say, say_on_connect)
+                                else:
+                                    await terminal.reboot(say, say_on_connect)
+
+                    elif message == MSG_API_SET_INTENTS:
+                        for tid, terminal in terminals.terminals.items():
+                            skill = terminal.getSkill(HA_INTENTS_SKILL)
+                            if bool(data) and skill is None:
+                                sendError( 2, f'Terminal "{tid}" not have {HA_INTENTS_SKILL} enabled' )
+                                continue
+                            if skill is not None:
+                                skill.intents = data
+
+                    elif message == MSG_API_NEGOTIATE:
+                        trms = data["Terminals"] if isinstance(data["Terminals"], list ) else [str(data("Terminals"))]
+                        for tid in trms:
+                            terminal = terminals.get( tid )
+                            if terminal is None:
+                                sendError( 1, f'Terminal "{tid}" not found' )
+                                continue
+
+                            skill = terminal.getSkill(HA_NEGOTIATE_SKILL)
+                            if skill is None:
+                                sendError( 2, f'Terminal "{tid}" not have {HA_NEGOTIATE_SKILL} enabled' )
+                                await terminal.sayAsync("Скилл Home Assistant Negotiate не загружен")
+                                continue
+
+                            params = {}
+                            if 'Say' in data:
+                                params['Say'] = data['Say']
+                            else:
+                                sendError( 2, f'"Say" parameter not defined' )
+
+                            if 'Prompt' in data:
+                                params['Prompt'] = data['Prompt']
+                            
+                            if 'Options' in data and isinstance(data['Options'], list) and len(data['Options']) > 1:
+                                params['Options'] = data['Options']
+                            else:
+                                sendError( 3, 'Invalid "Options" parameter' )
+
+                            if 'DefaultIntent' in data:
+                                params['DefaultIntent'] = data['DefaultIntent']
+                            else:
+                                sendError( 3, ' "DefaultIntent" parameter not defined' )
+
+                            if 'DefaultTimeout' in data:
+                                params['DefaultTimeout'] = int(data['DefaultTimeout'])
+
+                            if 'DefaultSay' in data:
+                                params['DefaultSay'] = data['DefaultSay']
+
+                            if 'DefaultData' in data:
+                                params['DefaultData'] = data['DefaultData']
+
+                            await terminal.changeTopicAsync( TOPIC_HA_NEGOTIATE, params )
+
                     else:
                         raise Exception( 'Invalid Command' ) 
         except KeyboardInterrupt:
