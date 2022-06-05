@@ -12,11 +12,15 @@ class EntityDefinition():
         self.id = str(id).lower()
         self.terminalId = str(terminalId).lower() if terminalId else ''
         self.definition = definition
-        self.words = parseText(definition)
+        self.parses = parseText(definition)
         self.key=''
 
-        self.len = len(self.words)
-        for w in self.words: self.key += w[0].lexeme[0].word
+        self.len = len(self.parses)
+        for w in self.parses: self.key += w[0].lexeme[0].word
+
+    def __lt__(self, other):
+        return self.len > other.len
+
 
 class Entity():
     def __init__( self ):

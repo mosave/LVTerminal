@@ -3,15 +3,11 @@ import time
 from lvt.const import *
 from lvt.server.grammar import *
 from lvt.server.skill import Skill
-from lvt.server.skills.yes_no import YesNoParams
 
-TOPIC_DEBUG_YES_NO = "DebugYesNo"
 TOPIC_DEBUG1 = "Debug1"
 TOPIC_DEBUG2 = "Debug2"
 TOPIC_DEBUG3 = "Debug3"
 TOPIC_DEBUG4 = "Debug4"
-TOPIC_DEBUG_YES = "DebugYes"
-TOPIC_DEBUG_NO = "DebugNo"
 TOPIC_DEBUG_CANCEL = "DebugCancel"
 #Define base skill class
 class DebugSkill(Skill):
@@ -20,7 +16,7 @@ class DebugSkill(Skill):
         self.priority = 9000
         self.extendVocabulary("проверка да или нет")
         self.extendVocabulary("проверка поиска по шаблону")
-        self.subscribe( TOPIC_DEFAULT,  TOPIC_DEBUG_YES,TOPIC_DEBUG_NO, TOPIC_DEBUG_CANCEL,
+        self.subscribe( TOPIC_DEFAULT,  TOPIC_DEBUG_CANCEL,
                        TOPIC_DEBUG1,TOPIC_DEBUG2, TOPIC_DEBUG3, TOPIC_DEBUG4 )
 
     async def onText( self ):
@@ -52,21 +48,14 @@ class DebugSkill(Skill):
                 self.stopParsing(ANIMATION_ACCEPT)
                 await self.sayAsync('Поиск по шаблону работает')
 
-            elif self.findWordChainB("проверка да или нет") :
-                self.stopParsing(ANIMATION_ACCEPT)
-                await self.changeTopicAsync( "YesNo", \
-                    message='Да или нет?',
-                    topicYes = TOPIC_DEBUG_YES,
-                    topicNo = TOPIC_DEBUG_NO,
-                    topicCancel = TOPIC_DEBUG_CANCEL
-                )
     async def onTopicChange( self, newTopic: str, params = {} ):
-        if newTopic == TOPIC_DEBUG_YES :
-            await self.sayAsync( 'Подтверждено' )
-            await self.changeTopicAsync(TOPIC_DEFAULT)
-        elif newTopic == TOPIC_DEBUG_NO :
-            await self.sayAsync( 'отказано' )
-            await self.changeTopicAsync(TOPIC_DEFAULT)
-        elif newTopic == TOPIC_DEBUG_CANCEL :
-            await self.sayAsync( 'отмена' )
-            await self.changeTopicAsync(TOPIC_DEFAULT)
+        # if newTopic == TOPIC_DEBUG_YES :
+        #     await self.sayAsync( 'Подтверждено' )
+        #     await self.changeTopicAsync(TOPIC_DEFAULT)
+        # elif newTopic == TOPIC_DEBUG_NO :
+        #     await self.sayAsync( 'отказано' )
+        #     await self.changeTopicAsync(TOPIC_DEFAULT)
+        # elif newTopic == TOPIC_DEBUG_CANCEL :
+        #     await self.sayAsync( 'отмена' )
+        #     await self.changeTopicAsync(TOPIC_DEFAULT)
+        pass

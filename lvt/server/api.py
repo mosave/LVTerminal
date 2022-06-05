@@ -186,31 +186,34 @@ async def server( request ):
                                 continue
 
                             params = {}
-                            if 'Say' in data:
+                            if ('Say' in data) and (data['Say'] is not None):
                                 params['Say'] = data['Say']
                             else:
                                 sendError( 2, f'"Say" parameter not defined' )
 
-                            if 'Prompt' in data:
+                            if ('Prompt' in data) and (data['Prompt'] is not None):
                                 params['Prompt'] = data['Prompt']
                             
-                            if 'Options' in data and isinstance(data['Options'], list) and len(data['Options']) > 1:
+                            if ('Options' in data) and isinstance(data['Options'], list) and len(data['Options']) > 1:
                                 params['Options'] = data['Options']
                             else:
                                 sendError( 3, 'Invalid "Options" parameter' )
 
-                            if 'DefaultIntent' in data:
+                            if ('DefaultIntent' in data) and (data['DefaultIntent'] is not None):
                                 params['DefaultIntent'] = data['DefaultIntent']
                             else:
                                 sendError( 3, ' "DefaultIntent" parameter not defined' )
 
-                            if 'DefaultTimeout' in data:
+                            if ('DefaultTimeout' in data) and (data['DefaultTimeout'] is not None):
                                 params['DefaultTimeout'] = int(data['DefaultTimeout'])
 
-                            if 'DefaultSay' in data:
+                            if ('DefaultUtterance' in data) and (data['DefaultUtterance'] is not None):
+                                params['DefaultUtterance'] = data['DefaultUtterance']
+
+                            if ('DefaultSay' in data) and (data['DefaultSay'] is not None):
                                 params['DefaultSay'] = data['DefaultSay']
 
-                            if 'DefaultData' in data:
+                            if ('DefaultData' in data) and (data['DefaultData'] is not None):
                                 params['DefaultData'] = data['DefaultData']
 
                             await terminal.changeTopicAsync( TOPIC_HA_NEGOTIATE, params )

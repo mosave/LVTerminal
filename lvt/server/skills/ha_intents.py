@@ -5,17 +5,6 @@ from lvt.server.grammar import *
 from lvt.server.skill import Skill
 import lvt.server.api as api
 
-def YesNoParams( message: str, 
-    topicYes: str, 
-    topicNo: str, 
-    topicCancel: str=None ) -> str:
-    return  ( {
-        'message':message,
-        'topicYes':topicYes,
-        'topicNo': topicNo,
-        'topicCancel' : topicCancel
-        } )
-
 
 #Define base skill class
 class HomeAssistantIntentsSkill(Skill):

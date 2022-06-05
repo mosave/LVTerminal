@@ -1,8 +1,10 @@
 import pymorphy2
-
+# PyMorphy2: 
+# https://pymorphy2.readthedocs.io/en/stable/user/guide.html
+#
 morphy = pymorphy2.MorphAnalyzer( lang='ru' )
 
-#region
+#region PyMorphy
 def parseWord( word: str ):
     """Parse word using phmorphy2 library"""
     global morphy
@@ -48,8 +50,8 @@ def conformToNumber( this, number: int, word: str ) -> str:
     """Согласовать слово с числом"""
     return transcribeNumber( number ) + ' ' + parseWord( word )[0].make_agree_with_number( number ).word
 #endregion
-### Numbers transcription ##############################################################
-#region
+
+#region Numbers transcription ##############################################################
 def transcribeNumber999( number: int, tags=None ):
     """Перевод целого числа в диапазоне 0..999 в фразу на русском языке с учетом заданных тегов"""
     if tags == None : tags = {'nomn'}
@@ -123,8 +125,8 @@ def transcribeNumber( number: int, tags=None, word: str='' ):
 
     return s.strip()
 #endregion
-### Date/Time transcription ############################################################
-#region
+
+#region Date/Time transcription ############################################################
 def transcribeTime( tm, tags=None ):
     """Перевод времени в фразу на русском с учетом тегов"""
     return \
@@ -167,8 +169,8 @@ def transcribeDate( dt, tags=None ):
     day = f'{d1} {d2}'.strip()
     return f'{dow}, {day} {month}'.strip()
 #endregion
-### Манипуляция цепочками слов (чере пробел) и фразами (через запятую) #################
-#region
+
+#region Манипуляция цепочками слов (чере пробел) и фразами (через запятую) #################
 def normalizePhrases( phrases ) -> str:
     """Возвращает нормализованный список (через запятую) нормализованных цепочек слов (через пробел)
     Пример "включи свет,выключи свет,сделай что-то"
@@ -205,11 +207,11 @@ def oneOfWords( word, words ) -> bool:
     if len( word ) == 0 or len( words ) == 0 : return False
     return bool( ( ' ' + words + ' ' ).find( ' ' + word + ' ' ) >= 0 )
 
-def prasesToList( phrases ) -> [str]:
+def phrasesToList( phrases ) -> list:
     """Преобразует список разделенных через запятую фраз в массив (list()) """
     return phrases.lower().replace( '  ',' ' ).replace( ', ',',' ).strip().split( ',' )
 
-def wordsToList( words ) -> [str]:
+def wordsToList( words ) -> list:
     """Возвращает список слов в виде массива слов (list())"""
     return words.lower().replace( ',',' ' ).replace( '  ',' ' ).strip().split( ' ' )
 
@@ -222,8 +224,8 @@ def joinWords( words, words2 ) -> str:
             words += ' ' + w
     return words.strip()
 #endregion
-### wordsToVocabulary() / wordsToVocabularyAllForms() ##################################
-#region
+
+#region wordsToVocabulary() / wordsToVocabularyAllForms() ##################################
 def wordsToVocabulary( words, tags=None ) :
     """Расширить словарь словами с генерацией словоформ для заданных тегов
     По умолчанию (теги не заданы) в словарь добавляется только переданные словоформы

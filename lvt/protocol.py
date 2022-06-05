@@ -35,7 +35,6 @@ MSG_VOLUME = "Volume"
 # Server => Terminal: поставить плеер на паузу (убрать громкость)
 MSG_MUTE_PLAYER = "MutePlayer"
 MSG_UNMUTE_PLAYER = "UnmutePlayer"
-MSG_VOLUME_PLAYER = "VolumePlayer"
 
 # Server => Terminal: terminal client update package
 MSG_UPDATE = "Update" # <client update JSON package>
@@ -59,7 +58,7 @@ MSG_ALL = { \
     MSG_IDLE, MSG_STATUS, MSG_LVT_STATUS, MSG_DISCONNECT, MSG_TERMINAL, MSG_REBOOT, \
     MSG_TEXT, MSG_ANIMATE, MSG_UPDATE, \
     MSG_MUTE, MSG_UNMUTE, MSG_VOLUME, \
-    MSG_MUTE_PLAYER, MSG_UNMUTE_PLAYER, MSG_VOLUME_PLAYER \
+    MSG_MUTE_PLAYER, MSG_UNMUTE_PLAYER \
     }
 
 #*** LVT API Commands

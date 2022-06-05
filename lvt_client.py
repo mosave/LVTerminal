@@ -21,12 +21,19 @@ from lvt.client.animator import Animator
 import lvt.client.config as config
 import lvt.client.updater as updater
 
+MUTE_REASON_CLIENT = 0
+MUTE_REASON_SERVER = 1
+MUTE_REASON_PLAYER = 2
+
 audio : pyaudio.PyAudio
 shared = None
 microphone : Microphone = None
 animator : Animator = None
-playerVolume : int = None
-lmsPlayerState = None
+mutedByServer : bool = False
+mutedByPlayer : bool = False
+mutedByClient : bool = False
+
+defaultPlayerVolume : int = 0
 lmsPlayer : lms.Player = None
 
 
@@ -87,7 +94,48 @@ async def printStatusThread():
         await asyncio.sleep(1)
 #endregion
 
-#region GetVolume() / SetVolume() ######################################################
+#region mute(reason) / unmute(reason) ##################################################
+def mute( reason: int ):
+    '''MUTE_REASON_CLIENT / MUTE_REASON_SERVER / MUTE_REASON_PLAYER'''
+    global mutedByServer
+    global mutedByPlayer
+    global mutedByClient
+
+    if reason == MUTE_REASON_CLIENT:
+        mutedByClient = True
+    elif reason == MUTE_REASON_SERVER:
+        mutedByServer = True
+    elif reason == MUTE_REASON_PLAYER:
+        mutedByPlayer = True
+    else:
+        raise ValueError("Invalid mute reason!")
+    
+    if microphone is not None: microphone.muted = True
+    if animator is not None: animator.muted = True
+
+def unmute( reason: int ):
+    '''MUTE_CLIENT / MUTE_SERVER / MUTE_PLAYER'''
+    global mutedByServer
+    global mutedByPlayer
+    global mutedByClient
+
+    if reason == MUTE_REASON_CLIENT:
+        mutedByClient = False
+    elif reason == MUTE_REASON_SERVER:
+        mutedByServer = False
+    elif reason == MUTE_REASON_PLAYER:
+        mutedByPlayer = False
+    else:
+        raise ValueError("Invalid mute reason!")
+    
+    if mutedByClient or mutedByServer or mutedByPlayer:
+        return
+
+    if microphone is not None: microphone.muted = False
+    if animator is not None: animator.muted = False
+#endregion
+
+#region ALSA: <get|set>[Player]Volume() ################################################
 def getVolume():
     global alsaaudio
     if config.volumeControl != None:
@@ -97,15 +145,11 @@ def getVolume():
 
 def getPlayerVolume():
     global alsaaudio
-    global playerVolume
     if config.volumeControlPlayer != None:
         volume = alsaaudio.Mixer(cardindex=config.volumeCardIndex, control=config.volumeControlPlayer ).getvolume()[0]
-        if volume>0: 
-            playerVolume = volume
         return volume
     else:
-        playerVolume = None
-        return None
+        return 0
 
 def setVolume( volume: int ):
     volume = int(volume)
@@ -119,41 +163,20 @@ def setVolume( volume: int ):
 def setPlayerVolume( volume ):
     volume = int(volume)
     volume = 100 if volume>100 else (0 if volume<0 else volume)
-    if volume>0: 
-        playerVolume = volume
     try:
         alsaaudio.Mixer(cardindex=config.volumeCardIndex, control=config.volumeControlPlayer ).setvolume(volume)
     except Exception as e:
         pass
-
-def playerMute() -> bool:
-    v = getPlayerVolume()
-    if v is not None and v>0:
-        setPlayerVolume(0)
-        return True
-    return False
-
-def playerUnmute() -> bool:
-    global playerVolume
-    v = getPlayerVolume()
-    if v is not None and v<1 and playerVolume is not None:
-        setPlayerVolume(playerVolume)
-        return True
-    return False
-
 #endregion
 
-#region play() #########################################################################
-def play( data ):
+#region playAsync() ####################################################################
+async def playAsync( data ):
     global audio
     global shared
     global microphone
     global animator
 
-    muteUnmute = not microphone.muted
-    if muteUnmute : 
-        microphone.muted = True
-        animator.muted = True
+    mute(MUTE_REASON_CLIENT)
     try:
         #fn = datetime.datetime.today().strftime(f'{config.terminalId}_%Y%m%d_%H%M%S_play.wav')
         #f = open(os.path.join( ROOT_DIR, 'logs',fn),'wb')
@@ -199,7 +222,8 @@ def play( data ):
         # Calculate time before audio played
         timeout = (nframes / framerate + 0) - (time.time() - startTime)
         # and wait if required...
-        if timeout>0 : time.sleep( timeout )
+        if timeout>0 : 
+            await asyncio.sleep( timeout )
     except Exception as e:
         print( f'Exception playing audio: {e}' )
     finally:
@@ -209,18 +233,17 @@ def play( data ):
         except:pass
         pass
 
-    if muteUnmute : 
-        microphone.muted = False
-        animator.muted = False
+    unmute(MUTE_REASON_CLIENT)
 
 #endregion
 
-#region lmsThread() / lmsPlayerMute / lmsPlayerUnmute ##################################
+#region lmsThread() ####################################################################
 async def lmsThread():
     global shared
     global lmsPlayer
     log( "Starting LMS Thread" )
     while not shared.isTerminated:
+        lmsPlayer = None
         try:
             async with aiohttp.ClientSession() as session:
                 lmsServer = lms.Server(session, config.lmsAddress, port=config.lmsPort, username=config.lmsUser, password=config.lmsPassword )
@@ -248,56 +271,69 @@ async def lmsThread():
                             or str(p.name).lower() == id_host \
                             or str(p._id).lower().replace(':','') == id_name.lower().replace(':','') \
                             or p_ip == id_ip :
-                            if lmsPlayer is None or lmsPlayer.name != p.name:
+                            if lmsPlayer is None or lmsPlayer._id != p._id:
                                 log( f'LMS thread, bound to player "{p.name}", MAC address: {p._id}, IP address: {p_ip}')
                             lmp = p
                             break
                 lmsPlayer = lmp
-                if lmsPlayer is None:
-                    await asyncio.sleep(10)
-                    continue
                 while lmsPlayer is not None:
                     await lmsPlayer.async_update()
                     await asyncio.sleep(3)
         except Exception as e:
             logError( f'LMS thread {type(e).__name__}: {e}' )
-            await asyncio.sleep( 10 )
         except:
             break
+        lmsPlayer = None
+        await asyncio.sleep( 10 )
+        
     log( "Finishing LMS thread" )
+#endregion
 
-
-async def lmsPlayerMuteAsync()-> bool:
+#region playerMuteAsync() / playerUnmuteAsync() ########################################
+async def playerMuteAsync()-> bool:
     global lmsPlayer
-    global lmsPlayerState
+    global defaultPlayerVolume
     if lmsPlayer is not None:
         if config.lmsMode == LMS_MODE_PAUSE:
-            if lmsPlayer.mode=="play":
-                lmsPlayerState = 1
+            defaultPlayerVolume = 100 if lmsPlayer.mode=="play" else 0
+            if defaultPlayerVolume>0:
                 await lmsPlayer.async_pause()
-            else:
-                lmsPlayerState = 0
+                await asyncio.sleep(0.5)
+                return True
         else:
-            lmsPlayerState = not lmsPlayer.muting
-            await lmsPlayer.async_set_muting(True)
-        return True
+            defaultPlayerVolume = 0 if lmsPlayer.muting else 100
+            if defaultPlayerVolume>0:
+                await lmsPlayer.async_set_muting(True)
+                await asyncio.sleep(0.5)
+                return True
     else:
-        lmsPlayerState = None
-        return False
+        defaultPlayerVolume = getPlayerVolume()
+        if defaultPlayerVolume is not None and defaultPlayerVolume>0:
+            setPlayerVolume(0)
+            return True
 
-async def lmsPlayerUnmuteAsync()-> bool:
+    return False
+
+async def playerUnmuteAsync()-> bool:
     global lmsPlayer
-    global lmsPlayerState
+    global defaultPlayerVolume
     if lmsPlayer is not None:
         if config.lmsMode == LMS_MODE_PAUSE:
-            if lmsPlayerState is not None and lmsPlayerState == 1:
+            if (defaultPlayerVolume > 0) and (lmsPlayer.mode!="play"):
+                await asyncio.sleep(0.7)
                 await lmsPlayer.async_play()
+                return True
         else:
-            if bool(lmsPlayerState):
+            if (defaultPlayerVolume>0) and lmsPlayer.muting:
+                await asyncio.sleep(0.7)
                 await lmsPlayer.async_set_muting(False)
-        return True
+                return True
     else:
-        return False
+        v = getPlayerVolume()
+        if defaultPlayerVolume!= v:
+            setPlayerVolume(v)
+            return True
+    return False
 #endregion
 
 #region microphoneThread() #############################################################
@@ -332,58 +368,29 @@ async def microphoneThread( connection ):
 
 #region messageThread() ################################################################
 async def messageThread( connection ):
-    global playerVolume
     global shared
     global microphone
     global lmsPlayer
 
-    mutedByServer = False
-    mutedByPlayer = False
-
-    playerMuted = False
-    _playerMuted = True
+    unmute(MUTE_REASON_SERVER)
 
     while True:
         try:
             if lmsPlayer is not None:
                 try:
                     if lmsPlayer.mode=="play" and lmsPlayer.volume>1:
-                        if playerMuted:
-                            await lmsPlayerMuteAsync()
-                            mutedByPlayer = False
-                        else:
-                            mutedByPlayer = True
+                        mute( MUTE_REASON_PLAYER )
                     else:
-                        mutedByPlayer = False
+                        unmute( MUTE_REASON_PLAYER )
                 except Exception:
                     pass
             else: # Other players are here
-                mutedByPlayer = False
-
-            if microphone is not None and animator is not None:
-                if mutedByServer or mutedByPlayer:
-                    microphone.muted = True
-                    animator.muted = True
-                else:
-                    microphone.muted = False
-                    animator.muted = False
-
-            if playerMuted != _playerMuted:
-                if not playerMuted:
-                    pm = playerMute()
-                    lpm = await lmsPlayerMuteAsync()
-                    if pm and not lpm :
-                        await asyncio.sleep(0.5)
-                else:
-                    await asyncio.sleep(0.5)
-                    playerUnmute()
-                    await lmsPlayerUnmuteAsync()
-                _playerMuted = playerMuted
+                pass
 
             msg = await connection.receive()
             m = None
             if msg.type == aiohttp.WSMsgType.BINARY:
-                play(msg.data)
+                await playAsync(msg.data)
                 continue
             elif msg.type == aiohttp.WSMsgType.TEXT:
                 m,p = parseMessage( msg.data )
@@ -406,19 +413,15 @@ async def messageThread( connection ):
                         print()
                         print( p )
                 elif m == MSG_MUTE: 
-                    mutedByServer = True
+                    mute(MUTE_REASON_SERVER)
                 elif m == MSG_UNMUTE: 
-                    mutedByServer = False
+                    unmute(MUTE_REASON_SERVER)
                 elif m == MSG_VOLUME: 
                     setVolume(p)
                 elif m == MSG_MUTE_PLAYER:
-                    playerMuted += 1
+                    await playerMuteAsync()
                 elif m == MSG_UNMUTE_PLAYER:
-                    playerMuted -= 1
-                elif m == MSG_VOLUME_PLAYER: 
-                    p = int(p)
-                    p = 100 if p>100 else (0 if p<0 else p)
-                    setPlayerVolume(p)
+                    await playerUnmuteAsync()
                 elif m == MSG_ANIMATE:
                     if p == None : p = ANIMATION_NONE
                     if animator != None and p in ANIMATION_ALL:
@@ -539,9 +542,7 @@ if __name__ == '__main__':
     print("============= Инициализация завершена =============")
     print("")
 
-    playerVolume = getPlayerVolume()
-    if playerVolume is None or playerVolume<=0:
-        playerVolume = 100
+    defaultPlayerVolume = getPlayerVolume()
 
     config.init( audio )
     loggerInit( config )
@@ -632,7 +633,7 @@ if __name__ == '__main__':
         onCtrlC()
 
     shared.isTerminated = True
-    time.sleep(0.5)
+    time.sleep(1)
 
     if animator != None : 
         animator.off()

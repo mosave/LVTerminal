@@ -35,18 +35,13 @@ class Terminal():
         self.password = config.terminals[id]['password']
         self.name = config.terminals[id]['name']
         self.locations = entities.get('location', id)
-        self.defaultLocation = config.terminals[id]['location']
-
-        #len()[l for l in self.locations if l.id==str(self.defaultLocation).lower()]>0)
+        self.location = config.terminals[id]['location']
 
         self.ipAddress = ''
         self.autoUpdate = config.terminals[id]['autoupdate']
         self.clientVersion = ""
         # Использовать "словарный" режим
         self.vocabulary = set()
-
-
-        self.parsedLocations = []
 
         self.lastSound = 0
         self.lastAppealed = None
@@ -168,7 +163,7 @@ class Terminal():
 #region Properties
     @property
     def text( self ) -> str:
-        """Сгенерировать текст фразы из разолранных слов """
+        """Сгенерировать текст фразы из разобранных слов """
         text = ''
         for w in self.words: text += w[0].word + ' '
         return text.strip()
@@ -284,7 +279,6 @@ class Terminal():
         while True:
             self.appealPos = None
             self.isAppealed = False
-            self.parsedLocations = []
             self.newTopic = None
             self.newTopicParams = {}
             self.parsingStopped = False
@@ -432,7 +426,7 @@ class Terminal():
         states[self.id] = {
             'Id':self.id,
             'Name':self.name,
-            'Location': self.defaultLocation,
+            'Location': self.location,
             'Connected':bool(self.connected),
             'IPAddress': self.ipAddress,
             'Version': self.clientVersion,

@@ -4,6 +4,7 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+
         {
             "name": "Python: Server on MOSAVE1",
             "type": "python",
@@ -22,6 +23,16 @@
             "console": "integratedTerminal",
             "args": [
                 "--config=client_mosave1.cfg"
+            ]
+        },
+        {
+            "name": "Python: test4 on MOSAVE1",
+            "type": "python",
+            "request": "launch",
+            "module": "tests.test4",
+            "console": "integratedTerminal",
+            "args": [
+                "--config=server_mosave1.cfg"
             ]
         }
     ]

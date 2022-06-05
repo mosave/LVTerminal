@@ -1,5 +1,3 @@
-import sys
-import importlib
 from lvt.const import *
 from lvt.logger import *
 from lvt.server.grammar import *
@@ -111,7 +109,7 @@ class Skill:
 
     def isInTag( self, index, tags ) -> bool:
         """Проверка соответствия слова в фразе морфологическим признакам"""
-        for p in self.terminal.words[i]:
+        for p in self.terminal.words[p]:
             if tags in p.tag: 
                 return True
         return False

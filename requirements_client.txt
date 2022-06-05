@@ -9,5 +9,5 @@ gpiozero
 rpi.gpio
 pkg_resources
 pysqueezebox==0.5.5
-socket
+#socket
 
