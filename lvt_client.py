@@ -225,7 +225,7 @@ async def playAsync( data ):
         if timeout>0 : 
             await asyncio.sleep( timeout )
     except Exception as e:
-        print( f'Exception playing audio: {e}' )
+        print( f'Ошибка при воспроизведении аудио: {e}' )
     finally:
         try: audioStream.stop_stream()
         except: pass
@@ -241,12 +241,12 @@ async def playAsync( data ):
 async def lmsThread():
     global shared
     global lmsPlayer
-    log( "Starting LMS Thread" )
-    while not shared.isTerminated:
-        lmsPlayer = None
-        try:
-            async with aiohttp.ClientSession() as session:
-                lmsServer = lms.Server(session, config.lmsAddress, port=config.lmsPort, username=config.lmsUser, password=config.lmsPassword )
+    log( "Запуск мониторинга LMS" )
+    async with aiohttp.ClientSession() as session:
+        lmsServer = lms.Server(session, config.lmsAddress, port=config.lmsPort, username=config.lmsUser, password=config.lmsPassword )
+        while not shared.isTerminated:
+            lmsPlayer = None
+            try:
                 players = await lmsServer.async_get_players()
                 if config.lmsPlayer is None:
                     id_host = str(socket.gethostname()).lower()
@@ -279,14 +279,14 @@ async def lmsThread():
                 while lmsPlayer is not None:
                     await lmsPlayer.async_update()
                     await asyncio.sleep(3)
-        except Exception as e:
-            logError( f'LMS thread {type(e).__name__}: {e}' )
-        except:
-            break
+            except Exception as e:
+                logError( f'LMS thread {type(e).__name__}: {e}' )
+            except:
+                logError( f'LMS thread break' )
+                break
+            await asyncio.sleep( 10 )
         lmsPlayer = None
-        await asyncio.sleep( 10 )
-        
-    log( "Finishing LMS thread" )
+    log( "Завершение мониторинга LMS" )
 #endregion
 
 #region playerMuteAsync() / playerUnmuteAsync() ########################################
@@ -545,8 +545,8 @@ if __name__ == '__main__':
     defaultPlayerVolume = getPlayerVolume()
 
     config.init( audio )
-    loggerInit( config )
 
+    logError("ttt")
     shared = multiprocessing.Manager().Namespace()
     shared.quiet = False
     shared.isTerminated = False

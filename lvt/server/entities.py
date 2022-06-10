@@ -93,15 +93,15 @@ def __loadEntity( fileName: str ) -> Entity:
         if terminalId:
             prefix = f'{prefix}#{terminalId}'
             terminalId = terminalId.lower()
-            if not terminalId in config.terminals :
-                fatalError(f'{prefix}: неверный ID терминала ("{terminalId}")')
-    
-        for eId in defs:
-            if len(str(eId))==0 or str(eId)=='=' :
-                fatalError(f"{prefix}: Неверный ID \"{eId}\"")
-            if defs[eId] == None :
-                fatalError(f"{prefix}: Отсутствует название сущности")
-            entity.add( eId, terminalId, defs[eId])
+            if terminalId in config.terminals :
+                for eId in defs:
+                    if len(str(eId))==0 or str(eId)=='=' :
+                        fatalError(f"{prefix}: Неверный ID \"{eId}\"")
+                    if defs[eId] == None :
+                        fatalError(f"{prefix}: Отсутствует название сущности")
+                    entity.add( eId, terminalId, defs[eId])
+            else:
+                logError(f'{prefix}: неверный ID терминала ("{terminalId}"), секция пропущена')
 
     entity.sort()
     return entity

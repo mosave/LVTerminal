@@ -60,8 +60,6 @@ class Skill:
     @property
     def lastAppealed( self ): return self.terminal.lastAppealed
     @property
-    def appealPos( self ): return self.terminal.appealPos
-    @property
     def appeal( self ): return self.terminal.appeal
     @property
     def location( self ): return self.terminal.location

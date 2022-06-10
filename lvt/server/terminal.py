@@ -45,8 +45,8 @@ class Terminal():
 
         self.lastSound = 0
         self.lastAppealed = None
-        self.appealPos = None
         self.isAppealed = False
+        self.isReacted = False
         # messages are local output messages buffer used while terminal is
         # disconnected
         self.messages = list()
@@ -98,7 +98,6 @@ class Terminal():
     def reset( self ):
         self.topic = TOPIC_DEFAULT
         self.topicParams = None
-        self.appealPos = None
         self.isAppealed = False
         self.words = []
         self.originalText = ''
@@ -273,11 +272,11 @@ class Terminal():
 
         speakerName = self.speaker.name if self.speaker != None else 'Человек'
         self.logDebug( f'{speakerName}: "{text}"' )
+        self.isReacted = False
 
         processed = False
         t0 = self.text
         while True:
-            self.appealPos = None
             self.isAppealed = False
             self.newTopic = None
             self.newTopicParams = {}
@@ -291,7 +290,7 @@ class Terminal():
                         await skill.onText()
                         t1 = self.text
                         if t1 != t0:
-                            self.logDebug( f'{skill.name}.onText(): text changed to "{text}"' )
+                            self.logDebug( f'{skill.name}.onText(): text changed to "{self.text}"' )
                             t0 = t1
 
                         if self.parsingStopped : 
@@ -312,7 +311,14 @@ class Terminal():
             if self.playAppealOffIfNotStopped :
                 self.playAppealOffIfNotStopped = False
                 await self.playAsync( 'appeal_off.wav' )
-        
+
+        if self.isAppealed and not self.isReacted:
+            if self.parsingStopped : 
+                await self.playAsync('asr_ok.wav')
+            else:
+                await self.playAsync( 'asr_error.wav' )
+
+       
 
         if self.topic == TOPIC_DEFAULT and self.lastAnimation != ANIMATION_NONE : 
             self.animate( ANIMATION_NONE )
@@ -453,10 +459,12 @@ class Terminal():
 
     def sendDatagram( self, data ):
         self.logDebug( f'Datagram: {int(len(data)/1024)}kB' )
+        self.isReacted = True
         if self.messageQueue != None:
             self.messageQueue.append( data )
         else:
             self.messages.append( data )
+
     async def reboot(self, say: str = None, sayOnConnect: str = None):
         if bool(say):
             await self.sayAsync(say)

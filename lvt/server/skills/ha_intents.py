@@ -2,6 +2,7 @@ import time
 from lvt.const import *
 from lvt.protocol import MSG_API_FIRE_INTENT
 from lvt.server.grammar import *
+from lvt.server.utterances import Utterances
 from lvt.server.skill import Skill
 import lvt.server.api as api
 
@@ -14,28 +15,42 @@ class HomeAssistantIntentsSkill(Skill):
     def onLoad( self ):
         self.priority = 0
         self.__intents = []
+        self.__utterances = Utterances( self.terminal )
         # Фразы анализируются только в режиме основного топика
-        #self.subscribe( TOPIC_YES_NO )
+        self.subscribe( TOPIC_DEFAULT )
 
     async def onText( self ):
-        for intent in self.intents:
-            for u in intent["Utterance"]:
-                if self.findWordChainB( str(u) ) :
-                    data = dict(intent['Data']) if 'Data' in intent else []
-                    api.fireIntent( intent['Intent'], self.terminal.id, self.terminal.originalText, data)
-                    self.stopParsing()
+        if self.isAppealed and (self.topic == TOPIC_DEFAULT):
+            matches = self.utterances.match(self.words)
+            if len(matches)>0:
+                #for match in matches:
+                match = matches[0]
+                values = match.values
+                intent = self.intents[int(match.id)]
+
+                data = dict(intent['Data']) if ('Data' in intent) and (intent['Data'] is not None) else {}
+                for name, value in data.items():
+                    if (name not in values) or (values[name] is None):
+                        values[name] = value
+
+                api.fireIntent( intent['Intent'], self.terminal.id, self.terminal.originalText, values)
+                self.stopParsing()
 
     @property
     def intents(self)->list:
         return self.__intents
 
+    @property
+    def utterances(self)->Utterances:
+        return self.__utterances
+
     @intents.setter
     def intents(self, newIntents:list):
+        self.__intents = []
         if bool(newIntents):
-            self.__intents = [i for i in newIntents if bool(i["Terminals"]) and self.terminal.id in i["Terminals"]]
-            intents = [i for i in newIntents if not bool(i["Terminals"]) and i["Intent"] not in self.__intents]
-            for i in intents:
-                self.__intents.append(i)
-        else:
-            self.__intents = []
-        
+            self.utterances.clear()
+            self.__intents = [i for i in newIntents if not bool(i["Terminals"]) or (self.terminal.id in i["Terminals"]) ]
+            for i in range(len(self.__intents)):
+                for utterance in self.__intents[i]['Utterance']:
+                    self.utterances.add( i, utterance )
+

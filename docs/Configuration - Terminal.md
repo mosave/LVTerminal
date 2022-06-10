@@ -101,9 +101,9 @@ sudo apt-get autoclean
 
 13. Запуск терминального клиента как сервис
 
-   В файле scripts/lvt_server поправить путь установки LVTerminal (переменная **DIR**) и имя пользователя, под которым будет запускаться сервис:
-   DIR=**/home/house/LVTerminal**
-   DAEMON_USER=**house**
+   В файле scripts/lvt_client поправить путь установки LVTerminal (переменная **DIR**) и имя пользователя, под которым будет запускаться сервис:
+   DIR=**/home/pi/LVTerminal**
+   DAEMON_USER=**pi**
 ```
    sudo cp ./scripts/lvt_client /etc/init.d
    sudo chmod 755 /etc/init.d/lvt_client

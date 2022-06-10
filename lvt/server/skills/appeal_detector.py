@@ -13,10 +13,9 @@ class AppealDetectorSkill(Skill):
     Скилл поддерживает следующие переменные
     * terminal.isAppealed -> bool  : в фразе содержится обращение к ассистенту
     * terminal.appeal -> str : имя, по которому обратились к ассистенту
-    * terminal.appealPos -> int : индекс слова, в котором содержится обращение
 
     Кроме того, если фраза содержит только имя ассистента, скилл переходит к топику "WaitCommand" 
-    Если в течение 5 секунд распознается очередная фраза
+    Если в течение 5 секунд распознается очередная фраза - она
 
     """
     def onLoad( self ):
@@ -92,8 +91,9 @@ class AppealDetectorSkill(Skill):
             if self.isWord( aPos + 1,'слушай' ) or self.isWord( aPos - 1,'алло' ) :
                 # Удаляем незначащее слово
                 self.deleteWord( aPos + 1 )
+        if aPos<len(self.words):
+            self.deleteWord(aPos)
 
-        self.terminal.appealPos = aPos
         self.terminal.isAppealed = True
         return True
 

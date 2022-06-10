@@ -14,7 +14,6 @@ DIR=/home/house/LVTerminal
 DAEMON=$DIR/lvt_server.sh
 DAEMON_NAME=lvt_server
 
-# -l=lvt/lvt_server.log
 DAEMON_OPTS="" 
 DAEMON_USER=house
 PIDFILE=/var/run/$DAEMON_NAME.pid

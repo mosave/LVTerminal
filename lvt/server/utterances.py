@@ -21,7 +21,7 @@ class ParseException(Exception):
 
 class UFragmentMatch:
     """Результат проверки соответствия фрагмента шаблона ключевой фразы
-    value - значение слота либо None если соответствия не обнаружено
+    value - значение переменной (слота) либо None если соответствия не обнаружено
     text  - цепочка слов, удовлетворяющая фрагменту шаблона
     weight - вес соответствия (количество слов, удовлетворяющих ключевой фразе)
     """
@@ -51,12 +51,12 @@ class UWords:
 class UFragment:
     """Определение фрагмента шаблона текста 
         type: тип фрагмента, см. константы UF_***
-        slot: имя слота (возвращаемой переменной)
+        variable: имя возвращаемой переменной (слота)
         words: список возможных фраз (при type==UF_WORDS)
     """
-    def __init__(self, type=UF_WORDS, slot=None):
+    def __init__(self, type=UF_WORDS, variable=None):
         self.type = type
-        self.slot = slot
+        self.variable = variable
         self.words : list[UWords] = []
         
     def addWords( self, words: UWords ):
@@ -132,21 +132,21 @@ class Utterance:
         #endregion
         p = 0
         while p < len(words):
-            #region Вычленение имени слота (разбор конструкции "<slot_name>="). Результат - в переменной slot
+            #region Вычленение имени переменной (разбор конструкции "<var_name>="). Результат - в переменной variable
             if (p+1<len(words)) and (words[p+1]=='=') :
                 if isId( words[p] ):
-                    slot = words[p]
+                    variable = words[p]
                     p += 2
                     if p>=len(words):
-                        raise ParseException(f'Отсутствует определение слота {slot}=... ')
+                        raise ParseException(f'Отсутствует определение переменной {variable}=... ')
                 else:
-                    raise ParseException(f'Недопустимое имя слота \"{words[p]}\"')
+                    raise ParseException(f'Недопустимое имя переменной \"{words[p]}\"')
             else:
-                slot = ""
+                variable = ""
             #endregion
 
             if words[p] == '[': # Parse list
-                fragment = UFragment( UF_WORDS, slot )
+                fragment = UFragment( UF_WORDS, variable )
                 defA = p = p + 1
                 valA = valB = 0
 
@@ -185,13 +185,13 @@ class Utterance:
             elif words[p] == '<': # Parse dictionary
                 if p+2<len(words) and isId(words[p+1]) and words[p+2]==">":
                     if( words[p+1].lower()=='integer' ) : 
-                        fragment = UFragment( UF_INTEGER, slot )
+                        fragment = UFragment( UF_INTEGER, variable )
                     elif( words[p+1].lower()=='number' ) : 
-                        fragment = UFragment( UF_NUMBER, slot )
+                        fragment = UFragment( UF_NUMBER, variable )
                     if( words[p+1].lower()=='time' ) : 
-                        fragment = UFragment( UF_TIME, slot )
+                        fragment = UFragment( UF_TIME, variable )
                     else:
-                        fragment = UFragment( UF_WORDS, slot )
+                        fragment = UFragment( UF_WORDS, variable )
                         entity = entities.get( words[p+1], self.terminal.id )
                         for e in entity.definitions:
                             fragment.addWords(UWords(e.id, e.definition, e.parses))
@@ -204,10 +204,10 @@ class Utterance:
                 else:
                     raise ParseException("Неверное определение справочника")
             elif words[p] == '?':
-                self.fragments.append( UFragment( UF_ANY_WORD, slot ) )
+                self.fragments.append( UFragment( UF_ANY_WORD, variable ) )
                 p += 1
             elif words[p] == '*':
-                self.fragments.append( UFragment( UF_ANY_WORDS, slot ) )
+                self.fragments.append( UFragment( UF_ANY_WORDS, variable ) )
                 p += 1
             elif isWord(words[p]):
                 defA = p
@@ -215,7 +215,7 @@ class Utterance:
                 while (p<len(words)) and isWord(words[p]) and ( (p+1>=len(words)) or (words[p+1]!='=') ):
                     p += 1
                 
-                fragment = UFragment( UF_WORDS, slot )
+                fragment = UFragment( UF_WORDS, variable )
                 fragment.addWords( UWords( ' '.join(words[defA:p]), words[defA:p] ) )
                 self.fragments.append( fragment )
             else:
@@ -236,8 +236,8 @@ class Utterance:
         matches = self.fragments[index].match(parses)
         for m in matches:
             v = values
-            if self.fragments[index].slot :
-                v[self.fragments[index].slot] = m.value
+            if self.fragments[index].variable :
+                v[self.fragments[index].variable] = m.value
             if index+1 == len(self.fragments):
                 if m.len==len(parses):
                     return (weight + m.weight, v)
@@ -253,7 +253,7 @@ class Utterance:
         """Проверяет список parses на соответствие шаблону.
         Возвращает Tuple(weight: int, values:dict ), где
             weight:int - вес результата (количиство сопоставленных слов) либо -1 если соответствия не обнаружено
-            values:dict - значения слотов
+            values:dict - значения переменных
         """
         (weight, values) = self.__match( 0, parses,  {}, 0 )
         if( weight>=0 ):
@@ -269,7 +269,7 @@ class Utterance:
         """Проверяет строку на соответствие шаблону.
         Возвращает Tuple(weight: int, values:dict ), где
             weight:int - вес результата (количиство сопоставленных слов) либо -1 если соответствия не обнаружено
-            values:dict - значения слотов
+            values:dict - значения переменных
         """
         return self.match( parseText(text) )
 
@@ -277,7 +277,7 @@ class UtteranceMatch:
     """Описание найденного соответствия фрагмента шаблона ключевой фразе
     id - utteranceId
     weight - вес соответствия
-    values - справочник значений слотов
+    values - справочник значений переменных
     utterance - шаблон ключевой фразы
     """
     def __init__(self, id, weight: int, values, utterance: str):
@@ -322,7 +322,7 @@ class Utterances:
     def match(self, parses):
         """Проверяет массив parses на соответствие шаблонам.
         Возвращает dict[uId], содержащий наилучшее из найденных соответствие для данного uId
-            (uId, dict значений слотов если parses соответсвуют шаблону
+            (uId, dict значений переменных если parses соответсвуют шаблону
             None если соответствия не обнаружено
         """
         matches = {}
@@ -338,7 +338,7 @@ class Utterances:
     def matchText(self, text: str):
         """Проверяет строку на соответствие шаблону.
         Возвращает:
-            dict значений слотов если parses соответсвуют шаблону
+            dict значений переменных если parses соответсвуют шаблону
             None если соответствия не обнаружено
         """
         return self.match( parseText(text) )
