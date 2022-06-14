@@ -1,3 +1,4 @@
+from argparse import ArgumentError
 import pymorphy2
 # PyMorphy2: 
 # https://pymorphy2.readthedocs.io/en/stable/user/guide.html
@@ -55,35 +56,41 @@ def conformToNumber( this, number: int, word: str ) -> str:
 def transcribeNumber999( number: int, tags=None ):
     """Перевод целого числа в диапазоне 0..999 в фразу на русском языке с учетом заданных тегов"""
     if tags == None : tags = {'nomn'}
+    if (number<0) or (number>999):
+        raise ArgumentError("Число должно находиться в диапазоне 0..999")
 
-    s1 = {1:'один', 2:'два', 3:'три', 4:'четыре', 5:'пять', 6:'шесть', 7:'семь', 8:'восемь', 9:'девять', 0:''}
-    s2 = {2:'двадцать', 3:'тридцать', 4:'сорок', 5:'пятьдесят',6:'шестьдесят', 
+    s1 = {0:'', 1:'один', 2:'два', 3:'три', 4:'четыре', 5:'пять', 6:'шесть', 7:'семь', 8:'восемь', 9:'девять' }
+    s2 = {0:'', 2:'двадцать', 3:'тридцать', 4:'сорок', 5:'пятьдесят',6:'шестьдесят', 
           7:'семьдесят', 8:'восемьдесят',9:'девяносто'}
-    s3 = {1:'сто', 2:'двести', 3:'триста', 4:'четыреста', 5:'пятьсот', 6:'шестьсот',
+    s3 = {0:'', 1:'сто', 2:'двести', 3:'триста', 4:'четыреста', 5:'пятьсот', 6:'шестьсот',
           7:'семьсот', 8:'восемьсот', 9:'девятьсот'}
-    tsat = {10:'десять', 11:'одиннадцать', 12:'двенадцать', 13:'тринадцать',14:'четырнадцать',
+    tsat = {0:'', 10:'десять', 11:'одиннадцать', 12:'двенадцать', 13:'тринадцать',14:'четырнадцать',
           15:'пятнадцать', 16:'шестнадцать', 17:'семнадцать',18:'восемнадцать', 19:'девятнадцать'}
     s = str( number )
+    
     p = []
-    if len( s ) > 1:
+    if len( s ) >= 3:
+        p.append( s3[int( s[-3] )] )
+
+    if len( s ) >=2 :
         if 9 < int( s[-2:] ) < 20:
             p.append( tsat[int( s[-2:] )] )
-        elif int( s[-2:] ) > 19:
-            p.append( s1[int( s[-1] )] )
-            p.append( s2[int( s[-2] )] )
-    else:
-        if int( s[-1] ) > 0:
-            p.append( s1[int( s[-1] )] )
         else:
-            p.append( 'ноль' )
-    if len( s ) == 3:
-        p.append( s3[int( s[-3] )] )
+            if int( s[-2] )>0:
+                p.append( s2[int( s[-2] )] )
+            if int( s[-1] )>0:
+                p.append( s1[int( s[-1] )] )
+
+    elif (len( s ) >=1) and (int( s[-1] ) > 0):
+        p.append( s1[int( s[-1] )] )
+    else:
+        p.append( 'ноль' )
+
     for i in range( len( p ) ):
         w = parseWord( p[i] )[0].inflect( tags )
-        if w != None : p[i] = w.word
+        if w is not None: p[i] = w.word
 
-    transcription = ' '.join( p[::-1] )
-    return transcription
+    return ' '.join( p )
     
 def transcribeNumber( number: int, tags=None, word: str='' ):
     """Перевод целого числа до миллиарда в фразу на русском языке с учетом заданных тегов"""

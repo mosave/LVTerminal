@@ -1,6 +1,7 @@
 import json
 from logging import fatal
 import os
+from numpy import random
 import sys
 import asyncio
 import ssl
@@ -27,6 +28,20 @@ speakers.init()
 #u = Utterance("включи свет [в, на] location=[кухне, прихожей, туалете на первом, гостевом туалете]", terminals.get('speaker2w'))
 #u = Utterance("action=[включи,выключи] attr=* object=? [в, на, у] location=[11=кухне, 15=прихожей,14 = туалете, 14=туалете на первом, 14=гостевом туалете]", terminals.get('speaker31') )
 #u = Utterance("action=[включи,выключи] attr=* object=? [в, на, у] location=<location>", terminals.get('speaker31'))
+
+u = Utterance("всего int=<integer> *", terminals.get('speaker31'))
+#m = u.matchText("число сто двадцать три тысячи двенадцать word=?")
+
+for i in range(0,1002):
+    n = i
+    n = random.randint(999999999)
+    s = "Всего "+transcribeNumber(n,word="попугай")
+    # print(s)
+    m = u.matchText(s)
+    if int(m[1]['int']) != n:
+        print(f"{m[1]['int']} != {n}  ({s})")
+
+
 
 u = Utterances( terminals.get('speaker31') )
 

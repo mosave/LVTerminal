@@ -80,8 +80,8 @@ class UFragment:
         elif self.type==UF_ANY_WORDS:
             p = len(parses)
             while p>=0:
-                value = (' '.join([p[0].word for p in parses[:p]])) if p>0 else None
-                text = ' '.join([p[0].word for p in parses[:p]])
+                value = (' '.join([parse[0].word for parse in parses[:p]])) if p>0 else None
+                text = ' '.join([parse[0].word for parse in parses[:p]])
                 matches.append(UFragmentMatch(value, text, p, 0 ))
                 p -= 1
         elif self.type==UF_WORDS:
@@ -97,12 +97,187 @@ class UFragment:
                         text = ' '.join([p[0].word for p in parses[:l]])
                         matches.append(UFragmentMatch( words.value, text, l, l ))
         elif self.type==UF_INTEGER:
+            (v, l) = self.matchInt(parses)
+            if l>0:
+                text = ' '.join([parse[0].word for parse in parses[:l]])
+                matches.append(UFragmentMatch( str(v), text, l, l))
             pass
         elif self.type==UF_NUMBER:
             pass
         elif self.type==UF_TIME:
             pass
         return matches
+
+    def matchInt(self, parses ):
+        """Возвращает Tuple( value: int, len: int) если parses начинается с целого числа (до 999 миллиардов)
+        Либо (0,0) если это не так
+        """
+        v = 0
+        l = 0
+        pwr = 3
+
+        while l<len(parses):
+            (v999, l999) = self.match999( parses[l:] )
+            
+            if l999<=0 :
+                return (v,l)
+
+            l += l999
+
+            if l<len(parses) and (pwr>=3) and (parses[l][0].normal_form == "миллиадрд") :
+                v += v999 * 1000000000
+                l += 1
+                pwr = 2
+            elif l<len(parses) and (pwr>=2) and (parses[l][0].normal_form == "миллион") :
+                v += v999 * 1000000
+                l += 1
+                pwr = 1
+            elif l<len(parses) and (pwr>=1) and (parses[l][0].normal_form == "тысяча") :
+                v += v999 * 1000
+                l += 1
+                pwr = 1
+            else:
+                v += v999
+                break
+
+        return (v,l)
+    def match999(self, parses ):
+        """Возвращает Tuple( value : int, len: int) если parses начинается с числа в диапазоне 0..999
+        Либо (0,0) если это не так
+        """
+        p = 0
+        v = 0
+        ones = True
+
+        if p<len(parses):
+            if parses[p][0].normal_form == "сто":
+                v += 100
+                p += 1
+            elif parses[p][0].normal_form == "двести":
+                v += 200
+                p += 1
+            elif parses[p][0].normal_form == "триста":
+                v += 300
+                p += 1
+            elif parses[p][0].normal_form == "четыреста":
+                v += 400
+                p += 1
+            elif parses[p][0].normal_form == "пятьсот":
+                v += 500
+                p += 1
+            elif parses[p][0].normal_form == "шестьсот":
+                v += 600
+                p += 1
+            elif parses[p][0].normal_form == "семьсот":
+                v += 700
+                p += 1
+            elif parses[p][0].normal_form == "восемьсот":
+                v += 800
+                p += 1
+            elif parses[p][0].normal_form == "девятьсот":
+                v += 900
+                p += 1
+        
+        if p<len(parses):
+            if parses[p][0].normal_form == "десять":
+                v += 10
+                p += 1
+            elif parses[p][0].normal_form == "одиннадцать":
+                v += 11
+                p += 1
+                ones = False
+            elif parses[p][0].normal_form == "двенадцать":
+                v += 12
+                p += 1
+                ones = False
+            elif parses[p][0].normal_form == "тринадцать":
+                v += 13
+                p += 1
+                ones = False
+            elif parses[p][0].normal_form == "четырнадцать":
+                v += 14
+                p += 1
+                ones = False
+            elif parses[p][0].normal_form == "пятнадцать":
+                v += 15
+                p += 1
+                ones = False
+            elif parses[p][0].normal_form == "шестнадцать":
+                v += 16
+                p += 1
+                ones = False
+            elif parses[p][0].normal_form == "семнадцать":
+                v += 17
+                p += 1
+                ones = False
+            elif parses[p][0].normal_form == "восемнадцать":
+                v += 18
+                p += 1
+                ones = False
+            elif parses[p][0].normal_form == "девятнадцать":
+                v += 19
+                p += 1
+                ones = False
+            elif parses[p][0].normal_form == "двадцать":
+                v += 20
+                p += 1
+            elif parses[p][0].normal_form == "тридцать":
+                v += 30
+                p += 1
+            elif parses[p][0].normal_form == "сорок":
+                v += 40
+                p += 1
+            elif parses[p][0].normal_form == "пятьдесят":
+                v += 50
+                p += 1
+            elif parses[p][0].normal_form == "шестьдесят":
+                v += 60
+                p += 1
+            elif parses[p][0].normal_form == "семьдесят":
+                v += 70
+                p += 1
+            elif parses[p][0].normal_form == "восемьдесят":
+                v += 80
+                p += 1
+            elif parses[p][0].normal_form == "девяносто":
+                v += 90
+                p += 1
+
+        if p<len(parses) and ones:
+            if parses[p][0].normal_form == "ноль":
+                p += 1
+            elif parses[p][0].normal_form == "один":
+                v += 1
+                p += 1
+            elif parses[p][0].normal_form == "два":
+                v += 2
+                p += 1
+            elif parses[p][0].normal_form == "три":
+                v += 3
+                p += 1
+            elif parses[p][0].normal_form == "четыре":
+                v += 4
+                p += 1
+            elif parses[p][0].normal_form == "пять":
+                v += 5
+                p += 1
+            elif parses[p][0].normal_form == "шесть":
+                v += 6
+                p += 1
+            elif parses[p][0].normal_form == "семь":
+                v += 7
+                p += 1
+            elif parses[p][0].normal_form == "восемь":
+                v += 8
+                p += 1
+            elif parses[p][0].normal_form == "девять":
+                v += 9
+                p += 1
+        return ( v,p )
+
+
+
+
 
 class Utterance:
     """Шаблон ключевой фразы"""
@@ -188,7 +363,7 @@ class Utterance:
                         fragment = UFragment( UF_INTEGER, variable )
                     elif( words[p+1].lower()=='number' ) : 
                         fragment = UFragment( UF_NUMBER, variable )
-                    if( words[p+1].lower()=='time' ) : 
+                    elif( words[p+1].lower()=='time' ) : 
                         fragment = UFragment( UF_TIME, variable )
                     else:
                         fragment = UFragment( UF_WORDS, variable )
