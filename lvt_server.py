@@ -318,8 +318,8 @@ if __name__ == '__main__':
     else:
         print( f'Connection: Unsecured' )
 
-    print( f'Voice model: {config.model}' )
-    print( f'Full voice model: {config.fullModel}' )
+    print( f'Full voice model: {config.model}' )
+    print( f'Voice model: {config.gModel}' )
 
     if bool( config.spkModel ):
         print( f'Speaker identification model: {config.spkModel}' )

@@ -46,16 +46,16 @@ class AppealDetectorSkill(Skill):
             if self.topic == TOPIC_DEFAULT :
                 self.terminal.animate( ANIMATION_AWAKE )
                 # В случае если фраза содержит только обращение - переходим в ожидание команды
-                if len( self.words ) == 1 :
+                if len( self.words ) == 0:
                     self.savedTopic = self.topic
                     await self.changeTopicAsync( TOPIC_WAIT_COMMAND )
                     self.stopParsing()
-                elif  self.findWordChainB( 'подай голос' ) or \
+                elif self.findWordChainB( 'подай голос' ) or \
                     self.findWordChainB( 'скажи что-нибудь' ) or \
                     self.findWordChainB( 'голос' ) :
                     self.stopParsing( ANIMATION_ACCEPT )
                     await self.sayAsync( ['Гав. Гав-гав.', 'мяаау блин.', 'отстаньте от меня','не мешайте, я за домом присматриваю','не мешайте, я думаю', 'шутить изволите?'] )
-                elif  self.findWordChainB( 'ты здесь' ) or \
+                elif self.findWordChainB( 'ты здесь' ) or \
                     self.findWordChainB( 'ты * живой' ) :
                     self.stopParsing( ANIMATION_ACCEPT )
                     await self.sayAsync( ['да, конечно', 'куда же я денусь', 'пока всё еще да','живее всех живых','не мешайте, я думаю', 'шутить изволите?'] )
@@ -73,7 +73,7 @@ class AppealDetectorSkill(Skill):
             if aPos >= 0 : 
                 # Сохраняем на будущее как и когда обратились к ассистенту
                 self.terminal.appeal = self.getNormalForm( aPos, {'NOUN','nomn','sing'} )
-                if self.terminal.appeal == 'алиша' : self.terminal.appeal = 'алиса'
+                #if self.terminal.appeal == 'алиша' : self.terminal.appeal = 'алиса'
                 self.terminal.lastAppealed = datetime.datetime.now()
                 break
 

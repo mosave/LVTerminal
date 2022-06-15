@@ -243,7 +243,8 @@ def wordsToVocabulary( words, tags=None ) :
         for word in words : 
             vocabulary.update( wordsToVocabulary( word ) )
     elif isinstance( words, str ):
-        for w in wordsToList( words ) :
+        wordsList = wordsToList( words )
+        for w in wordsList :
             if tags != None : # Ищем первый разбор удовлетворяющий тегам
                 parses = parseWord( w )
                 parse = [p for p in parses if tags in p.tag]

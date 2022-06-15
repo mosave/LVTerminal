@@ -1,3 +1,4 @@
+from datetime import datetime, date, time, timezone, timedelta
 from typing import Final
 from lvt.const import *
 from lvt.logger import *
@@ -11,7 +12,7 @@ UF_INTEGER : Final = "Integer"
 UF_NUMBER : Final = "Number"
 UF_TIME : Final = "Time"
 
-LATIN_CHARS : Final = 'abcdefghijklmnopqrstuvxyzABCDEFGHIJKLMNOPQRSTUVXYZ'
+LATIN_CHARS : Final = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
 RUSSIAN_CHARS : Final = 'абвгдеёжзийклмнопрстуфхцчшщъыьэюяАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ'
 SPECIAL_CHARS : Final = '[]<>,*?='
 ALLOWED_CHARS : Final = LATIN_CHARS + RUSSIAN_CHARS + SPECIAL_CHARS + ' -0123456789._'
@@ -54,6 +55,17 @@ class UFragment:
         variable: имя возвращаемой переменной (слота)
         words: список возможных фраз (при type==UF_WORDS)
     """
+    INTEGER_WORDS : Final = \
+        "миллиадрд миллиардов миллион миллионов тысяча тысяч сотня сотен сто двести триста четыреста пятьсот шестьсот семьсот восемьсот девятьсот десять одиннадцать двенадцать " + \
+        "тринадцать четырнадцать пятнадцать шестнадцать семнадцать восемнадцать девятнадцать двадцать тридцать сорок пятьдесят шестьдесят " + \
+        "семьдесят восемьдесят девяносто ноль один два три четыре пять шесть семь восемь девять "
+    NUMBER_WORDS : Final = \
+        "целых десятых сотых тысячных десятитысячных полтора с половиной четвертью точка"
+
+    TIME_WORDS : Final = \
+        "в через дней часов минут секунд полчаса пару понедельник вторник среда четверг пятницу субботу воскресенье " + \
+        "завтра послезавтра послепослезавтра сегодня вечером утром "
+
     def __init__(self, type=UF_WORDS, variable=None):
         self.type = type
         self.variable = variable
@@ -61,6 +73,25 @@ class UFragment:
         
     def addWords( self, words: UWords ):
         self.words.append(words)
+
+    def getVocabulary(self):
+        vocabulary = set()
+        if self.type==UF_ANY_WORD:
+            pass
+        elif self.type==UF_ANY_WORDS:
+            pass
+        elif self.type==UF_WORDS:
+            for words in self.words:
+                for parse in words.parses:
+                    vocabulary.update( {parse[0].normal_form, parse[0].word} )
+        elif self.type==UF_INTEGER:
+            vocabulary.update( wordsToVocabulary( UFragment.INTEGER_WORDS ) )
+        elif self.type==UF_NUMBER:
+            vocabulary.update( wordsToVocabulary( UFragment.INTEGER_WORDS + " " +UFragment.NUMBER_WORDS ) )
+        elif self.type==UF_TIME:
+            vocabulary.update( wordsToVocabulary( UFragment.INTEGER_WORDS + " " +UFragment.TIME_WORDS ) )
+            pass
+        return vocabulary
 
     def match(self, parses)->list[UFragmentMatch]:
         """Возвращает list[match] вариантов соответствий распарсенной фразы фрагменту шаблона.
@@ -96,19 +127,20 @@ class UFragment:
                     if f: 
                         text = ' '.join([p[0].word for p in parses[:l]])
                         matches.append(UFragmentMatch( words.value, text, l, l ))
-        elif self.type==UF_INTEGER:
-            (v, l) = self.matchInt(parses)
-            if l>0:
+        elif (self.type==UF_INTEGER) or (self.type==UF_NUMBER):
+            (t, v, l) = self.matchNumber(parses)
+            if (l>0) and ( (self.type==UF_NUMBER) or (t==UF_INTEGER)):
                 text = ' '.join([parse[0].word for parse in parses[:l]])
                 matches.append(UFragmentMatch( str(v), text, l, l))
-            pass
-        elif self.type==UF_NUMBER:
-            pass
         elif self.type==UF_TIME:
-            pass
+            (t, l) = self.matchTime(parses)
+            if (l>0) :
+                text = ' '.join([parse[0].word for parse in parses[:l]])
+                matches.append(UFragmentMatch( str(v), text, l, l))
         return matches
 
-    def matchInt(self, parses ):
+#region Matching integer
+    def matchInteger(self, parses ):
         """Возвращает Tuple( value: int, len: int) если parses начинается с целого числа (до 999 миллиардов)
         Либо (0,0) если это не так
         """
@@ -117,6 +149,9 @@ class UFragment:
         pwr = 3
 
         while l<len(parses):
+            if (parses[l][0].normal_form == "пара") :
+                return (2,1)
+
             (v999, l999) = self.match999( parses[l:] )
             
             if l999<=0 :
@@ -134,6 +169,10 @@ class UFragment:
                 pwr = 1
             elif l<len(parses) and (pwr>=1) and (parses[l][0].normal_form == "тысяча") :
                 v += v999 * 1000
+                l += 1
+                pwr = 1
+            elif l<len(parses) and (pwr>=1) and (parses[l][0].normal_form == "сотня") :
+                v += v999 * 100
                 l += 1
                 pwr = 1
             else:
@@ -274,10 +313,86 @@ class UFragment:
                 v += 9
                 p += 1
         return ( v,p )
+#endregion
+
+#region Matching Number
+    def matchNumber(self, parses ):
+        """Возвращает 
+            - Tuple( UF_INTEGER, value: int, len: int) если parses начинается с названия целого числа (до 999 миллиардов)
+            - Tuple( UF_NUMBER, value: float, len: int) если parses начинается с названия дробного числа
+            - Tuple( None, 0, 0) если parses не содержит определения числа
+        """
+        l = 0
+        if l>=len(parses):
+            return(None,0,0)
+
+        if (parses[l][0].normal_form == "пара") :
+            return (UF_INTEGER,2,1)
+
+        if (parses[l][0].normal_form == "полтора") :
+            return (UF_NUMBER,1.5,1)
+
+        (vInt, lInt) = self.matchInteger( parses )
+
+        if( lInt>0 ) and lInt+1<len(parses) and (parses[lInt][0].normal_form=='с') and (parses[lInt+1][0].normal_form=='половина'):
+            return (UF_NUMBER,vInt + 0.5, lInt+2 )
+
+        if( lInt>0 ) and lInt+1<len(parses) and (parses[lInt][0].normal_form=='с') and (parses[lInt+1][0].normal_form=='четверть'):
+            return (UF_NUMBER,vInt + 0.25, lInt+2 )
+
+        if( lInt>0 ) and lInt<len(parses) and ((parses[lInt][0].normal_form=='целый') or (parses[lInt][0].normal_form=='точка')):
+            l = lInt+1
+            (vDec, lDec) = self.matchInteger( parses[l:])
+            l += lDec
+            if (lDec>0) and l<len(parses):
+                if (parses[l][0].word=='десятых') and (vDec<=10):
+                    return (UF_NUMBER,vInt + vDec/10.0, l+1 )
+
+                if (parses[l][0].word=='сотых') and (vDec<=100):
+                    return (UF_NUMBER,vInt + vDec/100.0, l+1 )
+                    
+                if (parses[l][0].word=='тысячных') and (vDec<=1000):
+                    return (UF_NUMBER,vInt + vDec/1000.0, l+1 )
+
+                if (parses[l][0].word=='десятитысячных') and (vDec<=10000):
+                    return (UF_NUMBER,vInt + vDec/10000.0, l+1 )
+            return (None, 0, 0 )
+            
+        return (UF_INTEGER, vInt, lInt)
+
+#endregion
+
+#region Matching Time
+    def matchTime(self, parses ):
+        """Возвращает Tuple( value: struct_time, len: int) если parses начинается с определения времени
+        Либо (localtime,0) если это не так
+        Значения, воспримнимаемые в качестве времени:
+        "через <number> [минут часов]"
+        "в <int> часов <int> минут"
+        "[завтра, послезавтра, в понедельник..воскресенье] в <int> часов <int> минут "
+        "<int> [декабря,.., января], в <int> часов <int> минут"
+
+        """
+        dt = datetime.now()
+        l = 0
+        # if l<len(parses) and parses[l][0].normal_form == 'через':
+        #     l += 1
+        #     (nt, n, nl) = self.matchNumber(parses[1:])
+        #     l += nl
+        #     if (nl<=0) or (l>=len(parses)) :
+        #         return (dt, 0)
+        #     if parses[l][0].normal_form == 'часов':
+        #         dt = dt + timedelta( seconds = n*3600 )
+        #         (nt2, n2, nl2) = self.matchNumber(parses[l+1:])
+        #         if ( nl2>0 ) and (parses[l+nl2+2][0].normal_form==''):
+        #             pass
+
+        #     if parses[i][0].normal_form == 'минут':
+        #         dt = dt + timedelta( seconds = n*60 )
 
 
-
-
+        return (dt, 0)
+#endregion
 
 class Utterance:
     """Шаблон ключевой фразы"""
@@ -291,6 +406,7 @@ class Utterance:
         self.fragments : list[UFragment] = []
         self.utterance = utterance
         self.terminal = terminal
+        self.vocabulary = set()
         #region подготовка массива слов words
         cleaned = ''
         for ch in utterance: 
@@ -397,6 +513,7 @@ class Utterance:
                 raise ParseException("Ошибка при разборе ключевой фразы.")
         for f in self.fragments:
             f.words.sort()
+            self.vocabulary.update(f.getVocabulary())
 
     def __lt__(self, other):
         return len(self.fragments) > len(other.fragments)
@@ -472,6 +589,7 @@ class Utterances:
     def __init__(self, terminal):
         self.utterances : list(Utterance) = []
         self.terminal = terminal
+        self.vocabulary = set()
 
     def add(self, uId: str, utterance: str ):
         """Добавление шаблона ключевой фразы в список
@@ -482,6 +600,7 @@ class Utterances:
         u.id = uId
         self.utterances.append(u)
         self.utterances.sort()
+        self.updateVocabulary()
 
     def remove(self, uId):
         """Удалить шаблоны с идентификатором uId """
@@ -489,9 +608,12 @@ class Utterances:
         for u in toRemove:
             self.utterances.remove(u)
 
+        self.updateVocabulary()
+
     def clear(self):
         """Очистить список шаблонов ключевых фраз"""
         self.utterances.clear()
+        self.updateVocabulary()
     
 
     def match(self, parses):
@@ -518,7 +640,10 @@ class Utterances:
         """
         return self.match( parseText(text) )
 
-
+    def updateVocabulary(self):
+        self.vocabulary = set()
+        for u in self.utterances:
+            self.vocabulary.update(u.vocabulary)
 
 
 #region isWord / isId / isValue / isInteger / isNumber

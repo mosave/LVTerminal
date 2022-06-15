@@ -90,18 +90,17 @@ def __loadEntity( fileName: str ) -> Entity:
         defs = p.getRawValues(section)
         prefix = fileName
         terminalId = section.split('|')[0]
-        if terminalId:
-            prefix = f'{prefix}#{terminalId}'
-            terminalId = terminalId.lower()
-            if terminalId in config.terminals :
-                for eId in defs:
-                    if len(str(eId))==0 or str(eId)=='=' :
-                        fatalError(f"{prefix}: Неверный ID \"{eId}\"")
-                    if defs[eId] == None :
-                        fatalError(f"{prefix}: Отсутствует название сущности")
-                    entity.add( eId, terminalId, defs[eId])
-            else:
-                logError(f'{prefix}: неверный ID терминала ("{terminalId}"), секция пропущена')
+        prefix = f'{prefix}#{terminalId}'
+        terminalId = terminalId.lower()
+        if (terminalId=='') or (terminalId in config.terminals)  :
+            for eId in defs:
+                if len(str(eId))==0 or str(eId)=='=' :
+                    fatalError(f"{prefix}: Неверный ID \"{eId}\"")
+                if defs[eId] == None :
+                    fatalError(f"{prefix}: Отсутствует название сущности")
+                entity.add( eId, terminalId, defs[eId])
+        elif terminalId not in config.terminals:
+            logError(f'{prefix}: неверный ID терминала ("{terminalId}"), секция пропущена')
 
     entity.sort()
     return entity
