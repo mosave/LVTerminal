@@ -1,4 +1,3 @@
-import asyncio
 from genericpath import isfile
 import time
 import json
@@ -30,7 +29,7 @@ class Terminal():
     def __init__( self, id ):
         global states
         self.id = id
-        self.logDebug( f'Initializing terminal' )
+        #self.logDebug( f'Initializing terminal' )
         
         self.password = config.terminals[id]['password']
         self.name = config.terminals[id]['name']
@@ -42,6 +41,7 @@ class Terminal():
         self.clientVersion = ""
         # Использовать "словарный" режим
         self.vocabulary = set()
+        self.useVocabulary = True
 
         self.lastSound = 0
         self.lastAppealed = None
@@ -64,13 +64,13 @@ class Terminal():
         self.connectedOn = None
         self.disconnectedOn = None
         self.playAppealOffIfNotStopped = False
-        self.logDebug( 'Loading skills' )
+        #self.logDebug( 'Loading skills' )
 
         self.allTopics = set()
         self.skills = SkillFactory( self ).loadSkills()
 
         for skill in self.skills:
-            self.logDebug( f'{skill.priority:6} {skill.name}' )
+            #self.logDebug( f'{skill.priority:6} {skill.name}' )
             self.allTopics = self.allTopics.union( skill.subscriptions )
 
         self.updateVocabulary()
@@ -163,26 +163,12 @@ class Terminal():
     @property
     def text( self ) -> str:
         """Сгенерировать текст фразы из разобранных слов """
-        text = ''
-        for w in self.words: text += w[0].word + ' '
-        return text.strip()
+        return ' '.join([w[0].word for w in self.words])
 
     @text.setter 
     def text( self, newText: str ):
         # Кешируем морфологический разбор слов - для ускорения обработки фразы
         self.words = parseText( newText)
-
-    @property
-    def textUnfiltered( self ) -> str:
-        """Сгенерировать текст фразы из разолранных слов """
-        text = ''
-        for w in self.wordsUnfiltered: text += w[0].word + ' '
-        return text.strip()
-
-    @textUnfiltered.setter 
-    def textUnfiltered( self, newTextUnfiltered: str ):
-        # Кешируем морфологический разбор слов - для ускорения обработки фразы
-        self.wordsUnfiltered = parseText( newTextUnfiltered)
 
     @property
     def volume(self) -> int:
@@ -221,8 +207,8 @@ class Terminal():
         return None
 #endregion
 
-#region onConnect() / onDisconnect() 
-    async def onConnect( self, messageQueue ):
+#region onConnectAsync() / onDisconnectAsync() 
+    async def onConnectAsync( self, messageQueue ):
         """Метод вызывается при подключении терминального клиента
           messageQueue is synchronous message output queue
         """
@@ -247,7 +233,8 @@ class Terminal():
             self.sendMessage(MSG_UNMUTE)
             self.sayOnConnect = None
         #await self.sayAsync('Terminal Connected. Терминал подключен.')
-    def onDisconnect( self ):
+
+    async def onDisconnectAsync( self ):
         """Вызывается при (после) завершения сессии"""
         self.log( 'Terminal disconnected' )
         self.connected = False
@@ -255,15 +242,12 @@ class Terminal():
         self.messageQueue = None
 #endregion
 
-#region onText()
-    async def onText( self, voice, text:str, textUnfiltered: str, speakerSignature ) -> bool:
+#region onTextAsync()
+    async def onTextAsync( self, text:str, speakerSignature ) -> bool:
         """Основная точка входа для обработки полностью распознанного фрагмента """
-        self.voice = voice
-        # Морфологический разбор слов текста (words и wordsUnfiltered)
+        # Морфологический разбор слов текста
         self.text = text
         self.originalText = text
-        self.textUnfiltered = textUnfiltered
-        self.originalTextUnfiltered = textUnfiltered
 
         if len( speakerSignature ) > 0 : # Идентифицировать говоращего по сигнатуре
             self.speaker = speakers.identify( speakerSignature )
@@ -274,10 +258,10 @@ class Terminal():
         self.logDebug( f'{speakerName}: "{text}"' )
         self.isReacted = False
 
+        self.isAppealed = False
         processed = False
         t0 = self.text
         while True:
-            self.isAppealed = False
             self.newTopic = None
             self.newTopicParams = {}
             self.parsingStopped = False
@@ -287,21 +271,19 @@ class Terminal():
                 if skill.isSubscribed( self.topic ) : 
                     try:
                         # Отработать onText
-                        await skill.onText()
+                        await skill.onTextAsync()
                         t1 = self.text
                         if t1 != t0:
-                            self.logDebug( f'{skill.name}.onText(): text changed to "{self.text}"' )
+                            self.logDebug( f'{skill.name}.onTextAsync(): text changed to "{self.text}"' )
                             t0 = t1
 
-                        if self.parsingStopped : 
+                        if self.parsingStopped:
                             processed = True
-                            self.logDebug( f'{skill.name}.onText(): Анализ фразы завершен' )
+                            self.logDebug( f'{skill.name}.onTextAsync(): Анализ фразы завершен' )
                             break
 
                     except Exception as e:
-                        self.logError( f'{skill.name}.onText() exception: {e}' )
-
-            await self.processTopicChange()
+                        self.logError( f'{skill.name}.onTextAsync() exception: {e}' )
 
             if not self.parsingRestart: break
             self.logDebug( 'Перезапуск анализа фразы' )
@@ -312,7 +294,7 @@ class Terminal():
                 self.playAppealOffIfNotStopped = False
                 await self.playAsync( 'appeal_off.wav' )
 
-        if self.isAppealed and not self.isReacted:
+        if self.isAppealed and not self.isReacted and (len(self.words)>0):
             if self.parsingStopped : 
                 await self.playAsync('asr_ok.wav')
             else:
@@ -328,67 +310,52 @@ class Terminal():
         return processed
 #endregion
 
-#region onTimer()
-    async def onTimer( self ):
-
-        self.newTopic = None
-        self.newTopicParams = {}
+#region onTimerAsync()
+    async def onTimerAsync( self ):
         for skill in self.skills: 
             try:
-                await skill.onTimer()
+                await skill.onTimerAsync()
             except Exception as e:
-                self.logError( f'{skill.name}.onTimer() exception: {e}' )
-        await self.processTopicChange()
+                self.logError( f'{skill.name}.onTimerAsync() exception: {e}' )
 #endregion
 
-#region changeTopicAsync / processTopicChange()
-    async def processTopicChange( self ):
+#region changeTopicAsync
+    async def changeTopicAsync( self, newTopic, params = None ):
+        """Изменить текущий топик после завершения обработчика onText
+         newTopic: новый топик, который требуется установить
+         params: необязательные параметры
+        """
+        newTopic = str( newTopic )
+        oldTopic = self.topic
+        # if newTopic not in self.allTopics:
+        #     raise ArgumentError(f'На топик "{newTopic}" отсутствуют подписки')
+
+        self.logDebug( f'{self.name}.changeTopicAsync("{newTopic}", {params})' )
+
         # Обработать изменения топика
-        while self.newTopic != None and self.newTopic != self.topic:
-            newTopic = self.newTopic
-            newTopicParams = self.newTopicParams
-            self.newTopic = None
-            self.newTopicParams = {}
-            self.logDebug( f'New topic "{newTopic}"' )
+        if newTopic is not None and newTopic != oldTopic:
+            self.logDebug( f'Topic: "{oldTopic }" =>  "{newTopic}"' )
+            self.useVocabulary = True
 
             # Дернуть скилы, подписанные на текущий или новый топик
             for skill in self.skills:
                 try:
-                    if skill.isSubscribed( self.topic ) or skill.isSubscribed( newTopic ):
-                        await skill.onTopicChange( newTopic, newTopicParams )
+                    if skill.isSubscribed( oldTopic ) or skill.isSubscribed( newTopic ):
+                        await skill.onTopicChangeAsync( newTopic, params )
                 except Exception as e:
-                    self.logError( f'{skill.name}.onTopicChange() exception: {e}' )
+                    self.logError( f'{skill.name}.onTopicChangeAsync() exception: {e}' )
 
             self.topic = newTopic
 
-    async def changeTopicAsync( self, newTopic, *params, **kwparams ):
-        """Изменить текущий топик. Выполняется ПОСЛЕ выхода из обработчика onText"""
-        oldTopic = self.topic
-        self.newTopic = str( newTopic )
+            if oldTopic == TOPIC_DEFAULT and self.topic != TOPIC_DEFAULT:
+                self.playerMute()
+            elif oldTopic != TOPIC_DEFAULT and self.topic == TOPIC_DEFAULT:
+                self.playerUnmute()
 
-        p = kwparams
-        if len( params ) == 1 and isinstance( params[0],dict ) : 
-            p.update( params[0] )
-        elif len( params ) > 0 : 
-            p.update( {'params':params} )
-        self.newTopicParams = p
-        self.logDebug( f'{self.name}.changeTopicAsync("{newTopic}", {p}) ]' )
-        await self.processTopicChange()
-        
-        if oldTopic == TOPIC_DEFAULT and self.topic != TOPIC_DEFAULT:
-            self.playerMute()
-        elif oldTopic != TOPIC_DEFAULT and self.topic == TOPIC_DEFAULT:
-            self.playerUnmute()
+
 #endregion
 
 #region Vocabulary manipulations
-    def extendVocabulary( self, words, tags=None ) :
-        """Расширить словарь словоформами, удовлетворяющим тегам
-        По умолчанию (tags = None) слова добавляется в том виде как они были переданы
-        Принимает списки слов как в виде строк так и в виде массивов (рекурсивно)
-        """
-        self.vocabulary.update( wordsToVocabulary( words, tags ) )
-
     def getVocabulary( self ):
         """Возвращает полный текущий список слов для фильтрации распознавания речи 
            или пустую строку если фильтрация не используется
@@ -396,15 +363,9 @@ class Terminal():
         return self.vocabulary
 
     def updateVocabulary( self ):
-        self.vocabulary = set()
-
-        #self.extendVocabulary( self.name )
-        self.extendVocabulary( config.assistantNames, {'NOUN', 'nomn', 'sing'} )
-
-        self.extendVocabulary( 'эй слушай' )
-
-        self.extendVocabulary( self.locations.getVocabulary() )
-      
+        self.vocabulary = wordsToVocabulary( config.assistantNames )
+        self.vocabulary.update( wordsToVocabulary(' эй слушай' ) )
+     
         for skill in self.skills:
             self.vocabulary.update( skill.vocabulary )
 #endregion
@@ -553,7 +514,7 @@ def getState( ) -> dict:
 
     return {
         'Model': config.model,
-        'FullModel': config.fullModel,
+        'GModel': config.gModel,
         'SpkModel': config.spkModel,
         'SampleRate': VOICE_SAMPLING_RATE,
         'RecognitionThreads':config.recognitionThreads,

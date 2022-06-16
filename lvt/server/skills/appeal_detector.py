@@ -5,63 +5,48 @@ from lvt.const import *
 from lvt.protocol import *
 import lvt.server.config as config
 from lvt.server.grammar import *
+from lvt.server.utterances import Utterances
 from lvt.server.skill import Skill
 
 #Define base skill class
 class AppealDetectorSkill(Skill):
-    """Скил определяет наличие в фразе обращения к ассистенту и реализует режим ожидания команды.
+    """Скил определяет наличие в фразе обращения к ассистенту и удаляет вычищает его из анализируемого текста.
     Скилл поддерживает следующие переменные
     * terminal.isAppealed -> bool  : в фразе содержится обращение к ассистенту
     * terminal.appeal -> str : имя, по которому обратились к ассистенту
-
-    Кроме того, если фраза содержит только имя ассистента, скилл переходит к топику "WaitCommand" 
-    Если в течение 5 секунд распознается очередная фраза - она
-
     """
     def onLoad( self ):
         #print('loading AppealDetector')
         self.priority = 10000
-        self.subscribe( TOPIC_ALL )
-        self.savedTopic = TOPIC_DEFAULT
+        self.subscribe( TOPIC_DEFAULT )
         self.waitUntil = 0
         self.aNames = wordsToList( config.assistantNames )
-        self.extendVocabulary('подай голос, скажи что-нибудь,голос,ты здесь,живой, живая, меня слышишь' )
+        self.utterances = Utterances( self.terminal )
+        self.utterances.add("voice", "[Голос, подай голос, скажи что-нибудь]")
+        self.utterances.add("alive", "[ты здесь, ты живой, ты еще живой, ты там живой, ты там еще живой]")
+        self.utterances.add("hearing", "[ты меня слышишь, ты там меня слышишь]")
+        self.vocabulary = self.utterances.vocabulary
 
-    async def onText( self ):
-        # Если в режиме ожидания 
-        if self.topic == TOPIC_WAIT_COMMAND:
-            # Добавить в начало команды обращение, если нужно
-            if not self.detectAppeals(): self.insertWords( 0,'слушай ' + self.appeal )
-            # Ставим галочку в терминале что в случае необнаружения команды озвучить appeal_off
-            self.terminal.playAppealOffIfNotStopped = True
-            # И перезапустить распознавание без топика
-            await self.changeTopicAsync( TOPIC_DEFAULT )
-            self.restartParsing()
-            return
-
-        # Не в режиме ожидания:
+    async def onTextAsync( self ):
         # Проверяем, есть ли в фразе обращение:
         if self.detectAppeals():
             self.lastSound = time.time()
             if self.topic == TOPIC_DEFAULT :
                 self.terminal.animate( ANIMATION_AWAKE )
-                # В случае если фраза содержит только обращение - переходим в ожидание команды
+                # В случае если фраза содержит только обращение - завершаем обработку фразы
                 if len( self.words ) == 0:
-                    self.savedTopic = self.topic
-                    await self.changeTopicAsync( TOPIC_WAIT_COMMAND )
                     self.stopParsing()
-                elif self.findWordChainB( 'подай голос' ) or \
-                    self.findWordChainB( 'скажи что-нибудь' ) or \
-                    self.findWordChainB( 'голос' ) :
-                    self.stopParsing( ANIMATION_ACCEPT )
-                    await self.sayAsync( ['Гав. Гав-гав.', 'мяаау блин.', 'отстаньте от меня','не мешайте, я за домом присматриваю','не мешайте, я думаю', 'шутить изволите?'] )
-                elif self.findWordChainB( 'ты здесь' ) or \
-                    self.findWordChainB( 'ты * живой' ) :
-                    self.stopParsing( ANIMATION_ACCEPT )
-                    await self.sayAsync( ['да, конечно', 'куда же я денусь', 'пока всё еще да','живее всех живых','не мешайте, я думаю', 'шутить изволите?'] )
-                elif self.findWordChainB( 'меня слышишь' ) :
-                    self.stopParsing( ANIMATION_ACCEPT )
-                    await self.sayAsync( ['ну конечно слышу', 'да, '+self.appeal+' не ' + self.conformToAppeal( 'глухая' ), 'слышу-слышу', 'само собой'] )
+                else:
+                    matches = self.utterances.match(self.words)
+                    if len(matches)>0 :
+                        self.stopParsing( ANIMATION_ACCEPT )
+                        if matches[0].id=='voice':
+                            await self.sayAsync( ['Гав. Гав-гав.', 'мяаау блин.', 'отстаньте от меня','не мешайте, я за домом присматриваю','не мешайте, я думаю', 'шутить изволите?'] )
+                        elif matches[0].id=='alive':
+                            await self.sayAsync( ['да, конечно', 'куда же я денусь', 'пока всё еще да','живее всех живых','не мешайте, я думаю', 'шутить изволите?'] )
+                        elif matches[0].id=='hearing':
+                            await self.sayAsync( ['ну конечно слышу', 'да, '+self.appeal+' не ' + self.conformToAppeal( 'глухая' ), 'слышу-слышу', 'само собой'] )
+
 
     def detectAppeals( self ):
         if self.isAppealed :
@@ -96,22 +81,4 @@ class AppealDetectorSkill(Skill):
 
         self.terminal.isAppealed = True
         return True
-
-    async def onTopicChange( self, newTopic: str, params={} ):
-        if newTopic == TOPIC_WAIT_COMMAND :
-            # Задаем время ожидания команды
-            self.waitUntil = time.time() + WAIT_COMMAND_TIMEOUT
-            await self.playAsync( 'appeal_on.wav' )
-        elif self.topic == TOPIC_WAIT_COMMAND :
-            # Играем отбой
-            self.waitUntil = 0
-       
-    async def onTimer( self ):
-        if( self.topic == TOPIC_WAIT_COMMAND ):
-            if time.time() > self.waitUntil:
-                self.animate( ANIMATION_CANCEL )
-                await self.playAsync( 'appeal_off.wav' )
-                await self.changeTopicAsync( self.savedTopic )
-                self.terminal.playAppealOffIfNotStopped = False
-
 

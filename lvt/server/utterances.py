@@ -12,8 +12,8 @@ UF_INTEGER : Final = "Integer"
 UF_NUMBER : Final = "Number"
 UF_TIME : Final = "Time"
 
-LATIN_CHARS : Final = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
-RUSSIAN_CHARS : Final = 'абвгдеёжзийклмнопрстуфхцчшщъыьэюяАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ'
+LATIN_CHARS : Final = '-abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+RUSSIAN_CHARS : Final = '-абвгдеёжзийклмнопрстуфхцчшщъыьэюяАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ'
 SPECIAL_CHARS : Final = '[]<>,*?='
 ALLOWED_CHARS : Final = LATIN_CHARS + RUSSIAN_CHARS + SPECIAL_CHARS + ' -0123456789._'
 
@@ -56,11 +56,11 @@ class UFragment:
         words: список возможных фраз (при type==UF_WORDS)
     """
     INTEGER_WORDS : Final = \
-        "миллиадрд миллиардов миллион миллионов тысяча тысяч сотня сотен сто двести триста четыреста пятьсот шестьсот семьсот восемьсот девятьсот десять одиннадцать двенадцать " + \
+        "миллиард миллиардов миллион миллионов тысяча тысяч сотня сотен сто двести триста четыреста пятьсот шестьсот семьсот восемьсот девятьсот десять одиннадцать двенадцать " + \
         "тринадцать четырнадцать пятнадцать шестнадцать семнадцать восемнадцать девятнадцать двадцать тридцать сорок пятьдесят шестьдесят " + \
         "семьдесят восемьдесят девяносто ноль один два три четыре пять шесть семь восемь девять "
     NUMBER_WORDS : Final = \
-        "целых десятых сотых тысячных десятитысячных полтора с половиной четвертью точка"
+        "целых десятых сотых тысячных десятитысячных полтора с половиной четвертью точка " + "десяти тысяч ных на "
 
     TIME_WORDS : Final = \
         "в через дней часов минут секунд полчаса пару понедельник вторник среда четверг пятницу субботу воскресенье " + \
@@ -159,7 +159,7 @@ class UFragment:
 
             l += l999
 
-            if l<len(parses) and (pwr>=3) and (parses[l][0].normal_form == "миллиадрд") :
+            if l<len(parses) and (pwr>=3) and (parses[l][0].normal_form == "миллиард") :
                 v += v999 * 1000000000
                 l += 1
                 pwr = 2
@@ -356,6 +356,15 @@ class UFragment:
 
                 if (parses[l][0].word=='десятитысячных') and (vDec<=10000):
                     return (UF_NUMBER,vInt + vDec/10000.0, l+1 )
+
+                # ХАК
+                if l+2<len(parses) \
+                    and (parses[l][0].word=='десяти') \
+                    and (parses[l+1][0].word=='тысяч') \
+                    and ((parses[l+2][0].word=='ных') or (parses[l+2][0].word=='на') ) \
+                    and (vDec<=10000):
+                    return (UF_NUMBER,vInt + vDec/10000.0, l+3 )
+
             return (None, 0, 0 )
             
         return (UF_INTEGER, vInt, lInt)

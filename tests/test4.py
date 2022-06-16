@@ -25,6 +25,9 @@ entities.init()
 terminals.init()
 speakers.init()
 
+# vocabulary = wordsToVocabulary("человеки")
+# vocabulary = wordsToVocabularyAllForms("косой")
+
 #u = Utterance("включи свет [в, на] location=[кухне, прихожей, туалете на первом, гостевом туалете]", terminals.get('speaker2w'))
 #u = Utterance("action=[включи,выключи] attr=* object=? [в, на, у] location=[11=кухне, 15=прихожей,14 = туалете, 14=туалете на первом, 14=гостевом туалете]", terminals.get('speaker31') )
 #u = Utterance("action=[включи,выключи] attr=* object=? [в, на, у] location=<location>", terminals.get('speaker31'))

@@ -27,7 +27,7 @@ def abort(msg:str):
     print(f'>>> Тест не прошёл: {msg}')
     sys.exit()
 
-def onText( text:str, controlPhrase : str=None ):
+async def onTextAsync( text:str, controlPhrase : str=None ):
     messageQueue.clear()
     logs.clear()
     print( f'>>> Распознавание "{text}"' )
@@ -36,7 +36,7 @@ def onText( text:str, controlPhrase : str=None ):
     for w in words :
         text += ( ' ' if text != '' else '' ) + w
     print( '>>> Анализ фразы' )
-    terminal.onText( text )
+    await terminal.onTextAsync( text )
     print( f'>>> Сообщений в очереди клиента: {len(messageQueue)}' )
     if len( terminal.locations ) > 0 :
         locations = ', '.join( terminal.locations )
@@ -75,100 +75,100 @@ def checkIfSaid(phrase):
 def testAppealDetector():
     logs.clear()
     print( '***** AppealDetectorSkill tests' )
-    onText( 'слушай, мажордом, сделай что-нибудь!', 'мажордом сделай что-нибудь' )
-    onText( 'слушай, алиса...' )
+    await onTextAsync( 'слушай, мажордом, сделай что-нибудь!', 'мажордом сделай что-нибудь' )
+    await onTextAsync( 'слушай, алиса...' )
     if( terminal.topic != 'WaitCommand') : abort('Терминал не перешёл в режим ожидания команды')
-    onText( 'сделай уже что нибудь!', 'алиса сделай уже что нибудь' )
+    await onTextAsync( 'сделай уже что нибудь!', 'алиса сделай уже что нибудь' )
     if( terminal.topic != TOPIC_DEFAULT) : abort('Терминал не вернулся в нормальный режим')
 
 def testAcronym():
     logs.clear()
     print( '***** AcronymaExpanderSkill tests' )
     Entities().acronyms.append(['зелёный вентилятор ','махатель лопастями'])
-    onText( 'слушай мажордом выключи махателя лопастями','зелёный вентилятор' )
+    await onTextAsync( 'слушай мажордом выключи махателя лопастями','зелёный вентилятор' )
 
 def testOneWordCommandSkill():
     logs.clear()
     print( '***** OneWordCommandSkill tests' )
-    onText( 'алиса, свет!', 'алиса включи свет')
+    await onTextAsync( 'алиса, свет!', 'алиса включи свет')
 
 def testLocationDetector():
     logs.clear()
     print( '***** LocationDetectorSkill tests' )
-    onText( 'слушай мажордом включи свет на кухне и в туалете' )
+    await onTextAsync( 'слушай мажордом включи свет на кухне и в туалете' )
     if ', '.join( terminal.locations ) != 'кухня, туалет' : abort('Неправильно извлечены локации')
 
 def testParrotMode():
     logs.clear()
     print( '***** ParrotModeSkill tests' )
-    onText( 'слушай мажордом повторяй за мной' )
+    await onTextAsync( 'слушай мажордом повторяй за мной' )
     checkIfSaid('я буду повторять')
     if( terminal.topic != 'ParrotMode') : abort('Терминал не перешёл в режим попугая')
-    onText( 'Ехал грека через реку' )
+    await onTextAsync( 'Ехал грека через реку' )
     checkIfSaid('ехал грека через реку')
-    onText( 'На мели мы лениво налима ловили' )
+    await onTextAsync( 'На мели мы лениво налима ловили' )
     checkIfSaid( 'На мели мы лениво налима ловили' )
 
-    onText( 'Включи режим распознавания со словарём' )
-    onText( 'Включи режим распознавания со словарём' )
+    await onTextAsync( 'Включи режим распознавания со словарём' )
+    await onTextAsync( 'Включи режим распознавания со словарём' )
     checkIfSaid( 'уже включен' )
 
-    onText( 'Включи режим распознавания без словаря' )
+    await onTextAsync( 'Включи режим распознавания без словаря' )
     checkIfSaid( 'Выключаю режим распознавания со словарём' )
 
-    onText( 'Перестань за мной повторять' )
+    await onTextAsync( 'Перестань за мной повторять' )
     checkIfSaid('режим попугая выключен')
     if( terminal.topic != TOPIC_DEFAULT) : abort('Терминал не вернулся в нормальный режим')
 
 def testServerConfig():
     logs.clear()
     print( '***** ServerConfigSkill tests' )
-    onText( 'слушай мажордом выключи режим распознавания со словарём' )
-    onText( 'слушай мажордом включи режим распознавания со словарём' )
+    await onTextAsync( 'слушай мажордом выключи режим распознавания со словарём' )
+    await onTextAsync( 'слушай мажордом включи режим распознавания со словарём' )
     checkIfSaid( 'Включаю режим распознавания со словарём' )
-    onText( 'слушай мажордом включи режим распознавания без словаря' )
+    await onTextAsync( 'слушай мажордом включи режим распознавания без словаря' )
     checkIfSaid( 'Выключаю режим распознавания со словарём' )
 
 def testYesNo():
     logs.clear()
     print( '***** YesNoSkill tests' )
-    onText( 'алиса проверка да или нет' )
+    await onTextAsync( 'алиса проверка да или нет' )
     checkIfSaid( 'Да или нет' )
-    onText('Траливали набекрень')
+    await onTextAsync('Траливали набекрень')
     checkIfSaid( 'не поняла' )
-    #onText( 'отмена' )
-    onText( 'да, уверен' )
+    #await onTextAsync( 'отмена' )
+    await onTextAsync( 'да, уверен' )
     checkIfSaid( 'Подтверждено' )
 
 def testFindWordChain():
     logs.clear()
     print( '***** findWordChain() tests' )
-    onText( 'алиса проверка поиска по шаблону' )
+    await onTextAsync( 'алиса проверка поиска по шаблону' )
     checkIfSaid( 'Поиск по шаблону работает' )
 
 def testTimeTeller():
     logs.clear()
     print( '***** TellTheTimeSkill tests' )
-    onText( 'алиса скажи сколько сейчас времени' )
+    await onTextAsync( 'алиса скажи сколько сейчас времени' )
     checkIfSaid( transcribeTime(datetime.datetime.today()) )
-    onText( 'алиса какое сегодня число' )
+    await onTextAsync( 'алиса какое сегодня число' )
     checkIfSaid( transcribeDate(datetime.datetime.today()) )
 
 def testOnOffSkill():
     logs.clear()
     print( '***** OnOffSkill() tests' )
 
-    onText( 'алиса включи свет в ванной' )
-    onText( 'алиса выключи свет слева' )
+    await onTextAsync( 'алиса включи свет в ванной' )
+    await onTextAsync( 'алиса выключи свет слева' )
 
-    onText( 'эй алиса слушай выключи весь свет!' )
-    onText( 'алиса, включи свет здесь и на кухне' )
-    onText( 'алиса, включи весь свет здесь и на кухне' )
-    onText( 'алиса, включи весь свет в зале' )
-    onText( 'алиса, выключи здесь свет' )
-    onText( 'алиса, выключи свет везде' )
-    onText( 'алиса, выключи свет во всех комнатах' )
-    onText( 'алиса, включи свет слева' )
+    await onTextAsync( 'эй алиса слушай выключи весь свет!' )
+    await onTextAsync( 'алиса, включи свет здесь и на кухне' )
+    await onTextAsync( 'алиса, включи весь свет здесь и на кухне' )
+    await onTextAsync( 'алиса, включи весь свет в зале' )
+    await onTextAsync( 'алиса, выключи здесь свет' )
+    await onTextAsync( 'алиса, выключи свет везде' )
+    await onTextAsync( 'алиса, выключи свет во всех комнатах' )
+    await onTextAsync( 'алиса, включи свет слева' )
 
     checkIfSaid( 'Поиск по шаблону работает' )
 
@@ -199,7 +199,7 @@ Speaker.initialize( config )
 messageQueue = list()
 
 terminal = Terminal.authorize( 'test', 'TestPassword', 'testscript' )
-await terminal.onConnect( messageQueue )
+await terminal.onConnectAsync( messageQueue )
 
 #print( transcribeDate(datetime.datetime.today()) )
 
@@ -241,6 +241,6 @@ testYesNo()
 testTimeTeller()
 
 
-terminal.onDisconnect()
+await terminal.onDisconnectAsync()
 
 print('ALL SKILL TESTS PASSED!!!')

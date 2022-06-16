@@ -19,7 +19,6 @@ class TTS():
 
     def __init__( self ):
         global rhvoiceWrapper
-        logDebug( f'{config.ttsEngine}: Initializing' )
         self.ttsRHVoice = None
         
         if config.ttsEngine == TTS_RHVOICE :

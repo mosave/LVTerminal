@@ -26,7 +26,7 @@ import lvt.server.api as api
 
 #region processVoice ###################################################################
 async def processVoice( waveChunk, recognizer: KaldiRecognizer):
-    """ Recognize audio chunk and process with terminal.onText() """
+    """ Recognize audio chunk and process with terminal.onTextAsync() """
     signature = None
     text = ''
     final = False
@@ -41,6 +41,10 @@ async def processVoice( waveChunk, recognizer: KaldiRecognizer):
             # Получить распознанный текст
             j = json.loads( recognizer.PartialResult() )
             text = str( j['partial'] ).strip() if 'partial' in j else ''
+
+#        if len(text)>0:
+#            logDebug(f'recognizing: {text}')
+
 
         # Попытаться извлечь сигнатуру голоса:
         signature = j["spk"] if 'spk' in j else []
@@ -61,7 +65,6 @@ async def server( request ):
     global spkModel
     # Kaldi speech recognizer objects
     recognizer = None
-    gRecognizer = None
 
     # Currently connected Terminal
     terminal = None
@@ -127,7 +130,7 @@ async def server( request ):
                     if terminal != None:
                         terminal.ipAddress = request.remote
                         terminal.version = version
-                        await terminal.onConnect( messageQueue )
+                        await terminal.onConnectAsync( messageQueue )
                         if terminal.autoUpdate==2 and version != VERSION :
                             await terminal.updateClient()
                     else:
@@ -147,26 +150,40 @@ async def server( request ):
                     voiceData = message.data
                     # Инициализация KaldiRecognizer занимает 30-100мс и не требует много памяти.
 
-                    # Нефильтрованная распознавалка:
-                    if model != None:
-                        if( spkModel != None ): 
-                            # Включить идентификацию по голосу
-                            recognizer = KaldiRecognizer( model, VOICE_SAMPLING_RATE, spkModel )
+                    if terminal.useVocabulary:
+                        # Распознавалка "со словарем"
+                        
+                        if gModel is not None:
+                            recognizer = KaldiRecognizer(
+                                gModel,
+                                VOICE_SAMPLING_RATE,
+                                json.dumps( list( terminal.getVocabulary() ), ensure_ascii=False )
+                            )
+                        # logDebug( ' '.join(list(terminal.getVocabulary())) )
+
+                        # elif spkModel != None : 
+                        #     # Включить идентификацию по голосу
+                        #     recognizer = KaldiRecognizer( model, VOICE_SAMPLING_RATE, spkModel )
                         else: 
                             # Не идентифицировать голос:
-                            recognizer = KaldiRecognizer( model, VOICE_SAMPLING_RATE )
+                            recognizer = KaldiRecognizer( 
+                                model, 
+                                VOICE_SAMPLING_RATE 
+                            )
                     else:
-                        recognizer = None
-
-                    # Распознавалка "со словарем"
-                    if  gModel != None:
-                        gRecognizer = KaldiRecognizer(
-                            gModel,
-                            VOICE_SAMPLING_RATE,
-                            json.dumps( list( terminal.getVocabulary() ), ensure_ascii=False )
+                        # Нефильтрованная распознавалка
+                        recognizer = KaldiRecognizer( 
+                            model if model is not None else gModel, 
+                            VOICE_SAMPLING_RATE 
                         )
-                    else:
-                        gRecognizer = None
+                        # ( spkModel != None ): 
+                        # # Включить идентификацию по голосу
+                        # recognizer = KaldiRecognizer( 
+                        #     model if model is not None else gModel, 
+                        #     VOICE_SAMPLING_RATE, 
+                        #     spkModel 
+                        # )
+
 
                 else:
                     # Сохраняем аудиофрагмент в буффере:
@@ -175,7 +192,7 @@ async def server( request ):
                 # Распознаем очередной фрагмент голоса
                 (completed, text, signature) = await processVoice( 
                     message.data, 
-                    recognizer if recognizer != None else gRecognizer
+                    recognizer
                 )
 
                 if signature != None : speakerSignature = signature
@@ -184,16 +201,9 @@ async def server( request ):
                 if completed:
                     # На входе есть хоть какой-то распознанный текст:
                     if len(text)>0:
-                        # Если необходимо - распознаем речь повторно, используя словарь
-                        if recognizer != None and gRecognizer != None :
-                            (_, textFiltered, _) = await processVoice( voiceData, gRecognizer )
-                        else:
-                            textFiltered = text
-
-                        isProcessed = await terminal.onText( voiceData, textFiltered, text, speakerSignature )
+                        isProcessed = await terminal.onTextAsync( text, speakerSignature )
                     else:
                         isProcessed = False
-                        textFiltered = ''
 
 
                     # Журналируем голос (если заказано в настройках)
@@ -213,14 +223,11 @@ async def server( request ):
                         with open(os.path.join( config.voiceLogDir, 'voice.log'), 'a') as voiceLog:
                             dt = datetime.datetime.today().strftime(f'%Y-%m-%d %H:%M:%S')
                             voiceLog.write( f'{dt}\t{terminal.id}\t{wavFileName}\n' +
-                                f'\t{text}\n' +
-                                f'\t{textFiltered}\n' )
+                                f'\t{text}\n' )
 
                     # Освобождаем память
                     if recognizer!=None : del(recognizer)
-                    if gRecognizer!=None : del(gRecognizer)
                     recognizer = None
-                    gRecognizer = None
                     del(voiceData)
                     voiceData = None
                     speakerSignature = None
@@ -233,7 +240,7 @@ async def server( request ):
             # Примерно раз в секунду дергаем terminal.onTime()
             if terminal != None and int( time.time() ) != int( lastTickedOn ):
                 lastTickedOn = time.time()
-                await terminal.onTimer()
+                await terminal.onTimerAsync()
         except KeyboardInterrupt:
             onCtrlC()
             break
@@ -242,7 +249,7 @@ async def server( request ):
         finally:
             pass
     if terminal is not None:
-        terminal.onDisconnect()
+        await terminal.onDisconnectAsync()
     recognizer = None
 #endregion
 
@@ -337,7 +344,7 @@ if __name__ == '__main__':
         if model == None: fatalError(f'Ошибка при загрузке голосовой модели {config.model}')
 
     if bool(config.gModel):
-        if config.gModel==config.model :
+        if config.gModel == config.model :
             gModel = model
         else:
             print()

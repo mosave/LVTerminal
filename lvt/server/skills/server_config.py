@@ -1,12 +1,9 @@
-import sys
-import time
 import datetime
-import threading
 from lvt.const import *
 from lvt.protocol import *
 from lvt.server.grammar import *
+from lvt.server.utterances import Utterances
 from lvt.server.skill import Skill
-import lvt.server.entities as entities
 
 # Как часто проверять версию терминала (раз в день?)
 CHECK_VERSION_TIMEOUT = 60 * 60 * 24
@@ -21,36 +18,32 @@ class ServerConfigSkill(Skill):
     def onLoad( self ):
         self.priority = 5000
         self.subscribe( TOPIC_DEFAULT )
-        self.extendVocabulary( "обнови пере запусти загрузи терминал" )
+        self.utterances = Utterances( self.terminal )
+        self.utterances.add("update", "обнови терминал")
+        self.utterances.add("reboot", "[перезагрузить, перезапустить, пере загрузи, пере запусти] терминал")
+        self.vocabulary = self.utterances.vocabulary
         self.nextVersionCheckOn = datetime.datetime.now()
 
-    async def onText( self ):
+    async def onTextAsync( self ):
         if self.isAppealed :
+            matches = self.utterances.match(self.words)
+            if len(matches)>0:
+                self.stopParsing()
+                if matches[0].id == 'update':
+                    await self.terminal.updateClient()
+                else:
+                    await self.terminal.reboot("Перезагружаю терминал", "Терминал перезагружен")
 
-            if self.findWordChainB( 'обнови * терминал' )  :
-                self.stopParsing( ANIMATION_THINK )
-                await self.terminal.updateClient()
-
-            # Хак: в словаре малой модели отсутствуют слова "перезагрузи" и "перезапусти"
-            elif self.findWordChainB( 'пере загрузи * терминал' ) or self.findWordChainB( 'пере запусти * терминал' ) or \
-                self.findWordChainB( 'загрузи * терминал' ) or self.findWordChainB( 'запусти * терминал' ) :
-                self.stopParsing( ANIMATION_THINK )
-                await self.terminal.reboot()
-
-    async def onTimer( self ):
+    async def onTimerAsync( self ):
         if self.topic == TOPIC_DEFAULT and self.lastAppealed :
-            if datetime.datetime.now() > self.lastAppealed + datetime.timedelta( seconds=10 ) and datetime.datetime.now() > self.nextVersionCheckOn :
+            if datetime.datetime.now() > self.lastAppealed + datetime.timedelta( seconds=10 ) \
+                and datetime.datetime.now() > self.nextVersionCheckOn \
+                and 8 <= datetime.datetime.now().hour <= 22 :
+
                 self.nextVersionCheckOn = datetime.datetime.today() + datetime.timedelta( hours=32 )
                 if self.terminal.clientVersion != VERSION :
                     if self.terminal.autoUpdate == 2 :
                         await self.terminal.updateClient()
                     if self.terminal.autoUpdate == 1 :
-                        await self.sayAsync( 'Версия терминала устарела.' )
-                        await self.sayAsync( 'Для обновления скажите "Обновить терминал".' )
+                        await self.sayAsync( 'Версия терминала устарела. Вы можете обновить его командой "Обновить терминал"' )
 
-    def updateDevices( self ):
-        try:
-            entities.init()
-            self.terminal.updateVocabulary()
-        except Exception as e:
-            pass

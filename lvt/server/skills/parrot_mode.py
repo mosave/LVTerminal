@@ -3,6 +3,7 @@ import time
 from lvt.const import *
 from lvt.protocol import *
 from lvt.server.grammar import *
+from lvt.server.utterances import Utterances
 from lvt.server.skill import Skill
 
 TOPIC_PARROT_MODE = 'ParrotMode'
@@ -15,35 +16,35 @@ class ParrotModeSkill(Skill):
         self.subscribe( TOPIC_DEFAULT,TOPIC_PARROT_MODE )
         self.priority = 1000
         self.remindOn = 0
-        self.extendVocabulary( "повторяй за мной, включи режим попугая" )
-        self.extendVocabulary( "выключи режим попугая, перестань повторять" )
+        self.utterances = Utterances( self.terminal )
+        self.utterances.add("on", "включи режим попугая")
+        self.utterances.add("on", "повторяй за мной")
+        self.utterances.add("off", "выключи режим попугая")
+        self.utterances.add("off", "перестань за мной повторять")
+        self.utterances.add("off", "перестань повторять")
+        self.vocabulary = self.utterances.vocabulary
 
-    async def onText( self ):
+    async def onTextAsync( self ):
+
         if self.topic == TOPIC_PARROT_MODE:
             self.remindOn = time.time() + REMINDER_TIMEOUT
-
-            iOff = self.findWord( 'выключи' )
-            iOn = self.findWord( 'включи' )
-
-            iStop = self.findWord( 'перестань' )
-            iRepeat = self.findWord( 'повторять' )
-            iParrot = self.findWord( 'попугай' )
-            if iOff >= 0 and iParrot > 0 or iStop >= 0 and iRepeat >= 0 :
+            matches = self.utterances.match(self.words)
+            if (len(matches)>0) and (matches[0].id=='off'):
                 self.stopParsing( ANIMATION_ACCEPT )
-                await self.changeTopicAsync ( TOPIC_DEFAULT )
+                await self.changeTopicAsync( TOPIC_DEFAULT )
             else:
-                await self.sayAsync( self.terminal.originalTextUnfiltered )
+                await self.sayAsync( self.terminal.originalText )
 
-        else:
-            if self.isAppealed :
-                if self.findWordChainB( 'включи режим попугая' ) or \
-                    self.findWordChainB( 'переключись * режим попугая' ) or \
-                    self.findWordChainB( 'перейди в режим попугая' ) or \
-                    self.findWordChainB( 'повторяй за мной' ) :
-                    await self.changeTopicAsync( TOPIC_PARROT_MODE )
-                    self.stopParsing( ANIMATION_ACCEPT )
+        elif self.isAppealed :
+            matches = self.utterances.match(self.words)
+            if (len(matches)>0) and (matches[0].id=='on'):
+                await self.changeTopicAsync( TOPIC_PARROT_MODE )
+                self.stopParsing( ANIMATION_ACCEPT )
 
-    async def onTopicChange( self, newTopic: str, params={} ):
+    async def onTopicChangeAsync( self, newTopic: str, params={} ):
+        if newTopic == TOPIC_PARROT_MODE:
+            self.terminal.useVocabulary = False
+
         if self.topic == TOPIC_DEFAULT and newTopic == TOPIC_PARROT_MODE :
             self.animate( ANIMATION_AWAKE )
             await self.sayAsync( 'Окей, говорите и я буду повторять всё, что услышу!. ' + 'Для завершения скажите: "перестань за мной повторять"' )
@@ -52,8 +53,9 @@ class ParrotModeSkill(Skill):
         elif self.topic == TOPIC_PARROT_MODE :
             await self.sayAsync( 'Режим попугая выключен' )
             self.remindOn = 0
+            self.stopParsing( ANIMATION_NONE )
        
-    async def onTimer( self ):
+    async def onTimerAsync( self ):
         if( self.topic == TOPIC_PARROT_MODE ):
             if time.time() > self.remindOn:
                 await self.sayAsync( 'Для завершения скажите "выключить режим попугая" или "перестань за мной повторять"!' )

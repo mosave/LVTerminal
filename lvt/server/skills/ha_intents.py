@@ -1,5 +1,6 @@
 import time
 from lvt.const import *
+from lvt.logger import logDebug
 from lvt.protocol import MSG_API_FIRE_INTENT
 from lvt.server.grammar import *
 from lvt.server.utterances import Utterances
@@ -13,13 +14,13 @@ class HomeAssistantIntentsSkill(Skill):
     При обнаружении ключевой фразы скилл передает на сторону HA инициацию срабатывания соответствующего Intent'а.
     """
     def onLoad( self ):
-        self.priority = 0
+        self.priority = 400
         self.__intents = []
         self.__utterances = Utterances( self.terminal )
         # Фразы анализируются только в режиме основного топика
         self.subscribe( TOPIC_DEFAULT )
 
-    async def onText( self ):
+    async def onTextAsync( self ):
         if self.isAppealed and (self.topic == TOPIC_DEFAULT):
             matches = self.utterances.match(self.words)
             if len(matches)>0:
@@ -53,4 +54,7 @@ class HomeAssistantIntentsSkill(Skill):
             for i in range(len(self.__intents)):
                 for utterance in self.__intents[i]['Utterance']:
                     self.utterances.add( i, utterance )
+                    
+            self.vocabulary = self.utterances.vocabulary
+            self.terminal.updateVocabulary()
 

@@ -39,10 +39,7 @@ TTS_ALL = frozenset(TTS_RHVOICE)
 
 TOPIC_ALL = '*'
 TOPIC_DEFAULT = 'DefaultTopic'
-TOPIC_WAIT_COMMAND = "WaitCommand"
 TOPIC_HA_NEGOTIATE = "HomeAssistantNegotiate"
-
-WAIT_COMMAND_TIMEOUT = 5 # время в режиме ожидания команды, секунд
 
 LMS_MODE_PAUSE = 0
 LMS_MODE_MUTE = 1

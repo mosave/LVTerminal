@@ -1,8 +1,7 @@
-import sys
-import time
 import datetime
 from lvt.const import *
 from lvt.server.grammar import *
+from lvt.server.utterances import Utterances
 from lvt.server.skill import Skill
 
 #Define base skill class
@@ -15,22 +14,22 @@ class TellTheTimeSkill(Skill):
     def onLoad( self ):
         self.priority = 1000
         self.subscribe( TOPIC_DEFAULT )
-        self.extendVocabulary('сколько, сейчас времени, который час, какой сегодня день недели, скажи, число, дата')
+        self.utterances = Utterances( self.terminal )
+        self.utterances.add("time", "* сколько времени")
+        self.utterances.add("time", "* сколько сейчас времени")
+        self.utterances.add("time", "* который час")
+        self.utterances.add("date", "* какой сегодня день недели")
+        self.utterances.add("date", "* какое сегодня число")
+        self.utterances.add("date", "* какая сегодня дата")
+        self.vocabulary = self.utterances.vocabulary
 
-    async def onText( self ):
+    async def onTextAsync( self ):
         if self.isAppealed :
-            if self.findWordChainB('сколько * времени') or \
-                self.findWordChainB('который * час'):
-                self.stopParsing(ANIMATION_ACCEPT)
-                s = transcribeTime(  datetime.datetime.today() ).replace('часа', 'часа́')
-                await self.sayAsync( s )
-
-            elif self.findWordChainB('какой сегодня день') or \
-                self.findWordChainB('какой день недели') or \
-                self.findWordChainB('скажи какой день') or \
-                self.findWordChainB('скажи * какое * число') or \
-                self.findWordChainB('скажи * какая * дата') or \
-                self.findWordChainB('какое сегодня число'):
-                self.stopParsing(ANIMATION_ACCEPT)
-
-                await self.sayAsync('Сегодня '+ transcribeDate(datetime.datetime.today()) )
+            matches = self.utterances.match(self.words)
+            if len(matches)>0:
+                self.stopParsing()
+                if matches[0].id == 'time':
+                    s = transcribeTime(  datetime.datetime.today() ).replace('часа', 'часа́')
+                    await self.sayAsync( s )
+                else:
+                    await self.sayAsync('Сегодня '+ transcribeDate(datetime.datetime.today()) )

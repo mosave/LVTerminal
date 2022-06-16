@@ -546,7 +546,6 @@ if __name__ == '__main__':
 
     config.init( audio )
 
-    logError("ttt")
     shared = multiprocessing.Manager().Namespace()
     shared.quiet = False
     shared.isTerminated = False

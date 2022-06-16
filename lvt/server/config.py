@@ -123,9 +123,6 @@ def init():
     ### Speaker identification config
     spkModel = p.getValue( section, 'SpkModel','' ).strip()
     if( spkModel != '' ) :
-        if model=='' :
-            __error( 'Идентификация по голосу работает только совместно с "полной" голосовой модель (параметр Model)', 'SpkModel', section )
-
         voiceSimilarity = p.getFloatValue( section, 'VoiceSimilarity', 0.6 )
         if( voiceSimilarity<0.1 or voiceSimilarity>1 ): 
             __error( '"Коэффициент похожести" голоса должен находиться в диапазоне 0.1 .. 1.0', 'VoiceSimilarity', section )

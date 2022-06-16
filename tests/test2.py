@@ -21,7 +21,7 @@ logs = list()
 LoggerInit( config )
 LoggerCapture(logs)
 
-def onTopicChange( params:dict={} ):
+def onTopicChangeAsync( params:dict={} ):
 
     print(params)
 
@@ -34,7 +34,7 @@ def a (*args, **kwargs):
     elif len(args)>0 : 
         params.update({'params':args})
 
-    onTopicChange(params)
+    await onTopicChangeAsync(params)
 
 p = {'p1' : 'v1'}
 print(p['p1'])
@@ -42,13 +42,13 @@ if p['p2']=='' : print('blablabla')
 print(p['p2'])
 
 a()
-onTopicChange()
+await onTopicChangeAsync()
 
 a({'p1' : 'v1', 'p2': 'v2' })
 a(p1='v1', p2='v2')
 
 a(YesNoParams("messagggge", 'tYes', 'tNo', 'tCancel'))
-onTopicChange(YesNoParams("messagggge", 'tYes', 'tNo', 'tCancel'))
+await onTopicChangeAsync(YesNoParams("messagggge", 'tYes', 'tNo', 'tCancel'))
 
 
 

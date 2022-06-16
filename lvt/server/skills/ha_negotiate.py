@@ -60,7 +60,7 @@ class HomeAssistantNegotiateSkill(Skill):
     - по истечении заданного периода вызвать intent "по умолчанию" и вернуться в основной топик
     """
     def onLoad( self ):
-        self.priority = 0
+        self.priority = 500
         self.subscribe( TOPIC_HA_NEGOTIATE )
         self.dtRepeat = 0
         self.dtCancel = 0
@@ -72,7 +72,7 @@ class HomeAssistantNegotiateSkill(Skill):
         self.utterances : Utterances = Utterances(self.terminal)
 
 
-    async def onTopicChange( self, newTopic: str, params={} ):
+    async def onTopicChangeAsync( self, newTopic: str, params={} ):
         if newTopic == TOPIC_HA_NEGOTIATE:
             if "Say" not in params or params['Say'] is None:
                 await self.sayAsync("Запуск диалога: стартовая фраза не задана")
@@ -125,11 +125,14 @@ class HomeAssistantNegotiateSkill(Skill):
             du = params["DefaultUtterance"] if "DefaultUtterance" in params else None
             if bool(du):
                 self.utterances.add( 'default', du )
+
+            self.vocabulary = self.utterances.vocabulary
+            self.terminal.updateVocabulary()
             
             self.dtRepeat = time.time() + TIMEOUT_REPEAT
             self.dtCancel = time.time() + self.defaultTimeout
 
-    async def onText( self ):
+    async def onTextAsync( self ):
         if self.topic == TOPIC_HA_NEGOTIATE: 
             self.dtCancel = time.time() + self.defaultTimeout
             self.dtRepeat = time.time() + TIMEOUT_REPEAT
@@ -155,7 +158,7 @@ class HomeAssistantNegotiateSkill(Skill):
                     self.stopParsing()
 
 
-    async def onTimer( self ):
+    async def onTimerAsync( self ):
         if self.topic == TOPIC_HA_NEGOTIATE :
             if (self.dtCancel>0) and (time.time() > self.dtCancel) :
                 await self.fireIntentAsync( self.defaultIntent, self.defaultSay, self.defaultData)

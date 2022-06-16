@@ -39,18 +39,18 @@ class Skill:
         #
         pass
 
-    async def onText( self ):
+    async def onTextAsync( self ):
         """Вызывается после завершения распознавания фразы в случае если скилл привязан к текущему состоянию
           * appeal - в фразе присутствует обращение к ассистенту
         """
         pass
 
-    async def onTopicChange( self, newTopic:str, params={} ):
+    async def onTopicChangeAsync( self, newTopic:str, params={} ):
         """Вызывается при переходе синтаксического анализатора в состояние, на которое подписан скилл
         """
         pass
         
-    async def onTimer( self ):
+    async def onTimerAsync( self ):
         """Вызывается примерно 1 раз в секунду, в зависимости от """
         pass
 
@@ -224,17 +224,14 @@ class Skill:
             if len( ab ) == 1 and ab[0] == topic : return True
             if len( ab ) > 1 and topic.startswith( ab[0] ) and topic.endswith( ab[-1] ): return True
 
-    def extendVocabulary( self, words, tags=None ):
-        """Расширить словарь словоформами, удовлетворяющим тегам
-        По умолчанию (tags = None) слова добавляется в том виде как они были переданы
-        Принимает списки слов как в виде строк так и в виде массивов (рекурсивно)
+    def extendVocabulary( self, words ):
+        """Расширить словарь словоформами. Принимает списки слов как в виде строк так и в виде массивов
         """
-        self.vocabulary.update( wordsToVocabulary( words, tags ) )
+        self.vocabulary.update( wordsToVocabulary( words ) )
 
-    async def changeTopicAsync( self, newTopic, *params, **kwparams ):
-        """Изменить текущий топик. Выполняется ПОСЛЕ выхода из обработчика onText
-        Прокси на terminal.changeTopicAsync"""
-        await self.terminal.changeTopicAsync( newTopic, params, kwparams )
+    async def changeTopicAsync( self, newTopic, params = None ):
+        """Изменить текущий топик на newTopic с параметрами params"""
+        await self.terminal.changeTopicAsync( newTopic, params )
 
     def stopParsing( self, animation: str=None ):
         """Прервать исполнение цепочки скиллов после выхода из обработчика onText"""

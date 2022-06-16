@@ -233,52 +233,37 @@ def joinWords( words, words2 ) -> str:
 #endregion
 
 #region wordsToVocabulary() / wordsToVocabularyAllForms() ##################################
-def wordsToVocabulary( words, tags=None ) :
-    """Расширить словарь словами с генерацией словоформ для заданных тегов
-    По умолчанию (теги не заданы) в словарь добавляется только переданные словоформы
+def wordsToVocabulary( words ) :
+    """Расширить словарь, словами в исходной и нормальной форме
     Принимает списки слов в виде строк либо массивов строк (рекурсивно)
     """
-    vocabulary = set()
     if isinstance( words, list ) :
-        for word in words : 
-            vocabulary.update( wordsToVocabulary( word ) )
-    elif isinstance( words, str ):
-        wordsList = wordsToList( words )
-        for w in wordsList :
-            if tags != None : # Ищем первый разбор удовлетворяющий тегам
-                parses = parseWord( w )
-                parse = [p for p in parses if tags in p.tag]
-                parse = parses[0] if len( parse ) <= 0 else parse[0]
-                # Получаем множество лексем на базе выбранного разбора слова
-                lexemes = set( [l.word for l in parse.lexeme if tags in l.tag] )
-                #Добавляем лексемы в словарь
-                vocabulary.update( lexemes )
-            else: 
-                vocabulary.add( w )
+        parses = parseText( ' '.join(words) )
+    else:
+        parses = parseText( str(words) )
+
+    vocabulary = set()
+    for p in parses:
+        if p is not None:
+            vocabulary.add( p[0].normal_form )
+            vocabulary.add( p[0].word )
     return vocabulary
 
-def wordsToVocabularyAllForms( words, tags=None ) :
+def wordsToVocabularyAllForms( words ) :
     """Расширить словарь словами с генерацией словоформ для заданных тегов.
     По умолчанию (теги не заданы) в словарь добавляется все возможные словоформы
     Принимает списки слов как в виде строк так и в виде массивов (рекурсивно)"""
-    vocabulary = set()
     if isinstance( words, list ) :
-        for word in words : 
-            vocabulary.update( wordsToVocabularyAllForms( word ) )
-    elif isinstance( words, str ):
-        for w in wordsToList( words ) :
-            parses = parseWord( w )
-                
-            if tags != None : # Ищем первый разбор удовлетворяющий тегам
-                parse = [p for p in parses if tags in p.tag]
-                parse = parses[0] if len( parse ) <= 0 else parse[0]
-            else: # Берем первый разбор
-                parse = parses[0]
+        parses = parseText( ' '.join(words) )
+    else:
+        parses = parseText( str(words) )
 
-            # Получаем множество лексем на базе выбранного разбора слова
-            lexemes = set( [l.word for l in parse.lexeme if ( tags == None ) or tags in l.tag] )
-            #Добавляем лексемы в словарь
-            vocabulary.update( lexemes )
+    vocabulary = set()
+    for parse in parses:
+        if parse is not None:
+            vocabulary.add( parse[0].normal_form )
+            for lexeme in parse[0].lexeme:
+                vocabulary.add( lexeme.word )
 
     return vocabulary
 #endregion
