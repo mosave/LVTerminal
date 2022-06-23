@@ -30,7 +30,7 @@ volumeCardIndex = 0
 volumeControl = None
 volumeControlPlayer = None
 
-lmsAddress = None
+lmsAddress = ''
 lmsPort = 9000
 lmsUser = None
 lmsPassword = None
@@ -132,7 +132,7 @@ def init( audio: pyaudio.PyAudio ):
     volumeControlPlayer = p.getValue("","PlayerVolumeControl",None)
     volumeCardIndex = p.getIntValue("", "VolumeCardIndex", 0 )
 
-    lmsAddress = p.getValue("","LMSAddress", None)
+    lmsAddress = p.getValue("","LMSAddress", '')
     lmsPort = p.getIntValue("","LMSPort", 9000)
     lmsUser = p.getValue("","LMSUser", None)
     lmsPassword = p.getValue("","LMSPassword", None)
@@ -202,7 +202,7 @@ def init( audio: pyaudio.PyAudio ):
 def __getAudioDevice( audio: pyaudio.PyAudio, deviceIndex, isInput:bool ):
     parameter = f'Audio{("input" if isInput else "Output")}Device'
     # Use default device if not specified
-    if deviceIndex == None :
+    if deviceIndex is None :
         try:
             if isInput :
                 a = audio.get_default_input_device_info()
@@ -212,7 +212,7 @@ def __getAudioDevice( audio: pyaudio.PyAudio, deviceIndex, isInput:bool ):
         except:
             deviceIndex = 0
 
-    if deviceIndex == None : 
+    if deviceIndex is None : 
         __error( 'Неверное имя или индекс аудиоустройтсва', parameter )
         return(None, None)
 
@@ -236,7 +236,7 @@ def __getAudioDevice( audio: pyaudio.PyAudio, deviceIndex, isInput:bool ):
             break
 
     # check if device was resolved
-    if deviceIndex == None or deviceName == None : 
+    if deviceIndex is None or deviceName is None : 
         __error( 'Неверное имя или индекс аудиоустройтсва', parameter )
 
     channels = device.get('maxInputChannels') if isInput else device.get('maxOutputChannels')

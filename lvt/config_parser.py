@@ -87,7 +87,7 @@ class ConfigParser:
         value = self.getRawValue( section, key )
         if( isinstance(value, list)) :
             return ' '.join(value)
-        elif value != None:
+        elif value is not None:
             return value
         return default
 

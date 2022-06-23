@@ -34,7 +34,7 @@ class Entity():
             self.definitions.append( EntityDefinition(id, terminalId, str(definitions)) )
 
     def sort(self):
-        self.definitions = sorted( self.definitions, key=lambda e: (e.terminalId if e.terminalId!=None else '' ), reverse=True )
+        self.definitions = sorted( self.definitions, key=lambda e: (e.terminalId if e.terminalId is not None else '' ), reverse=True )
         self.definitions = sorted( self.definitions, key=lambda e: e.len, reverse=True )
 
     def getVocabulary( self, tags = None ) -> set[str]:
@@ -96,7 +96,7 @@ def __loadEntity( fileName: str ) -> Entity:
             for eId in defs:
                 if len(str(eId))==0 or str(eId)=='=' :
                     fatalError(f"{prefix}: Неверный ID \"{eId}\"")
-                if defs[eId] == None :
+                if defs[eId] is None :
                     fatalError(f"{prefix}: Отсутствует название сущности")
                 entity.add( eId, terminalId, defs[eId])
         elif terminalId not in config.terminals:

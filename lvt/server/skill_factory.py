@@ -64,7 +64,7 @@ class SkillFactory():
     def isSkillClass( self, cls ):
         if not hasattr( cls, '__name__' ) or not hasattr( cls, '__base__' ) : return False
         base = cls.__base__
-        while base != None :
+        while base is not None :
             if str( base.__name__ ) == 'Skill': return True
             base = base.__base__
 

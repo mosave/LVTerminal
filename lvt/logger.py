@@ -47,10 +47,10 @@ class Logger:
         global __printLevel
         global __logLevel
 
-        if __printLevel != None and messageLevel >= __printLevel:
+        if __printLevel is not None and messageLevel >= __printLevel:
                 sys.__stdout__.write( message if message.endswith('\n') else f'{message}\n' )
 
-        if __logLevel != None and str( message ).strip() != "" :
+        if __logLevel is not None and str( message ).strip() != "" :
             if messageLevel >= logging.ERROR : 
                 prefix = "E"
             elif messageLevel >= logging.WARNING : 
@@ -65,7 +65,7 @@ class Logger:
             if messageLevel >= __logLevel and message.strip() != "": 
                 self.logger.log( logging.CRITICAL, m )
 
-            if self.captureTo != None : 
+            if self.captureTo is not None : 
                 self.captureTo.append( m )
 
     def flush( self ):
@@ -78,9 +78,9 @@ def log( message:str, level = logging.INFO ):
     """Вывод сообщения на экран и в журнал. Синоним для print()"""
     global __printLevel
 
-    if __writer != None :
+    if __writer is not None :
         __writer.logMessage( level, message )
-    elif __printLevel!=None and level >= __printLevel :
+    elif __printLevel is not None and level >= __printLevel :
         print( message )
 
 def logDebug( message:str ):
@@ -102,7 +102,7 @@ def loggerInit( config ):
     """Инициализация журнала"""
     global __writer
 
-    if ((config.logFileName != None) and config.logLevel != None) or (config.printLevel!=None):
+    if ((config.logFileName is not None) and config.logLevel is not None) or (config.printLevel is not None):
         __writer = Logger( config )
         sys.stdout = __writer
         sys.stderr = __writer
@@ -110,5 +110,5 @@ def loggerInit( config ):
 def loggerSetCapture( captureTo: list ):
     """Зарегистрировать list, в который будут копироваться все журналируемые сообщения без фильтрации"""
     global __writer
-    if __writer != None : __writer.captureTo = captureTo
+    if __writer is not None : __writer.captureTo = captureTo
 #endregion

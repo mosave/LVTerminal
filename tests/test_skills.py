@@ -48,7 +48,7 @@ async def onTextAsync( text:str, controlPhrase : str=None ):
         if m.startswith('E '): errors += 1
     if errors >0 : 
         abort(f'Обнаружены ошибки: {errors}')
-    if controlPhrase != None :
+    if controlPhrase is not None :
         controlPhrase = normalizeWords(controlPhrase)
         found = False
         if terminal.text.find(controlPhrase) >=0 : found = True
@@ -215,7 +215,7 @@ await terminal.onConnectAsync( messageQueue )
 #    for p in list(t.PARTS_OF_SPEECH) :
 #        for g in list(t.KNOWN_GRAMMEMES) :
 #            s = w.inflect( {str(c),str(p), str(g)})
-#            if s!=None :
+#            if s is not None :
 #                s = s.word
 #                if s=='восьмое' :
 #                    print( f'{str(c)},{str(p)}, {str(g)}: ' + s )

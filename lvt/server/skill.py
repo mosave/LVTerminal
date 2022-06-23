@@ -85,7 +85,7 @@ class Skill:
     def getNormalForm( self, index: int, tags=None ) -> str:
         """Возвращает нормальную форму слова в фразе с учетом морфологических признаков"""
         for p in self.words[index]:
-            if ( tags == None ) or tags in p.tag: 
+            if ( tags is None ) or tags in p.tag: 
                return p.normal_form#.replace( 'ё', 'e' )
         return ''
 
@@ -96,12 +96,12 @@ class Skill:
 
     def isWord( self, index, word: str, tags=None ) -> bool:
         """Сравнение слова со словом в фразе с учетом морфологических признаков"""
-        if word == None or not isinstance( word, str ) : return False
+        if word is None or not isinstance( word, str ) : return False
 
         nf = normalFormOf( word, tags )
         for p in self.terminal.words[index]:
-            #if ( tags == None or tags in p.tag ) and ( p.normal_form.replace( 'ё', 'e' ) == nf ): 
-            if ( tags == None or tags in p.tag ) and ( p.normal_form == nf ): 
+            #if ( tags is None or tags in p.tag ) and ( p.normal_form.replace( 'ё', 'e' ) == nf ): 
+            if ( tags is None or tags in p.tag ) and ( p.normal_form == nf ): 
                 return True
         return False
 
@@ -117,8 +117,8 @@ class Skill:
         nf = normalFormOf( word,tags )
         for index in range( len( self.terminal.words ) ):
             for p in self.terminal.words[index]:
-                #if ( tags == None or tags in p.tag ) and p.normal_form.replace( 'ё', 'e' ) == nf: 
-                if ( tags == None or tags in p.tag ) and p.normal_form == nf: 
+                #if ( tags is None or tags in p.tag ) and p.normal_form.replace( 'ё', 'e' ) == nf: 
+                if ( tags is None or tags in p.tag ) and p.normal_form == nf: 
                     return index
         return -1
 
@@ -235,7 +235,7 @@ class Skill:
 
     def stopParsing( self, animation: str=None ):
         """Прервать исполнение цепочки скиллов после выхода из обработчика onText"""
-        if animation != None : 
+        if animation is not None : 
             self.terminal.animate( animation )
             #if animation not in ANIMATION_STICKY :
             #    self.terminal.animate( ANIMATION_NONE )

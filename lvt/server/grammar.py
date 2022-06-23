@@ -32,14 +32,14 @@ def normalFormOf( word: str, tags=None ) -> str:
     """Возвращает нормальную форму слова с учетом морфологических признаков"""
     parses = parseWord( word )
     for p in parses:
-        if ( tags == None ) or tags in p.tag: 
+        if ( tags is None ) or tags in p.tag: 
             return p.normal_form#.replace( 'ё', 'e' )
     return ''
 
 
 def changeGender( tags, gender ) :
     try:
-        t = set( tags ) if tags != None else {}
+        t = set( tags ) if tags is not None else {}
         t.discard( 'masc' )
         t.discard( 'femn' )
         t.discard( 'neut' )
@@ -55,7 +55,7 @@ def conformToNumber( this, number: int, word: str ) -> str:
 #region Numbers transcription ##############################################################
 def transcribeNumber999( number: int, tags=None ):
     """Перевод целого числа в диапазоне 0..999 в фразу на русском языке с учетом заданных тегов"""
-    if tags == None : tags = {'nomn'}
+    if tags is None : tags = {'nomn'}
     if (number<0) or (number>999):
         raise ArgumentError("Число должно находиться в диапазоне 0..999")
 
@@ -94,7 +94,7 @@ def transcribeNumber999( number: int, tags=None ):
     
 def transcribeNumber( number: int, tags=None, word: str='' ):
     """Перевод целого числа до миллиарда в фразу на русском языке с учетом заданных тегов"""
-    if tags == None : tags = {'nomn'}
+    if tags is None : tags = {'nomn'}
     s = ''
     if number < 0 :
         s = 'минус '
@@ -127,7 +127,7 @@ def transcribeNumber( number: int, tags=None, word: str='' ):
 
     if word != '' :
         w = parseWord( word )[0].inflect( tags )
-        if w == None : w = parseWord( word )[0]
+        if w is None : w = parseWord( word )[0]
         s += w.make_agree_with_number( number ).word
 
     return s.strip()
@@ -164,13 +164,13 @@ def transcribeDate( dt, tags=None ):
         d1 = n1[int(dt.day/10)]
 
 
-    if tags != None : 
+    if tags is not None : 
         w = parseWord(d2)[0].incline(tags)
-        if w != None : d2 = w.word
+        if w is not None : d2 = w.word
         w = parseWord(dow)[0].incline(tags)
-        if w != None : dow = w.word
+        if w is not None : dow = w.word
         w = parseWord(month)[0].incline(tags)
-        if w != None : month = w.word
+        if w is not None : month = w.word
 
     #TODO: добавить год, если дата отличается от текущей больше чем на 3 месяца
     day = f'{d1} {d2}'.strip()
@@ -182,7 +182,7 @@ def normalizePhrases( phrases ) -> str:
     """Возвращает нормализованный список (через запятую) нормализованных цепочек слов (через пробел)
     Пример "включи свет,выключи свет,сделай что-то"
     """
-    if phrases==None : return ''
+    if phrases is None : return ''
     allowed_chars = 'abcdefghijklmnopqrstuvxyzабвгдеёжзийклмнопрстуфхцчшщъыьэюя 1234567890-,'
     phrases = str(phrases).lower()
     cleaned = ''

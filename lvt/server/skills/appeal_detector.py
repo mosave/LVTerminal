@@ -24,7 +24,7 @@ class AppealDetectorSkill(Skill):
         self.utterances = Utterances( self.terminal )
         self.utterances.add("voice", "[Голос, подай голос, скажи что-нибудь]")
         self.utterances.add("alive", "[ты здесь, ты живой, ты еще живой, ты там живой, ты там еще живой]")
-        self.utterances.add("hearing", "[ты меня слышишь, ты там меня слышишь]")
+        self.utterances.add("hearing", "[ты меня слышишь, ты слышишь, ты там меня слышишь]")
         self.vocabulary = self.utterances.vocabulary
 
     async def onTextAsync( self ):
@@ -62,7 +62,7 @@ class AppealDetectorSkill(Skill):
                 self.terminal.lastAppealed = datetime.datetime.now()
                 break
 
-        if aPos == None or aPos < 0 : return False
+        if aPos is None or aPos < 0 : return False
 
         # Обращение вида "Эй, ассистент" 
         if aPos > 0 : 

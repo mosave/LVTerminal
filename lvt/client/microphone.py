@@ -68,12 +68,12 @@ class Microphone:
 
     def __exit__(self, exc_type, exc_value, traceback):
 
-        if self.audioStream != None:
+        if self.audioStream is not None:
             try: self.audioStream.close()
             except:pass
             self.audioStream = None
 
-        if self.vad != None:
+        if self.vad is not None:
             try: del(self.vad)
             except:pass
             self.vad = None
@@ -192,7 +192,7 @@ class Microphone:
             #print(f'factor={factor} ')
             data = None
             for ch in config.microphones :
-                if data==None :
+                if data is None :
                     data = audioop.mul( channels[ch], 2, factor )
                 else :
                     data = audioop.add( data, audioop.mul( channels[ch], 2, factor ), 2 )

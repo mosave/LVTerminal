@@ -100,7 +100,7 @@ def split2( s: str ):
 def split3( s: str ):
     """Разбивает строку на "ключевое слово, первый параметр и все остальное" """
     a,b = split2( s )
-    if b == None : return (a,b,None)
+    if b is None : return (a,b,None)
     b,c = split2( b )
     return a,b,c
 
@@ -114,9 +114,9 @@ def parseMessage( message ) :
 def MESSAGE( msg: str, p1: str=None, p2: str=None, p3: str=None ) -> str:
     """Конструирует LVT сообщение из команды и параметров"""
     if msg not in MSG_ALL: raise Exception( f'Invalid message "{msg}"' )
-    if p1 != None: msg += ' ' + str( p1 ).strip()
-    if p2 != None: msg += ' ' + str( p2 ).strip()
-    if p3 != None: msg += ' ' + str( p3 ).strip()
+    if p1 is not None: msg += ' ' + str( p1 ).strip()
+    if p2 is not None: msg += ' ' + str( p2 ).strip()
+    if p3 is not None: msg += ' ' + str( p3 ).strip()
     return msg
 
 

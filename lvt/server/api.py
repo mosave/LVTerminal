@@ -21,9 +21,9 @@ def sendMessage( msg: str, statusCode: int = 0, status: str = None, data = None)
             'Message': msg,
             'StatusCode': statusCode
             }
-    if status != None :
+    if status is not None :
         message['Status'] = str(status)
-    if data != None:
+    if data is not None:
         message['Data'] = json.dumps( data )
 
     api_queue.append( message )
@@ -31,15 +31,22 @@ def sendMessage( msg: str, statusCode: int = 0, status: str = None, data = None)
 def sendError( errorCode: int, errorMessage: str ):
     sendMessage( MSG_API_ERROR, errorCode, errorMessage )
 
-def fireIntent( intent_type: str, speaker_id: str, text: str, intent_data ):
-    data = {
-        'Intent': intent_type,
-        'Terminal': speaker_id,
-        'Text': text,
-        'Data' : intent_data
-    }
+def fireIntent( intent_type: str, terminal_id: str, text: str, intent_data ):
+    terminal = terminals.get(terminal_id)
+    data = dict(intent_data) if intent_data is not None else {}
+    data["speaker"] = terminal_id
+    if ("location" not in data) or (data["location"] is None):
+        data["location"] = terminal.location
+    if ("person" not in data) or (data["person"] is None):
+        data["person"] = terminal.speaker
 
-    sendMessage( MSG_API_FIRE_INTENT, data = data )
+    sendMessage( MSG_API_FIRE_INTENT, data = {
+        'Intent': intent_type,
+        'Terminal': terminal_id,
+        'Text': text,
+        'Data' : data
+    } )
+
 
 async def server( request ):
     global api_tts
@@ -107,7 +114,7 @@ async def server( request ):
                 message = str(request['Message'])
                 data =  json.loads( str( request['Data'] ) ) if 'Data' in request else None
 
-                if message != None:
+                if message is not None:
                     if not authorized:
                         if message == MSG_API_AUTHORIZE:
                             if str(data) == str(config.apiServerPassword):
@@ -156,7 +163,7 @@ async def server( request ):
 
                         for tid in trms:
                             terminal = terminals.get( tid )
-                            if terminal != None and terminal.connected:
+                            if terminal is not None and terminal.connected:
                                 if force_update:
                                     await terminal.updateClient(say, say_on_connect)
                                 else:

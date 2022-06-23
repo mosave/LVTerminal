@@ -6,33 +6,33 @@
     "configurations": [
 
         {
-            "name": "Python: Server on MOSAVE1",
+            "name": "Python: Server",
             "type": "python",
             "request": "launch",
             "module": "lvt_server",
             "console": "integratedTerminal",
             "args": [
-                "--config=server_mosave1.cfg"
+                "--config=server_aepc.cfg"
             ]
         },
         {
-            "name": "Python: Client on MOSAVE1",
+            "name": "Python: Client",
             "type": "python",
             "request": "launch",
             "module": "lvt_client",
             "console": "integratedTerminal",
             "args": [
-                "--config=client_mosave1.cfg"
+                "--config=client_aepc.cfg"
             ]
         },
         {
-            "name": "Python: test4 on MOSAVE1",
+            "name": "Python: test4",
             "type": "python",
             "request": "launch",
             "module": "tests.test4",
             "console": "integratedTerminal",
             "args": [
-                "--config=server_mosave1.cfg"
+                "--config=server_aepc.cfg"
             ]
         }
     ]

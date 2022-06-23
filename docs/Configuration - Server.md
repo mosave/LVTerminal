@@ -76,13 +76,15 @@ cd LVTerminal
 
 Однако если по какой-то причине вы решите сделать это самостоятильно либо не использовать virtual_env - то серверная часть LVT зависит от следующих модулей:
 
-* pyaudio (уже установлен)
-* websockets 
-* psutil 
-* pymorphy2 
-* rhvoice_wrapper 
-* numpy
-* pysqueezebox
+ * pyaudio (уже установлен)
+ * aiohttp
+ * psutil 
+ * pymorphy2 
+ * rhvoice_wrapper 
+ * rhvoice_wrapper_bin (Windows)
+ * numpy
+ * pysqueezebox
+ * vosk
 
 ### 5. Установка серверной части в виде сервиса
 

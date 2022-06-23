@@ -65,6 +65,7 @@ async def server( request ):
     global spkModel
     # Kaldi speech recognizer objects
     recognizer = None
+    currentVocabulary = ""
 
     # Currently connected Terminal
     terminal = None
@@ -89,7 +90,7 @@ async def server( request ):
         sendDatagram( MESSAGE( msg,p1,p2 ) )
 
     def sendStatus():
-        status = json.dumps(terminal.getState()) if terminal != None else '{"Terminal":"?","Name":"Not Registered","Connected":"false"}'
+        status = json.dumps(terminal.getState()) if terminal is not None else '{"Terminal":"?","Name":"Not Registered","Connected":"false"}'
         sendMessage( MSG_STATUS, status )
 
     connection = web.WebSocketResponse()
@@ -119,15 +120,15 @@ async def server( request ):
                 elif m == MSG_STATUS:
                     sendStatus()
                 elif m == MSG_LVT_STATUS:
-                    if terminal == None : break
+                    if terminal is None : break
                     sendMessage( MSG_LVT_STATUS, json.dumps(terminals.getState()) )
                 elif m == MSG_TEXT:
-                    if terminal == None : break
+                    if terminal is None : break
                     log(f'[{terminal.id}] {p}')
                 elif m == MSG_TERMINAL :
                     id, password, version = split3( p )
                     terminal = terminals.authorize( id, password, version )
-                    if terminal != None:
+                    if terminal is not None:
                         terminal.ipAddress = request.remote
                         terminal.version = version
                         await terminal.onConnectAsync( messageQueue )
@@ -143,25 +144,32 @@ async def server( request ):
                     logError( f'Unknown message: "{message}"' )
                     break
             # Получен аудиофрагмент приемлемой длины и терминал авторизован
-            elif message.type == WSMsgType.BINARY and terminal != None:
+            elif message.type == WSMsgType.BINARY and terminal is not None:
                 if not isActive:
                     isActive = True
                     # Сохраняем аудиофрагмент в буффере
-                    voiceData = message.data
+                    voiceData = None
                     # Инициализация KaldiRecognizer занимает 30-100мс и не требует много памяти.
+                    if recognizer is not None \
+                        and terminal.useVocabulary and gModel is not None \
+                        and currentVocabulary != json.dumps( list( terminal.getVocabulary() ), ensure_ascii=False ):
+                            del(recognizer)
+                            recognizer = None
 
+                # Добавляем аудиофрагмент в буффер:
+                voiceData = message.data if voiceData is None else voiceData + message.data
+
+                if recognizer is None:
                     if terminal.useVocabulary:
                         # Распознавалка "со словарем"
-                        
                         if gModel is not None:
+                            currentVocabulary = json.dumps( list( terminal.getVocabulary() ), ensure_ascii=False )
                             recognizer = KaldiRecognizer(
                                 gModel,
                                 VOICE_SAMPLING_RATE,
-                                json.dumps( list( terminal.getVocabulary() ), ensure_ascii=False )
+                                currentVocabulary
                             )
-                        # logDebug( ' '.join(list(terminal.getVocabulary())) )
-
-                        # elif spkModel != None : 
+                        # elif spkModel is not None : 
                         #     # Включить идентификацию по голосу
                         #     recognizer = KaldiRecognizer( model, VOICE_SAMPLING_RATE, spkModel )
                         else: 
@@ -176,7 +184,7 @@ async def server( request ):
                             model if model is not None else gModel, 
                             VOICE_SAMPLING_RATE 
                         )
-                        # ( spkModel != None ): 
+                        # ( spkModel is not None ): 
                         # # Включить идентификацию по голосу
                         # recognizer = KaldiRecognizer( 
                         #     model if model is not None else gModel, 
@@ -184,18 +192,13 @@ async def server( request ):
                         #     spkModel 
                         # )
 
-
-                else:
-                    # Сохраняем аудиофрагмент в буффере:
-                    voiceData = message.data if voiceData==None else voiceData + message.data
-
                 # Распознаем очередной фрагмент голоса
                 (completed, text, signature) = await processVoice( 
                     message.data, 
                     recognizer
                 )
 
-                if signature != None : speakerSignature = signature
+                if signature is not None : speakerSignature = signature
 
                 # Если фраза завершена
                 if completed:
@@ -225,9 +228,9 @@ async def server( request ):
                             voiceLog.write( f'{dt}\t{terminal.id}\t{wavFileName}\n' +
                                 f'\t{text}\n' )
 
-                    # Освобождаем память
-                    if recognizer!=None : del(recognizer)
-                    recognizer = None
+                    # # Освобождаем память
+                    # if recognizer is not None : del(recognizer)
+                    # recognizer = None
                     del(voiceData)
                     voiceData = None
                     speakerSignature = None
@@ -238,7 +241,7 @@ async def server( request ):
 
         except asyncio.TimeoutError:
             # Примерно раз в секунду дергаем terminal.onTime()
-            if terminal != None and int( time.time() ) != int( lastTickedOn ):
+            if terminal is not None and int( time.time() ) != int( lastTickedOn ):
                 lastTickedOn = time.time()
                 await terminal.onTimerAsync()
         except KeyboardInterrupt:
@@ -250,6 +253,8 @@ async def server( request ):
             pass
     if terminal is not None:
         await terminal.onDisconnectAsync()
+    # Освобождаем память
+    if recognizer is not None : del(recognizer)
     recognizer = None
 #endregion
 
@@ -277,11 +282,13 @@ async def cleanup_background_tasks(app):
 
 #region onCtrlC/ restart ###############################################################
 def onCtrlC():
+    """Завершение работы сервера"""
     global app
     print()
     print( "Terminating..." )
 
 def restart():
+    """Перезапуск сервера"""
     global app
     print()
     print( "Restarting..." )
@@ -341,7 +348,7 @@ if __name__ == '__main__':
         print()
         print("=========== Загрузка основной голосовой модели ===========")
         model = Model( config.model )
-        if model == None: fatalError(f'Ошибка при загрузке голосовой модели {config.model}')
+        if model is None: fatalError(f'Ошибка при загрузке голосовой модели {config.model}')
 
     if bool(config.gModel):
         if config.gModel == config.model :
@@ -350,12 +357,12 @@ if __name__ == '__main__':
             print()
             print("===== Загрузка модели для распознавания со словарем ======")
             gModel = Model( config.gModel )
-            if gModel == None: fatalError(f'Ошибка при загрузке голосовой модели для распознавания со словарем {config.gModel}')
+            if gModel is None: fatalError(f'Ошибка при загрузке голосовой модели для распознавания со словарем {config.gModel}')
 
     if bool(config.spkModel):
         print("======== Загрузка модели для идентификации голоса ========")
         spkModel = SpkModel( config.spkModel )
-        if spkModel == None: fatalError(f'Ошибка при загрузке модели идентификации голоса {config.spkModel}')
+        if spkModel is None: fatalError(f'Ошибка при загрузке модели идентификации голоса {config.spkModel}')
 
     print("============== Загрузка моделей завершена ================")
     print()

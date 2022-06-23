@@ -556,15 +556,7 @@ class Utterance:
             weight:int - вес результата (количиство сопоставленных слов) либо -1 если соответствия не обнаружено
             values:dict - значения переменных
         """
-        (weight, values) = self.__match( 0, parses,  {}, 0 )
-        if( weight>=0 ):
-            if ("speaker" not in values) or (values["speaker"] is None):
-                values["speaker"] = self.terminal.id
-            if ("location" not in values) or (values["location"] is None):
-                values["location"] = self.terminal.location
-            if ("person" not in values) or (values["location"] is None):
-                values["person"] = self.terminal.speaker
-        return (weight, values)
+        return self.__match( 0, parses,  {}, 0 )
 
     def matchText(self, text: str):
         """Проверяет строку на соответствие шаблону.

@@ -119,12 +119,12 @@ class Terminal():
         """Проговорить сообщение на терминал. 
           Текст сообщения так же дублируется командой "Text"
         """
-        if self.tts == None: return
+        if self.tts is None: return
         voice = await self.tts.textToSpeechAsync(text)
         await self.playVoiceAsync(voice)
 
     async def playVoiceAsync( self, voice ):
-        if voice != None:
+        if voice is not None:
             self.playerMute()
             try:
                 if time.time() - self.lastSound > 1 * 60:
@@ -218,7 +218,7 @@ class Terminal():
         self.messageQueue = messageQueue
         self.playerMuted = 0
         # В случае, если предыдущая сессия закончилась недавно
-        if self.disconnectedOn != None and self.connectedOn - self.disconnectedOn < 60 :
+        if self.disconnectedOn is not None and self.connectedOn - self.disconnectedOn < 60 :
             while len( self.messages ) > 0:
                 messageQueue.append( self.messages[0] )
                 self.messages.pop( 0 )
@@ -254,7 +254,7 @@ class Terminal():
         else:
             self.speaker = None
 
-        speakerName = self.speaker.name if self.speaker != None else 'Человек'
+        speakerName = self.speaker.name if self.speaker is not None else 'Человек'
         self.logDebug( f'{speakerName}: "{text}"' )
         self.isReacted = False
 
@@ -413,7 +413,7 @@ class Terminal():
         message = MESSAGE( msg, p1, p2 )
         m = message if len( message ) < 80 else message[:80] + '...'
         self.logDebug( f'Message: {m}' )
-        if self.messageQueue != None:
+        if self.messageQueue is not None:
             self.messageQueue.append( message )
         else:
             self.messages.append( message )
@@ -421,7 +421,7 @@ class Terminal():
     def sendDatagram( self, data ):
         self.logDebug( f'Datagram: {int(len(data)/1024)}kB' )
         self.isReacted = True
-        if self.messageQueue != None:
+        if self.messageQueue is not None:
             self.messageQueue.append( data )
         else:
             self.messages.append( data )

@@ -1,4 +1,5 @@
 from asyncio import Lock
+import asyncio
 import time
 import hashlib
 import wave
@@ -28,7 +29,7 @@ class TTS():
                 except Exception as e:
                     logError( f'{type(e).__name__} importing RHVoice wrapper: {e}' )
             pass
-        elif config.ttsEngine != None:
+        elif config.ttsEngine is not None:
             logError( f'{config.ttsEngine}: Not yet implemented' )
 
     def __rhvp(self, parameter: str)->str:
@@ -48,9 +49,12 @@ class TTS():
 
         logDebug( f'{config.ttsEngine}: "{text}"' )
 
-        voice = None
+        speech = None
         wfn = hashlib.sha256((config.ttsEngine+'-'+config.voice+'-'+text).encode()).hexdigest()
         waveFileName = os.path.join( ROOT_DIR,'cache', wfn+'.wav' )
+
+        #print(f'wave file name= {waveFileName}')
+        #self.sendMessage( MSG_TEXT, text )
 
         #todo: rewrite to optimize 
         isLocked = True
@@ -61,11 +65,23 @@ class TTS():
                 isLocked = False
             ttsLock.release()
             if isLocked:
-                time.sleep(0.1)
+                await asyncio.sleep(0.1)
+        
         try:
-            #print(f'wave file name= {waveFileName}')
-            #self.sendMessage( MSG_TEXT, text )
-            if not os.path.isfile(waveFileName): 
+            # Загрузить файл из кэша, если есть.
+            if os.path.isfile(waveFileName):
+                #dt = datetime.datetime.now().ns
+                os.utime(waveFileName,)
+                # Максимальный размер файла 5MB
+                with open( waveFileName, 'rb' ) as f:
+                    speech = f.read( 5000 * 1024 )
+        except Exception as e:
+            logError(f'Ошибка при загрузке аудиофрагмента из кэша: {type(e).__name__}: {e}' )
+            speech = None
+
+        # check if file was not loaded from cache
+        if speech is None or len(speech) < 500:
+            try:
                 logDebug(f'{config.ttsEngine}: Cache not found, generating')
                 if (config.ttsEngine == TTS_RHVOICE):
                     rhvoice = rhvoiceWrapper.TTS( 
@@ -78,7 +94,7 @@ class TTS():
                         flac_path = self.__rhvp('flac_path'),
                         quiet = True,
                         config_path = ""#config.rhvParams['config_path'] if 'config_path' in config.rhvParams else None
-                        )
+                    )
 
                     # https://pypi.org/project/rhvoice-wrapper/
 
@@ -94,9 +110,9 @@ class TTS():
                     # f.write(frames)
                     # f.close()
                     with wave.open( waveFileName, 'wb' ) as wav:
-                        sampwidth = wav.setsampwidth(2)
-                        nchannels = wav.setnchannels(1)
-                        framerate = wav.setframerate(24000)
+                        wav.setsampwidth(2)
+                        wav.setnchannels(1)
+                        wav.setframerate(24000)
                         wav.writeframes( frames )
 
                 elif (config.ttsEngine == TTS_SAPI):
@@ -113,11 +129,11 @@ class TTS():
                     pythoncom.CoInitialize()
                     sapi = win32com.client.Dispatch("SAPI.SpVoice")
                     sapiStream = win32com.client.Dispatch("SAPI.SpFileStream")
-                    voices = sapi.GetVoices()
+                    sapiVoices = sapi.GetVoices()
                     v = config.voice.lower().strip()
-                    for voice in voices:
-                        if voice.GetAttribute("Name").lower().strip().startswith(v):
-                            sapi.Voice = voice
+                    for sapiVoice in sapiVoices:
+                        if sapiVoice.GetAttribute("Name").lower().strip().startswith(v):
+                            sapi.Voice = sapiVoice
                     sapi.Rate = config.sapiRate
                     sapiStream.Open( waveFileName, 3 )
                     sapi.AudioOutputStream = sapiStream
@@ -125,21 +141,23 @@ class TTS():
                     sapi.WaitUntilDone(-1)
                     sapiStream.Close()
 
-            if os.path.isfile(waveFileName):
-                #dt = datetime.datetime.now().ns
-                os.utime(waveFileName,)
+                if os.path.isfile(waveFileName):
+                    #dt = datetime.datetime.now().ns
+                    os.utime(waveFileName,)
+                    # Максимальный размер файла 5MB
+                    with open( waveFileName, 'rb' ) as f:
+                        speech = f.read( 5000 * 1024 )
 
-                with open( waveFileName, 'rb' ) as f:
-                    voice = f.read( 5000 * 1024 )
-            else:
-                logError(f'File {waveFileName} not found')
-        except Exception as e:
-            logError( f'TTS Engine exception: {e}' )
+            except Exception as e:
+                logError( f'TTS Engine exception: {e}' )
 
         await ttsLock.acquire()
         ttsLocked.remove(wfn)
         ttsLock.release()
-        return voice
+
+        if speech is not None and len(speech)<500:
+            speech = None
+        return speech
 
     def cacheRotate(self):
         pass
