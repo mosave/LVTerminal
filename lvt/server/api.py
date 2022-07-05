@@ -35,6 +35,7 @@ def fireIntent( intent_type: str, terminal_id: str, text: str, intent_data ):
     terminal = terminals.get(terminal_id)
     data = dict(intent_data) if intent_data is not None else {}
     data["speaker"] = terminal_id
+    data["text"] = text
     if ("location" not in data) or (data["location"] is None):
         data["location"] = terminal.location
     if ("person" not in data) or (data["person"] is None):
@@ -43,7 +44,6 @@ def fireIntent( intent_type: str, terminal_id: str, text: str, intent_data ):
     sendMessage( MSG_API_FIRE_INTENT, data = {
         'Intent': intent_type,
         'Terminal': terminal_id,
-        'Text': text,
         'Data' : data
     } )
 
@@ -208,8 +208,6 @@ async def server( request ):
 
                             if ('DefaultIntent' in data) and (data['DefaultIntent'] is not None):
                                 params['DefaultIntent'] = data['DefaultIntent']
-                            else:
-                                sendError( 3, ' "DefaultIntent" parameter not defined' )
 
                             if ('DefaultTimeout' in data) and (data['DefaultTimeout'] is not None):
                                 params['DefaultTimeout'] = int(data['DefaultTimeout'])
@@ -220,13 +218,76 @@ async def server( request ):
                             if ('DefaultSay' in data) and (data['DefaultSay'] is not None):
                                 params['DefaultSay'] = data['DefaultSay']
 
-                            if ('DefaultData' in data) and (data['DefaultData'] is not None):
-                                params['DefaultData'] = data['DefaultData']
+                            await terminal.changeTopicAsync( HA_NEGOTIATE_SKILL, params )
 
-                            await terminal.changeTopicAsync( TOPIC_HA_NEGOTIATE, params )
+                    elif message == MSG_API_LISTENING_START:
+                        trms = data["Terminals"] if isinstance(data["Terminals"], list ) else [str(data("Terminals"))]
+                        for tid in trms:
+                            terminal = terminals.get( tid )
+                            if terminal is None:
+                                sendError( 1, f'Terminal "{tid}" not found' )
+                                continue
+
+                            skill = terminal.getSkill(HA_LISTENER_SKILL)
+                            if skill is None:
+                                sendError( 2, f'Terminal "{tid}" not have {HA_LISTENER_SKILL} enabled' )
+                                await terminal.sayAsync("Скилл Home Assistant Listener не загружен")
+                                continue
+
+                            params = {}
+                            if ('Intent' in data) and (data['Intent'] is not None):
+                                params['Intent'] = data['Intent']
+                            else:
+                                sendError( 2, f'"Intent" parameter not defined' )
+                            if ('Say' in data) and (data['Say'] is not None):
+                                params['Say'] = data['Say']
+                            else:
+                                sendError( 2, f'"Say" parameter not defined' )
+
+                            if ('Prompt' in data) and (data['Prompt'] is not None):
+                                params['Prompt'] = data['Prompt']
+                            else:
+                                sendError( 2, f'"Say" parameter not defined' )
+
+                            if ('Model' in data) and (data['Model'] is not None):
+                                params['Model'] = 'f' if data['Model']!='d' else 'd'
+
+                            if ('DefaultIntent' in data) and (data['DefaultIntent'] is not None):
+                                params['DefaultIntent'] = data['DefaultIntent']
+                            else:
+                                sendError( 3, ' "DefaultIntent" parameter not defined' )
+
+                            if ('DefaultTimeout' in data) and (data['DefaultTimeout'] is not None):
+                                params['DefaultTimeout'] = int(data['DefaultTimeout'])
+
+                            if ('DefaultSay' in data) and (data['DefaultSay'] is not None):
+                                params['DefaultSay'] = data['DefaultSay']
+
+                            await terminal.changeTopicAsync( HA_LISTENER_SKILL, params )
+
+                    elif message == MSG_API_LISTENING_STOP:
+                        trms = data["Terminals"] if isinstance(data["Terminals"], list ) else [str(data("Terminals"))]
+                        for tid in trms:
+                            terminal = terminals.get( tid )
+                            if terminal is None:
+                                sendError( 1, f'Terminal "{tid}" not found' )
+                                continue
+                            if terminal.topic != HA_LISTENER_SKILL:
+                                continue
+
+                            skill = terminal.getSkill(HA_LISTENER_SKILL)
+
+                            if (('Intent' in data) and (data['Intent'] is not None) and (data['Intent'] != skill.intent)):
+                                continue
+
+                            if ('Say' in data) and (data['Say'] is not None):
+                                await terminal.sayAsync(data['Say'])
+
+                            await terminal.changeTopicAsync( TOPIC_DEFAULT )
 
                     else:
                         raise Exception( 'Invalid Command' ) 
+
         except KeyboardInterrupt:
             break
         except Exception as e:

@@ -66,6 +66,7 @@ async def server( request ):
     # Kaldi speech recognizer objects
     recognizer = None
     currentVocabulary = ""
+    currentUseVocabulary = True
 
     # Currently connected Terminal
     terminal = None
@@ -149,12 +150,15 @@ async def server( request ):
                     isActive = True
                     # Сохраняем аудиофрагмент в буффере
                     voiceData = None
-                    # Инициализация KaldiRecognizer занимает 30-100мс и не требует много памяти.
-                    if recognizer is not None \
-                        and terminal.useVocabulary and gModel is not None \
-                        and currentVocabulary != json.dumps( list( terminal.getVocabulary() ), ensure_ascii=False ):
+                    if recognizer is not None:
+                        if terminal.useVocabulary != currentUseVocabulary:
                             del(recognizer)
                             recognizer = None
+                        elif terminal.useVocabulary and gModel is not None \
+                            and currentVocabulary != json.dumps( list( terminal.getVocabulary() ), ensure_ascii=False ):
+                            del(recognizer)
+                            recognizer = None
+                        
 
                 # Добавляем аудиофрагмент в буффер:
                 voiceData = message.data if voiceData is None else voiceData + message.data
@@ -164,26 +168,22 @@ async def server( request ):
                         # Распознавалка "со словарем"
                         if gModel is not None:
                             currentVocabulary = json.dumps( list( terminal.getVocabulary() ), ensure_ascii=False )
-                            recognizer = KaldiRecognizer(
-                                gModel,
-                                VOICE_SAMPLING_RATE,
-                                currentVocabulary
-                            )
+                            recognizer = KaldiRecognizer( gModel, VOICE_SAMPLING_RATE, currentVocabulary )
                         # elif spkModel is not None : 
                         #     # Включить идентификацию по голосу
                         #     recognizer = KaldiRecognizer( model, VOICE_SAMPLING_RATE, spkModel )
                         else: 
                             # Не идентифицировать голос:
-                            recognizer = KaldiRecognizer( 
-                                model, 
-                                VOICE_SAMPLING_RATE 
-                            )
+                            recognizer = KaldiRecognizer( model, VOICE_SAMPLING_RATE )
                     else:
                         # Нефильтрованная распознавалка
-                        recognizer = KaldiRecognizer( 
-                            model if model is not None else gModel, 
-                            VOICE_SAMPLING_RATE 
-                        )
+                        if terminal.preferFullModel :
+                            m = model if model is not None else gModel
+                        else:
+                            m = gModel if gModel is not None else model
+                            
+                        recognizer = KaldiRecognizer( m, VOICE_SAMPLING_RATE )
+
                         # ( spkModel is not None ): 
                         # # Включить идентификацию по голосу
                         # recognizer = KaldiRecognizer( 

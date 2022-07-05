@@ -3,15 +3,14 @@ from lvt.const import *
 from lvt.server.grammar import *
 from lvt.server.utterances import Utterances, isInteger
 from lvt.server.skill import Skill
-from lvt.server.api import *
+import lvt.server.api as api
 
 TIMEOUT_REPEAT = 15
-TIMEOUT_CANCEL = 30
 
 """
 Запуск диалога с HomeAssistantNegotiateSkill:
 
-await terminal.changeTopicAsync( TOPIC_HA_NEGOTIATE,
+await terminal.changeTopicAsync( HA_NEGOTIATE_SKILL,
         say: str, # Фраза (список) для проговаривания в начале диалога
         prompt: str, # Фраза (список) - напоминание в процессе ожидания ответа
         options, # описание вариантов возможных ответов в диалоге (см комментарии)
@@ -46,10 +45,9 @@ await terminal.changeTopicAsync( TOPIC_HA_NEGOTIATE,
 """
 
 class HaNegotiateOption:
-    def __init__(self, intent, say, data ):
+    def __init__(self, intent, say ):
         self.intent = intent
         self.say = say
-        self.data = data
 
 #Define base skill class
 class HomeAssistantNegotiateSkill(Skill):
@@ -61,19 +59,18 @@ class HomeAssistantNegotiateSkill(Skill):
     """
     def onLoad( self ):
         self.priority = 500
-        self.subscribe( TOPIC_HA_NEGOTIATE )
+        self.subscribe( HA_NEGOTIATE_SKILL )
         self.dtRepeat = 0
         self.dtCancel = 0
         self.defaultIntent = None
         self.defaultTimeout = 30
         self.defaultSay = None
-        self.defaultData = {}
         self.options = []
         self.utterances : Utterances = Utterances(self.terminal)
 
 
     async def onTopicChangeAsync( self, newTopic: str, params={} ):
-        if newTopic == TOPIC_HA_NEGOTIATE:
+        if newTopic == HA_NEGOTIATE_SKILL:
             if "Say" not in params or params['Say'] is None:
                 await self.sayAsync("Запуск диалога: стартовая фраза не задана")
                 await self.changeTopicAsync(TOPIC_DEFAULT)
@@ -82,10 +79,6 @@ class HomeAssistantNegotiateSkill(Skill):
 
             if "Options" not in params or not isinstance(params['Options'], list):
                 await self.sayAsync("Ошибка. Не описаны варианты ответов")
-                await self.changeTopicAsync(TOPIC_DEFAULT)
-                return
-            if "DefaultIntent" not in params or params['DefaultIntent'] is None:
-                await self.sayAsync("Ошибка. Не задан параметр Default Intent")
                 await self.changeTopicAsync(TOPIC_DEFAULT)
                 return
 
@@ -111,7 +104,6 @@ class HomeAssistantNegotiateSkill(Skill):
                     HaNegotiateOption( 
                         o['Intent'] if 'Intent' in o else None, 
                         o['Say'] if 'Say' in o else None, 
-                        o['Data'] if 'Data' in o else {} 
                    )
                 )
                 i += 1
@@ -119,8 +111,7 @@ class HomeAssistantNegotiateSkill(Skill):
             self.defaultIntent = params["DefaultIntent"] if "DefaultIntent" in params else None # Intent ID вызываеыый при истечении времени ожидания
             self.defaultTimeout = int(params["DefaultTimeout"]) if "DefaultTimeout" in params else 30 # Время ожидания ответа (в секундах)
             self.defaultSay = params["DefaultSay"] if "DefaultSay" in params else None # Фраза для проговаривания при истечении времени ожидания
-            self.defaultData = params["DefaultData"] if "DefaultData" in params else {} # Дополнительные данные для DefaultEvent
-            self.importance = params["Importance"] if "Importance" in params else 1 # Уровень важность. Передается обратно для поддержки диалогов со стороны HA
+            self.importance = params["Importance"] if "Importance" in params else 1 # Уровень важности. Передается обратно для поддержки диалогов со стороны HA
 
             du = params["DefaultUtterance"] if "DefaultUtterance" in params else None
             if bool(du):
@@ -133,7 +124,7 @@ class HomeAssistantNegotiateSkill(Skill):
             self.dtCancel = time.time() + self.defaultTimeout
 
     async def onTextAsync( self ):
-        if self.topic == TOPIC_HA_NEGOTIATE: 
+        if self.topic == HA_NEGOTIATE_SKILL: 
             self.dtCancel = time.time() + self.defaultTimeout
             self.dtRepeat = time.time() + TIMEOUT_REPEAT
             matches = self.utterances.match(self.words)
@@ -142,26 +133,19 @@ class HomeAssistantNegotiateSkill(Skill):
                 m = matches[0]
                 if isinstance(m.id, int):
                     option = self.options[m.id]
-                    values = m.values
-                    for name, value in option.data.items():
-                        if (name not in values) or (values[name] is None):
-                            values[name] = value
-                    await self.fireIntentAsync( option.intent, option.say, values )
+                    await self.fireIntentAsync( option.intent, option.say, m.values )
                 elif str(m.id)=='default':
-                    values = m.values
-                    for name, value in self.defaultData.items():
-                        if (name not in values) or (values[name] is None):
-                            values[name] = value
-                    await self.fireIntentAsync( self.defaultIntent, self.defaultSay, values )
+                    await self.fireIntentAsync( self.defaultIntent, self.defaultSay, m.values )
                 else:
                     await self.changeTopicAsync( TOPIC_DEFAULT )
                     self.stopParsing()
 
 
     async def onTimerAsync( self ):
-        if self.topic == TOPIC_HA_NEGOTIATE :
+        if self.topic == HA_NEGOTIATE_SKILL :
             if (self.dtCancel>0) and (time.time() > self.dtCancel) :
-                await self.fireIntentAsync( self.defaultIntent, self.defaultSay, self.defaultData)
+                if( self.defaultIntent is not None):
+                    await self.fireIntentAsync( self.defaultIntent, self.defaultSay, None)
                 return
 
             if (self.dtRepeat>0) and (time.time() > self.dtRepeat) :
@@ -178,7 +162,9 @@ class HomeAssistantNegotiateSkill(Skill):
 
         if bool(intent):
             data = data if isinstance( data,dict) else {}
-            fireIntent( intent, self.terminal.id, self.terminal.originalText, data)
+            data['importance'] = self.importance
+            api.fireIntent( intent, self.terminal.id, self.terminal.originalText, data)
+            
         await self.changeTopicAsync( TOPIC_DEFAULT )
         self.stopParsing()
 

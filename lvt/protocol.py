@@ -79,6 +79,8 @@ MSG_API_SAY = 'Say' # {"Sound": sound, "Importance": importance, "Terminals": sp
 MSG_API_PLAY = 'Play' # {"Say": text, "Importance": importance, "Terminals": speakers}
 
 MSG_API_NEGOTIATE = 'Negotiate' 
+MSG_API_LISTENING_START = 'ListeningStart'
+MSG_API_LISTENING_STOP = 'ListeningStop'
 
 MSG_API_RESTART_TERMINAL = 'Restart' 
 

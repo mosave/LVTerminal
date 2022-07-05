@@ -39,11 +39,11 @@ TTS_ALL = frozenset(TTS_RHVOICE)
 
 TOPIC_ALL = '*'
 TOPIC_DEFAULT = 'DefaultTopic'
-TOPIC_HA_NEGOTIATE = "HomeAssistantNegotiate"
 
 LMS_MODE_PAUSE = 0
 LMS_MODE_MUTE = 1
 
 HA_NEGOTIATE_SKILL = 'HomeAssistantNegotiateSkill'
 HA_INTENTS_SKILL = 'HomeAssistantIntentsSkill'
+HA_LISTENER_SKILL = 'HomeAssistantListenerSkill'
 

@@ -1,7 +1,4 @@
-import time
 from lvt.const import *
-from lvt.logger import logDebug
-from lvt.protocol import MSG_API_FIRE_INTENT
 from lvt.server.grammar import *
 from lvt.server.utterances import Utterances
 from lvt.server.skill import Skill
@@ -10,7 +7,7 @@ import lvt.server.api as api
 
 #Define base skill class
 class HomeAssistantIntentsSkill(Skill):
-    """ Отлафливание фраз-триггеров, описанных в конфигурации Intent'ов Home Assistant (lvt => intents => ...)
+    """ Отслеживание фраз-триггеров, описанных в конфигурации Intent'ов Home Assistant (lvt => intents => ...)
     При обнаружении ключевой фразы скилл передает на сторону HA инициацию срабатывания соответствующего Intent'а.
     """
     def onLoad( self ):
@@ -26,15 +23,9 @@ class HomeAssistantIntentsSkill(Skill):
             if len(matches)>0:
                 #for match in matches:
                 match = matches[0]
-                values = match.values
                 intent = self.intents[int(match.id)]
 
-                data = dict(intent['Data']) if ('Data' in intent) and (intent['Data'] is not None) else {}
-                for name, value in data.items():
-                    if (name not in values) or (values[name] is None):
-                        values[name] = value
-
-                api.fireIntent( intent['Intent'], self.terminal.id, self.terminal.originalText, values)
+                api.fireIntent( intent['Intent'], self.terminal.id, self.terminal.text, match.values)
                 self.stopParsing()
 
     @property

@@ -42,6 +42,7 @@ class Terminal():
         # Использовать "словарный" режим
         self.vocabulary = set()
         self.useVocabulary = True
+        self.preferFullModel = True
 
         self.lastSound = 0
         self.lastAppealed = None
@@ -336,6 +337,7 @@ class Terminal():
         if newTopic is not None and newTopic != oldTopic:
             self.logDebug( f'Topic: "{oldTopic }" =>  "{newTopic}"' )
             self.useVocabulary = True
+            self.preferFullModel = True
 
             # Дернуть скилы, подписанные на текущий или новый топик
             for skill in self.skills:
@@ -448,6 +450,8 @@ class Terminal():
             await self.sayAsync(say)
         package = []
         packageFile( 'lvt_client.py' )
+        #packageFile( 'lvt_client.sh' )
+        packageFile( 'requirements_client.txt' )
         packageDirectory( 'lvt' )
         packageDirectory( os.path.join( 'lvt','client' ) )
         cfg = os.path.join(CONFIG_DIR,f"client_{self.id}.cfg")

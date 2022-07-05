@@ -1,5 +1,5 @@
 aiohttp
-numpy==1.21.4
+numpy>=1.22
 psutil
 pymorphy2
 pymorphy2-dicts-ru
