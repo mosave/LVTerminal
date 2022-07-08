@@ -206,7 +206,7 @@ await terminal.onConnectAsync( messageQueue )
 #print( transcribeTime(datetime.datetime.today()) )
 
 
-#print( transcribeNumber(28,{'nomn','ADJF'}) )
+#print( transcribeInt(28,{'nomn','ADJF'}) )
 
 #_s=''
 #w = parseWord('восемь')[0]
@@ -221,12 +221,12 @@ await terminal.onConnectAsync( messageQueue )
 #                    print( f'{str(c)},{str(p)}, {str(g)}: ' + s )
 #                _s = s
 #        #for g in list(t.KNOWN_GRAMMEMES) :
-#        #    print( f'{c}, {p}, {g}: ' + transcribeNumber(28,{str(c),str(p),str(g),'neut'},'декабря') )
+#        #    print( f'{c}, {p}, {g}: ' + transcribeInt(28,{str(c),str(p),str(g),'neut'},'декабря') )
 
-#print( transcribeNumber(1000,{'gent'},'хомяк') )
-#print( transcribeNumber(1111111,{'gent'}, 'хомяк') )
+#print( transcribeInt(1000,{'gent'},'хомяк') )
+#print( transcribeInt(1111111,{'gent'}, 'хомяк') )
 
-#print( transcribeNumber(123123123,{'gent'}, 'хомяк') )
+#print( transcribeInt(123123123,{'gent'}, 'хомяк') )
 
 #testOnOffSkill()
 

@@ -1,20 +1,38 @@
 from argparse import ArgumentError
+import math
 import pymorphy2
+
+from lvt.logger import logError
 # PyMorphy2: 
 # https://pymorphy2.readthedocs.io/en/stable/user/guide.html
 #
 morphy = pymorphy2.MorphAnalyzer( lang='ru' )
 
-#region PyMorphy
+#region PyMorphy parse*, transcribe*, normalFormOf, inflect*, conform ######################
 def parseWord( word: str ):
     """Parse word using phmorphy2 library"""
+    word_chars = 'abcdefghijklmnopqrstuvxyzабвгдеёжзийклмнопрстуфхцчшщъыьэюя'
+    number_chars = '+-.1234567890'
     global morphy
-    return morphy.parse( word )
+
+    wrd = str(word).strip().lower()
+    w = ""
+    f = ""
+    for ch in wrd: 
+        if ch in word_chars: w += ch
+        if ch in number_chars: f += ch
+    
+    p = morphy.parse( w if len(w)>0 else f )
+    p[0].originalWord = str(word).strip()
+    return p
 
 def parseText( text ):
     """Convert text to array of parsed words"""
     global morphy
-    text = wordsToList( normalizeWords( text ) )
+    allowed_chars = ' abcdefghijklmnopqrstuvxyzабвгдеёжзийклмнопрстуфхцчшщъыьэюя1234567890-+.\u0301'
+    words = ""
+    for ch in text: words += ch if ch.lower() in allowed_chars else ' '
+    text = words.replace( ',',' ' ).replace( '  ',' ' ).strip().split( ' ' )
     parsedText = list()
     for w in text:
         parses = parseWord( w )
@@ -22,11 +40,32 @@ def parseText( text ):
         #if {'PRED'} not in parses[0].tag and {'ADVB'} not in parses[0].tag
         #and {'INTJ'} not in parses[0].tag and {'PRCL'} not in
         #parses[0].tag :
+
         #Проигнорировать междометия
         if {'INTJ'} not in parses[0].tag :
             parsedText.append( parses )
 
     return parsedText
+
+def transcribeAndParseText( text: str ):
+    parses = parseText(text)
+    result = list()
+    for p in parses:
+        if 'NUMB' in p[0].tag:
+            parses2 = parseText(transcribeNumber( int(p[0].word) if 'intg' in p[0].tag else float(p[0].word) ))
+            for p2 in parses2:
+                p2[0].originalWord = p2[0].word
+                result.append(p2)
+        else:
+            result.append(p)
+
+    return result
+
+def transcribeText( text: str ):
+    parses = transcribeAndParseText(text)
+    text = ''
+    for p in parses: text += p[0].originalWord+' '
+    return text.strip()
 
 def normalFormOf( word: str, tags=None ) -> str:
     """Возвращает нормальную форму слова с учетом морфологических признаков"""
@@ -36,24 +75,55 @@ def normalFormOf( word: str, tags=None ) -> str:
             return p.normal_form#.replace( 'ё', 'e' )
     return ''
 
+def inflectText( text: str, tags) -> str:
+    """Склоняет переданных текст в соответствии с тегами"""
+    words = parseText( text )
+    text = ""
+    for p in words:
+        w = p[0].inflect(tags)
+        text += (w.word if w is not None else p[0].originalWord) +' '
+    return text.strip()
 
-def changeGender( tags, gender ) :
-    try:
-        t = set( tags ) if tags is not None else {}
-        t.discard( 'masc' )
-        t.discard( 'femn' )
-        t.discard( 'neut' )
-        t.add( gender )
-    except:
-        t = {gender}
-    return t
-def conformToNumber( this, number: int, word: str ) -> str:
+def conformToNumber( number: float, text: str ) -> str:
     """Согласовать слово с числом"""
-    return transcribeNumber( number ) + ' ' + parseWord( word )[0].make_agree_with_number( number ).word
+    (nDec, nInt) = math.modf( round(number, 3) )
+    if round(nDec * 1000) != 0:
+        text = inflectText(text, {'sing', 'gent'} )
+    else:
+        parses = parseText(text)
+        text = ''
+        for p in parses:
+            p2 = p[0].make_agree_with_number( int(nInt) )
+            text += (p2.word if p2 is not None else p[0].originalWord) + ' '
+
+    return text.strip()
+
+    #return transcribeInt( round(float(number)) ) + ' ' + parseWord( word )[0].make_agree_with_number( round(float(number)) ).word
+    #return parseWord( word )[0].make_agree_with_number( round(float(number)) ).word
 #endregion
 
-#region Numbers transcription ##############################################################
-def transcribeNumber999( number: int, tags=None ):
+#region tag() ##############################################################################
+def extractTags( tags: str): 
+    tgs = tags.replace(',',' ').split(' ')
+    result = set()
+    for t in tgs:
+        if bool(t.strip()):
+            try:
+                tag = morphy.TagClass(t.strip())
+                if bool(tag): result.add(t.strip())
+            except ValueError as ve:
+                try:
+                    s = morphy.cyr2lat(t.strip())
+                    tag = morphy.TagClass(s)
+                    if bool(tag): result.add(s)
+                except ValueError as ve:
+                    logError(f'pymorphy2: неизвестный тег "{t}"')
+                    pass
+    return result
+#endregion
+
+#region Integer transcription ##############################################################
+def transcribeInt999( number: int, tags=None ):
     """Перевод целого числа в диапазоне 0..999 в фразу на русском языке с учетом заданных тегов"""
     if tags is None : tags = {'nomn'}
     if (number<0) or (number>999):
@@ -92,7 +162,7 @@ def transcribeNumber999( number: int, tags=None ):
 
     return ' '.join( p )
     
-def transcribeNumber( number: int, tags=None, word: str='' ):
+def transcribeInt( number: int, tags=None, word: str='' ):
     """Перевод целого числа до миллиарда в фразу на русском языке с учетом заданных тегов"""
     if tags is None : tags = {'nomn'}
     s = ''
@@ -108,22 +178,19 @@ def transcribeNumber( number: int, tags=None, word: str='' ):
     if number > 999999:
         n = int( number / 1000000 )
         if n > 0 :
-            t = changeGender( tags, 'masc' )
-            w = parseWord( 'миллионов' )[0].inflect( t ).make_agree_with_number( n ).word
-            s += transcribeNumber999( n, t ) + ' ' + w + ' '
+            w = parseWord( 'миллионов' )[0].inflect( {'masc'} ).make_agree_with_number( n ).word
+            s += transcribeInt999( n, {'masc'} ) + ' ' + w + ' '
         number = number % 1000000
 
     if number > 999:
         n = int( number / 1000 )
         if n > 0 :
-            t = changeGender( tags, 'femn' )
-
-            w = parseWord( 'тысяч' )[0].inflect( t ).make_agree_with_number( n ).word
-            s += transcribeNumber999( n, t ) + ' ' + w + ' '
+            w = parseWord( 'тысяч' )[0].inflect( {'femn'} ).make_agree_with_number( n ).word
+            s += transcribeInt999( n, {'femn'} ) + ' ' + w + ' '
         number = number % 1000
 
     if s.strip() == '' or number > 0 :
-        s = s + transcribeNumber999( number, tags ) + ' '
+        s = s + transcribeInt999( number, tags ) + ' '
 
     if word != '' :
         w = parseWord( word )[0].inflect( tags )
@@ -133,12 +200,52 @@ def transcribeNumber( number: int, tags=None, word: str='' ):
     return s.strip()
 #endregion
 
+#region Number transcription ###############################################################
+def transcribeNumber( number: float, tags=None):
+    (nDec, nInt) = math.modf( round(number, 3) )
+    nInt = round(nInt)
+    text = transcribeInt( round(nInt) )
+
+    if round(nDec*1000) != 0:
+        text = transcribeInt( nInt )
+        if nInt % 10 == 1:
+            text = inflectText( text, {'femn'} ) + ' целая '
+        else:
+            text += ' целых '
+
+        s = str(round(abs(nDec*1000)))
+        if s[-2:] == '00':
+            n = round(int(s)/100)
+            if n == 1:
+                text += 'одна десятая'
+            else:
+                text += transcribeInt999(n, {'femn'}) + ' ' + "десятых"
+        elif s[-1:] == '0':
+            n = round(int(s)/10)
+            if s[-2:-1] == '1' and s[-3:-1] != '11':
+                text += transcribeInt999( n, {'femn'} ) + ' сотая'
+            else:
+                text += transcribeInt999( n, {'femn'} ) + ' сотых'
+
+#                text += transcribeInt999( n ) + ' ' + conformToNumber( int(s)/10, "сотая")
+        # else:
+        #     text += transcribeInt999(int(s)) + ' ' + conformToNumber( int(s), "тысячная")
+        elif s[-1:] == '1' and s[-2:] != '11':
+            text += transcribeInt999( int(s), {'femn'} ) + ' тысячная'
+        else:
+            text += transcribeInt999( int(s), {'femn'} ) + ' тысячных'
+    else:
+        text = transcribeInt( round(nInt) )
+
+    return text
+#endregion
+
 #region Date/Time transcription ############################################################
 def transcribeTime( tm, tags=None ):
     """Перевод времени в фразу на русском с учетом тегов"""
     return \
-        transcribeNumber( tm.hour,{'nomn','masc'},'часов' ) + ' ' + \
-        transcribeNumber( tm.minute, {'nomn','femn'}, 'минут' )
+        transcribeInt( tm.hour,{'nomn','masc'},'часов' ) + ' ' + \
+        transcribeInt( tm.minute, {'nomn','femn'}, 'минут' )
 
 def transcribeDate( dt, tags=None ):
     """Перевод даты в фразуна русском вида "пятница, 13 февраля" с учетом тегов """

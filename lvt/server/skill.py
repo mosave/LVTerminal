@@ -89,11 +89,6 @@ class Skill:
                return p.normal_form#.replace( 'ё', 'e' )
         return ''
 
-    def conformToAppeal( self, word: str ) -> str:
-        """Согласовать слово с обращением (мужской-женский-средний род)"""
-        parse = parseWord( word )[0]
-        return parse.inflect( changeGender( parse.tag, config.gender ) ).word
-
     def isWord( self, index, word: str, tags=None ) -> bool:
         """Сравнение слова со словом в фразе с учетом морфологических признаков"""
         if word is None or not isinstance( word, str ) : return False

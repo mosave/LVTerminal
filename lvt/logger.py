@@ -29,7 +29,7 @@ class Logger:
         self.captureTo = None
         # Make a handler that writes to a file, making a new file at midnight
         # and keeping 3 backups
-        self.handler = logging.handlers.TimedRotatingFileHandler( fn, when="midnight", backupCount=3 )
+        self.handler = logging.handlers.TimedRotatingFileHandler( fn, when="midnight", backupCount=3, encoding="utf-8" )
         # Format each log message like self
         self.formatter = logging.Formatter( '%(asctime)s %(message)s' )
         # Attach the formatter to the handler

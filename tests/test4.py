@@ -15,8 +15,10 @@ import lvt.server.persistent_state as persistent_state
 import lvt.server.entities as entities
 import lvt.server.terminal as terminals
 import lvt.server.speakers as speakers
+import lvt.server.speakers as speakers
 
 from lvt.server.utterances import *
+from lvt.server.tts import TTS
 
 
 config.init()
@@ -25,6 +27,55 @@ entities.init()
 terminals.init()
 speakers.init()
 
+tts = TTS()
+
+#print(inflectText("и зеленый попугай", {'femn'}))
+
+print ( tts.prepareText(' 121 [[Прилет+ел зеленый хомяк: plur ]:femn]'))
+
+
+v = 3.01
+while v<=4:
+    print ( tts.prepareText(f' Температура {v} [градус: {v} ]'))
+    v = v + 0.01
+
+v = 1
+while v<=111:
+    print ( tts.prepareText(f' Температура {v} [градус: {v} ]'))
+    v = v + 1
+
+print ( tts.prepareText(' 1.1 [Прилет+ел попугай: 1.1 ]'))
+print ( tts.prepareText(' 1.2 [Прилет+ел попугай: 1.2 ]'))
+print ( tts.prepareText(' 1.11 [Прилет+ел попугай: 1.11 ]'))
+print ( tts.prepareText(' 1.21 [Прилет+ел попугай: 1.21 ]'))
+print ( tts.prepareText(' 1.001 [Прилет+ел попугай: 1.001 ]'))
+print ( tts.prepareText(' 1.011 [Прилет+ел попугай: 1.011 ]'))
+print ( tts.prepareText(' 1.041 [Прилет+ел попугай: 1.041 ]'))
+
+print ( tts.prepareText(' 1 [Прилет+ел попугай: 1 ]'))
+print ( tts.prepareText(' 5 [Прилет+ел попугай: 5 ]'))
+print ( tts.prepareText(' 11 [Прилет+ел попугай: 11 ]'))
+print ( tts.prepareText(' 121 [Прилет+ел  попугай: 121 ]'))
+
+print(transcribeNumber(123))
+print(transcribeNumber(121.5))
+print(transcribeNumber(123.45))
+print(transcribeNumber(123.345))
+print(transcribeNumber(120.2345))
+print(transcribeNumber(120.321))
+print(transcribeNumber(120.311))
+print(transcribeNumber(120.21))
+print(transcribeNumber(120.11))
+print(transcribeNumber(120.1))
+
+parses = transcribeAndParseText(' Прилет+ели 123 попуг+ая')
+print (tts.prepareText(' Прилет+ели 123 попуг+ая'))
+
+print( tts.prepareText(" 35 или -35.1 [градусов:35.1]"))
+
+print( tts.prepareText("Если бы у [3 баб+ушка: 3, рд] было 35 [яйцо: 35 ] они были бы дедушками") )
+
+print(s)
 # vocabulary = wordsToVocabulary("человеки")
 # vocabulary = wordsToVocabularyAllForms("косой")
 
@@ -36,7 +87,7 @@ speakers.init()
 # for i in range(0,1002):
 #     n = i
 #     n = random.randint(999999999)
-#     s = "Всего "+transcribeNumber(n,word="попугай")
+#     s = "Всего "+transcribeInt(n,word="попугай")
 #     # print(s)
 #     m = u.matchText(s)
 #     if int(m[1]['int']) != n:

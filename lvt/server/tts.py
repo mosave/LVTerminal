@@ -1,13 +1,14 @@
 from asyncio import Lock
 import asyncio
-import time
 import hashlib
 import wave
+import re
 from numpy import random
 from lvt.const import *
 from lvt.logger import *
 import lvt.server.config as config
-#from rhvoice_wrapper import TTS # https://pypi.org/project/rhvoice-wrapper/
+from lvt.server.grammar import *
+
 
 ttsLock = Lock()
 ttsLocked = set()
@@ -47,11 +48,12 @@ class TTS():
         if isinstance(text, list):
             text = text[random.randint(len(text))]
 
-        logDebug( f'{config.ttsEngine}: "{text}"' )
-
         speech = None
         wfn = hashlib.sha256((config.ttsEngine+'-'+config.voice+'-'+text).encode()).hexdigest()
         waveFileName = os.path.join( ROOT_DIR,'cache', wfn+'.wav' )
+
+        text = self.prepareText(text)
+        logDebug( f'{config.ttsEngine}: "{text}"' )
 
         #print(f'wave file name= {waveFileName}')
         #self.sendMessage( MSG_TEXT, text )
@@ -163,6 +165,54 @@ class TTS():
         pass
     def cacheClean(self):
         pass
+
+    def prepareText(self, text:str )->str:
+        result = str(text)
+
+        if (config.ttsEngine == TTS_RHVOICE):
+            # Заменить признак ударения "+" на символ ударения (#0301) 
+            while True:
+                p = result.find("+")
+                if (p>0) and (p+1<len(result)):
+                    result = result[:p]+result[p+1:p+2]+f'\u0301'+result[p+2:]
+                else:
+                    break
+        else:
+            pass
+
+        while True:
+            m = re.search('\[[^\[\]\:]*\:[^\[\]\:]*\]', result)
+            if bool(m): 
+                (text,tgs) = m.group()[1:-1].strip().split(":")
+                while True: 
+                    _ = tgs
+                    tgs = tgs.replace(',',' ').replace( '  ',' ' ).strip()
+                    if tgs == _ :break
+
+                tInteger = None
+                tags = ''
+                f = True
+                for t in tgs.split(' '):
+                    if len(str(t.strip()))>0:
+                        try:
+                            number = float(t)
+                            if f :
+                                text = conformToNumber( number, text)
+                                f = False
+                            else:
+                                tags += ' ' + t + ' '
+                        except ValueError:
+                            tags += ' ' + t + ' '
+
+                tags = extractTags( tags )
+                if bool(tags):
+                    text = inflectText( transcribeText(text),tags )
+                    
+                result = result[:m.start()].strip() + ' ' + text.strip() + ' ' + result[m.end():].strip()
+            else:
+                break
+
+        return transcribeText(result)
 
 #endregion
 
