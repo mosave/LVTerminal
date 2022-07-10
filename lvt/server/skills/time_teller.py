@@ -21,7 +21,7 @@ class TellTheTimeSkill(Skill):
         self.utterances.add("date", "* какой сегодня день недели")
         self.utterances.add("date", "* какое сегодня число")
         self.utterances.add("date", "* какая сегодня дата")
-        self.vocabulary = self.utterances.vocabulary
+        self.setVocabulary( TOPIC_DEFAULT, self.utterances.vocabulary )
 
     async def onTextAsync( self ):
         if self.isAppealed :

@@ -46,6 +46,5 @@ class HomeAssistantIntentsSkill(Skill):
                 for utterance in self.__intents[i]['Utterance']:
                     self.utterances.add( i, utterance )
                     
-            self.vocabulary = self.utterances.vocabulary
-            self.terminal.updateVocabulary()
+            self.setVocabulary( TOPIC_DEFAULT, self.utterances.vocabulary)
 

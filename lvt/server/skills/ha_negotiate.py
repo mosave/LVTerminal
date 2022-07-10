@@ -117,8 +117,7 @@ class HomeAssistantNegotiateSkill(Skill):
             if bool(du):
                 self.utterances.add( 'default', du )
 
-            self.vocabulary = self.utterances.vocabulary
-            self.terminal.updateVocabulary()
+            self.setVocabulary( HA_NEGOTIATE_SKILL, self.utterances.vocabulary )
             
             self.dtRepeat = time.time() + TIMEOUT_REPEAT
             self.dtCancel = time.time() + self.defaultTimeout

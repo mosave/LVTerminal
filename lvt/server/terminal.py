@@ -40,7 +40,6 @@ class Terminal():
         self.autoUpdate = config.terminals[id]['autoupdate']
         self.clientVersion = ""
         # Использовать "словарный" режим
-        self.vocabulary = set()
         self.useVocabulary = True
         self.preferFullModel = True
 
@@ -73,8 +72,6 @@ class Terminal():
         for skill in self.skills:
             #self.logDebug( f'{skill.priority:6} {skill.name}' )
             self.allTopics = self.allTopics.union( skill.subscriptions )
-
-        self.updateVocabulary()
 
         if config.ttsEngine:
             self.tts = TTS()
@@ -362,14 +359,13 @@ class Terminal():
         """Возвращает полный текущий список слов для фильтрации распознавания речи 
            или пустую строку если фильтрация не используется
         """
-        return self.vocabulary
-
-    def updateVocabulary( self ):
-        self.vocabulary = wordsToVocabulary( config.assistantNames )
-        self.vocabulary.update( wordsToVocabulary(' эй слушай' ) )
-     
+        vocabulary = set()
+        if self.topic == TOPIC_DEFAULT:
+            vocabulary.update( wordsToVocabulary( config.assistantNames ) )
+            vocabulary.update( wordsToVocabulary(' эй слушай' ) )
         for skill in self.skills:
-            self.vocabulary.update( skill.vocabulary )
+            vocabulary.update( skill.getVocabulary(self.topic) )
+        return vocabulary
 #endregion
 
 #region grammar helpers

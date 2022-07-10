@@ -14,7 +14,7 @@ class Skill:
         self.name = name
         self.cfg = cfg
         self.subscriptions = set()
-        self.vocabulary = set()
+        self.__vocabulary : dict( str, set() ) = {}
         # Чем выше значение приоритета, тем ближе к началу в цепочке
         # распознавания ставится скил
         self.priority = 0
@@ -24,8 +24,8 @@ class Skill:
     def onLoad( self ):
         """Вызывается при инициализации скилла. 
         Обазательная конфигурация:
-          * Состояния, к которым необходимо прибиндить скил
-          * Ключевые слова, которые необходимо добавить в словарь фильтрации распознавалки в режиме "со словарем"
+          * Топики, к которым необходимо подписать скил
+          * Словарь, используемый при распознавании в режиме "со словарем" для каждого топика
         """
 
         # Состояния, в которых скилл должен вызываться в при распозновании
@@ -34,9 +34,7 @@ class Skill:
         # self.subscribe( TOPIC_DEFAULT )
         # self.unsubscribe( TOPIC_DEFAULT )
 
-        # self.extendVocabulary("список слов словаря", {'теги'})
-        #
-        #
+        # self.setVocabulary(TOPIC_DEFAULT, "список слов словаря")
         pass
 
     async def onTextAsync( self ):
@@ -220,10 +218,18 @@ class Skill:
             if len( ab ) == 1 and ab[0] == topic : return True
             if len( ab ) > 1 and topic.startswith( ab[0] ) and topic.endswith( ab[-1] ): return True
 
-    def extendVocabulary( self, words ):
-        """Расширить словарь словоформами. Принимает списки слов как в виде строк так и в виде массивов
-        """
-        self.vocabulary.update( wordsToVocabulary( words ) )
+    def setVocabulary( self, topic:str, vocabulary: set ):
+        self.__vocabulary[topic] = wordsToVocabulary( vocabulary )
+
+    def getVocabulary( self, topic:str ):
+        if topic == TOPIC_ALL:
+            vocabulary = set()
+            for ( t, v) in self.__vocabulary:
+               vocabulary.update( v )
+        else:
+            vocabulary = self.__vocabulary[topic] if topic in self.__vocabulary else set()
+
+        return vocabulary
 
     async def changeTopicAsync( self, newTopic, params = None ):
         """Изменить текущий топик на newTopic с параметрами params"""
@@ -233,8 +239,6 @@ class Skill:
         """Прервать исполнение цепочки скиллов после выхода из обработчика onText"""
         if animation is not None : 
             self.terminal.animate( animation )
-            #if animation not in ANIMATION_STICKY :
-            #    self.terminal.animate( ANIMATION_NONE )
         self.terminal.parsingStopped = True
 
     def restartParsing( self ):

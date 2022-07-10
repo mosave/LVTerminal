@@ -25,7 +25,7 @@ class AppealDetectorSkill(Skill):
         self.utterances.add("voice", "[Голос, подай голос, скажи что-нибудь]")
         self.utterances.add("alive", "[ты здесь, ты живой, ты еще живой, ты там живой, ты там еще живой]")
         self.utterances.add("hearing", "[ты меня слышишь, ты слышишь, ты там меня слышишь]")
-        self.vocabulary = self.utterances.vocabulary
+        self.setVocabulary( TOPIC_DEFAULT, self.utterances.vocabulary )
 
     async def onTextAsync( self ):
         # Проверяем, есть ли в фразе обращение:

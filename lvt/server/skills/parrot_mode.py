@@ -22,7 +22,7 @@ class ParrotModeSkill(Skill):
         self.utterances.add("off", "выключи режим попугая")
         self.utterances.add("off", "перестань за мной повторять")
         self.utterances.add("off", "перестань повторять")
-        self.vocabulary = self.utterances.vocabulary
+        self.setVocabulary( TOPIC_DEFAULT = self.utterances.vocabulary )
 
     async def onTextAsync( self ):
 

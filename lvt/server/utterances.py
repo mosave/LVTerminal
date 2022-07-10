@@ -425,7 +425,7 @@ class Utterance:
 
         while '  ' in cleaned: 
             cleaned = cleaned.replace( '  ',' ' ).strip()
-        words = cleaned.split(' ')
+        words = [w for w in cleaned.split(' ') if bool(w.strip())]
 
         if len(words) < 1:
             raise ParseException("Ошибка описания шаблона фразы")

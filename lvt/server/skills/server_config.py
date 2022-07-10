@@ -21,7 +21,7 @@ class ServerConfigSkill(Skill):
         self.utterances = Utterances( self.terminal )
         self.utterances.add("update", "обнови терминал")
         self.utterances.add("reboot", "[перезагрузить, перезапустить, пере загрузи, пере запусти] терминал")
-        self.vocabulary = self.utterances.vocabulary
+        self.setVocabulary( TOPIC_DEFAULT, self.utterances.vocabulary )
         self.nextVersionCheckOn = datetime.datetime.now()
 
     async def onTextAsync( self ):
