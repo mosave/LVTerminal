@@ -370,10 +370,11 @@ class Terminal():
 
 #region grammar helpers
     def conformToAppeal( self, text ) -> str:
-        p = parseWord( self.appeal )
-        gender = p[0].tag.gender if p is not None else None
-        if gender is None: gender = 'masc'
-        return inflectText(text, {gender})
+        return inflectText(text, {config.gender})
+        # p = parseWord( self.appeal )
+        # gender = p[0].tag.gender if p is not None else None
+        # if gender is None: gender = 'masc'
+        # return inflectText(text, {gender})
 
 #endregion
 
