@@ -372,6 +372,15 @@ class Terminal():
             self.vocabulary.update( skill.vocabulary )
 #endregion
 
+#region grammar helpers
+    def conformToAppeal( self, text ) -> str:
+        p = parseWord( self.appeal )
+        gender = p[0].tag.gender if p is not None else None
+        if gender is None: gender = 'masc'
+        return inflectText(text, {gender})
+
+#endregion
+
 #region Log wrappers
     def logError( self, message:str ):
         logError( f'[{self.id}] {message}' )

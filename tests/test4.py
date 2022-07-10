@@ -31,8 +31,10 @@ tts = TTS()
 
 #print(inflectText("и зеленый попугай", {'femn'}))
 
-print ( tts.prepareText(' 121 [[Прилет+ел зеленый хомяк: plur ]:femn]'))
-
+print ( tts.prepareText('[Маленький хомяк: рд ]'))
+print ( tts.prepareText('Еще нет и [13 час: 13, рд ]'))
+print ( tts.prepareText('Температура на улице 15 [градус:15]'))
+print ( tts.prepareText('38 [маленький хомяк: 38 ]'))
 
 v = 3.01
 while v<=4:

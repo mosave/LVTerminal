@@ -1,7 +1,7 @@
 # Lite Voice Terminal
 Free, open source, offline, DIY smart speaker platform oriented to **Russian language**.
 
-### Disclaimer: "Второй подход к инструменту", версия в процессе разработки. Состояние "вроде что-то заработало"
+### Disclaimer: MVP alpha version. Минимально жизнеспособный продукт, версия альфа
 
 Lite Voice Terminal это клиент-серверная платформа с открытым исходным кодом для создания "легких" смарт колонок,
 не требующих использования онлайн-сервисов для распознавания голоса.

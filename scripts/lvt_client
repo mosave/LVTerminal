@@ -47,6 +47,18 @@ case "$1" in
         status_of_proc "$DAEMON_NAME" "$DAEMON" && exit 0 || exit $?
         ;;
 
+    install)
+        sudo cp $DIR/scripts/lvt_client /etc/init.d
+        sudo chmod 755 /etc/init.d/lvt_client
+        sudo update-rc.d lvt_client defaults
+        ;;
+
+    remove)
+        sudo systemctl stop lvt_client
+        sudo rm /etc/init.d/lvt_client
+        sudo update-rc.d lvt_client defaults
+        ;;
+
     *)
         echo "Usage: /etc/init.d/$DAEMON_NAME {start|stop|restart|status}"
         exit 1
