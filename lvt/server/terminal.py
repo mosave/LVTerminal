@@ -82,7 +82,8 @@ class Terminal():
 
         self.appeal = wordsToList( config.assistantNames )[0]
 
-        self.__volume = 30
+        self.__volume = 50
+        self.__volumeOverride = None
         self.__filter = 0
         if id in states:
             if 'Volume' in states[id]:
@@ -178,9 +179,29 @@ class Terminal():
         if newVolume<0: newVolume=0
         if newVolume>100: newVolume = 100
         if self.__volume != newVolume:
-            self.sendMessage( MSG_VOLUME, newVolume )
             self.__volume = newVolume
+            if self.volumeOverride is None :
+                self.sendMessage( MSG_VOLUME, newVolume )
+            else:
+                self.sendMessage( MSG_VOLUME, self.volumeOverride)
             self.getState()
+
+    @property
+    def volumeOverride(self) -> int:
+        return self.__volumeOverride
+
+    @volumeOverride.setter
+    def volumeOverride(self, newVolume: int ):
+        if newVolume is not None:
+            newVolume = int(newVolume)
+            if newVolume<0: newVolume=0
+            if newVolume>100: newVolume = 100
+            if self.__volumeOverride != newVolume:
+                self.sendMessage( MSG_VOLUME, newVolume )
+        else:
+            self.sendMessage( MSG_VOLUME, self.volume )
+
+        self.__volumeOverride = newVolume
 
     @property
     def filter(self) -> int:
@@ -335,6 +356,7 @@ class Terminal():
             self.logDebug( f'Topic: "{oldTopic }" =>  "{newTopic}"' )
             self.useVocabulary = True
             self.preferFullModel = True
+            self.volumeOverride = False
 
             # Дернуть скилы, подписанные на текущий или новый топик
             for skill in self.skills:

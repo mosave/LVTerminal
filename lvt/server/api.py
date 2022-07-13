@@ -144,7 +144,9 @@ async def server( request ):
 
                         for tid in trms:
                             terminal = terminals.get( tid )
+                            terminal.volumeOverride = data["Volume"] if "Volume" in data else None
                             await terminal.playVoiceAsync(voice)
+                            terminal.volumeOverride = None
 
                     elif message == MSG_API_PLAY:
                         sound = data["Sound"]
@@ -152,14 +154,15 @@ async def server( request ):
 
                         for tid in trms:
                             terminal = terminals.get( tid )
+                            terminal.volumeOverride = data["Volume"] if "Volume" in data else None
                             await terminal.playAsync(sound)
+                            terminal.volumeOverride = None
 
                     elif message == MSG_API_RESTART_TERMINAL:
                         say = data["Say"] if "Say" in data else ""
                         say_on_connect = data["SayOnConnect"] if "SayOnConnect" in data else ""
                         force_update = bool(data["Update"]) if "Update" in data else False
                         trms = data["Terminals"] if isinstance(data["Terminals"], list ) else [str(data("Terminals"))]
-
 
                         for tid in trms:
                             terminal = terminals.get( tid )
@@ -180,6 +183,7 @@ async def server( request ):
 
                     elif message == MSG_API_NEGOTIATE:
                         trms = data["Terminals"] if isinstance(data["Terminals"], list ) else [str(data("Terminals"))]
+
                         for tid in trms:
                             terminal = terminals.get( tid )
                             if terminal is None:
@@ -193,6 +197,7 @@ async def server( request ):
                                 continue
 
                             params = {}
+                            params['Volume'] = data["Volume"] if "Volume" in data else None
                             if ('Say' in data) and (data['Say'] is not None):
                                 params['Say'] = data['Say']
                             else:
@@ -222,6 +227,7 @@ async def server( request ):
 
                     elif message == MSG_API_LISTENING_START:
                         trms = data["Terminals"] if isinstance(data["Terminals"], list ) else [str(data("Terminals"))]
+
                         for tid in trms:
                             terminal = terminals.get( tid )
                             if terminal is None:
@@ -235,6 +241,8 @@ async def server( request ):
                                 continue
 
                             params = {}
+                            params['Volume'] = data["Volume"] if "Volume" in data else None
+
                             if ('Intent' in data) and (data['Intent'] is not None):
                                 params['Intent'] = data['Intent']
                             else:
@@ -267,6 +275,7 @@ async def server( request ):
 
                     elif message == MSG_API_LISTENING_STOP:
                         trms = data["Terminals"] if isinstance(data["Terminals"], list ) else [str(data("Terminals"))]
+
                         for tid in trms:
                             terminal = terminals.get( tid )
                             if terminal is None:

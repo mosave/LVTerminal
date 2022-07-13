@@ -71,6 +71,8 @@ class HomeAssistantNegotiateSkill(Skill):
 
     async def onTopicChangeAsync( self, newTopic: str, params={} ):
         if newTopic == HA_NEGOTIATE_SKILL:
+            self.terminal.volumeOverride = params["Volume"] if "Volume" in params else None
+
             if "Say" not in params or params['Say'] is None:
                 await self.sayAsync("Запуск диалога: стартовая фраза не задана")
                 await self.changeTopicAsync(TOPIC_DEFAULT)
@@ -81,6 +83,7 @@ class HomeAssistantNegotiateSkill(Skill):
                 await self.sayAsync("Ошибка. Не описаны варианты ответов")
                 await self.changeTopicAsync(TOPIC_DEFAULT)
                 return
+
 
             self.prompt = params["Prompt"] if "Prompt" in params else None # Фраза (список) - напоминание в процессе ожидания ответа
 

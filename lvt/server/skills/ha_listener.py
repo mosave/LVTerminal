@@ -43,6 +43,7 @@ class HomeAssistantListenerSkill(Skill):
     async def onTopicChangeAsync( self, newTopic: str, params={} ):
         if newTopic == HA_LISTENER_SKILL:
             self.terminal.useVocabulary = False
+            self.terminal.volumeOverride = params["Volume"] if "Volume" in params else None
 
             if "Say" not in params or params['Say'] is None:
                 await self.sayAsync("Распознавание без словаря: стартовая фраза не задана")
@@ -52,6 +53,7 @@ class HomeAssistantListenerSkill(Skill):
                 await self.sayAsync("Распознавание без словаря: Intent не задан")
                 await self.changeTopicAsync(TOPIC_DEFAULT)
                 return
+
 
             await self.sayAsync( params["Say"] )
 

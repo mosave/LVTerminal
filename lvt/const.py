@@ -11,7 +11,7 @@ LOGLEVEL_INFO = 2
 LOGLEVEL_DEBUG = 3
 LOGLEVEL_VERBOSE = 9
 
-VERSION = "0.9.1a"
+VERSION = "0.9.2a"
 
 # Voice sampling rate.
 
