@@ -35,15 +35,16 @@ def parseText( text ):
     text = words.replace( ',',' ' ).replace( '  ',' ' ).strip().split( ' ' )
     parsedText = list()
     for w in text:
-        parses = parseWord( w )
-        #Проигнорировать предикативы, наречия, междометия и частицы
-        #if {'PRED'} not in parses[0].tag and {'ADVB'} not in parses[0].tag
-        #and {'INTJ'} not in parses[0].tag and {'PRCL'} not in
-        #parses[0].tag :
+        if bool(w):
+            parses = parseWord( w )
+            #Проигнорировать предикативы, наречия, междометия и частицы
+            #if {'PRED'} not in parses[0].tag and {'ADVB'} not in parses[0].tag
+            #and {'INTJ'} not in parses[0].tag and {'PRCL'} not in
+            #parses[0].tag :
 
-        #Проигнорировать междометия
-        if {'INTJ'} not in parses[0].tag :
-            parsedText.append( parses )
+            #Проигнорировать междометия
+            if {'INTJ'} not in parses[0].tag :
+                parsedText.append( parses )
 
     return parsedText
 

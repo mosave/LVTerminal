@@ -198,7 +198,7 @@ class Terminal():
             if newVolume>100: newVolume = 100
             if self.__volumeOverride != newVolume:
                 self.sendMessage( MSG_VOLUME, newVolume )
-        else:
+        elif self.__volumeOverride is not None:
             self.sendMessage( MSG_VOLUME, self.volume )
 
         self.__volumeOverride = newVolume
@@ -356,7 +356,7 @@ class Terminal():
             self.logDebug( f'Topic: "{oldTopic }" =>  "{newTopic}"' )
             self.useVocabulary = True
             self.preferFullModel = True
-            self.volumeOverride = False
+            self.volumeOverride = None
 
             # Дернуть скилы, подписанные на текущий или новый топик
             for skill in self.skills:

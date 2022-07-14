@@ -29,6 +29,13 @@ speakers.init()
 
 tts = TTS()
 
+
+u = Utterances( terminals.get('speaker2w') )
+u.add('zzz', "[установить, сделать] громкость [терминала, колонки, динамика, звука, ] [на, в, ] volume=<number> процентов" )
+
+m = u.matchText("Установи громкость пятьдесят процентов")
+
+
 #print(inflectText("и зеленый попугай", {'femn'}))
 
 print ( tts.prepareText('[Маленький хомяк: рд ]'))
@@ -77,7 +84,6 @@ print( tts.prepareText(" 35 или -35.1 [градусов:35.1]"))
 
 print( tts.prepareText("Если бы у [3 баб+ушка: 3, рд] было 35 [яйцо: 35 ] они были бы дедушками") )
 
-print(s)
 # vocabulary = wordsToVocabulary("человеки")
 # vocabulary = wordsToVocabularyAllForms("косой")
 

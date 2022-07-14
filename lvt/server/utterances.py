@@ -461,18 +461,20 @@ class Utterance:
                         if valA==0:
                             valA = defA
                             valB = p
-                        if defA>=p:
-                            raise ParseException("Ошибка при определении списка: пропущена строка")
-                        if valA>=valB:
-                            raise ParseException(f'Ошибка при определении списка: неверный ID строки')
-                        for w in words[valA:valB]:
-                            if not isValue(w):
-                                raise ParseException(f'Ошибка при определении списка: неверный ID строки {" ".join(words[valA:valB])}')
-                        for w in words[defA:p]:
-                            if not isWord(w):
-                                raise ParseException(f'Ошибка при определении списка: нераспознаваемое слово { w }')
-                        
-                        fragment.addWords( UWords( ' '.join(words[valA:valB]), words[defA:p] ) )
+                        if defA<p:
+                            if valA>=valB:
+                                raise ParseException(f'Ошибка при определении списка: неверный ID строки')
+                            for w in words[valA:valB]:
+                                if not isValue(w):
+                                    raise ParseException(f'Ошибка при определении списка: неверный ID строки {" ".join(words[valA:valB])}')
+                            for w in words[defA:p]:
+                                if not isWord(w):
+                                    raise ParseException(f'Ошибка при определении списка: нераспознаваемое слово { w }')
+                            
+                            fragment.addWords( UWords( ' '.join(words[valA:valB]), words[defA:p] ) )
+                        else: # Пустая строка!
+                            fragment.addWords( UWords( None, '' ) )
+
                         if words[p]==']':
                             break
                         defA = p = p+1
