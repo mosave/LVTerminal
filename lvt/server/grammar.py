@@ -11,7 +11,7 @@ morphy = pymorphy2.MorphAnalyzer( lang='ru' )
 #region PyMorphy parse*, transcribe*, normalFormOf, inflect*, conform ######################
 def parseWord( word: str ):
     """Parse word using phmorphy2 library"""
-    word_chars = 'abcdefghijklmnopqrstuvxyzабвгдеёжзийклмнопрстуфхцчшщъыьэюя'
+    word_chars = 'abcdefghijklmnopqrstuvwxyzабвгдеёжзийклмнопрстуфхцчшщъыьэюя'
     number_chars = '+-.1234567890'
     global morphy
 
@@ -29,7 +29,7 @@ def parseWord( word: str ):
 def parseText( text ):
     """Convert text to array of parsed words"""
     global morphy
-    allowed_chars = ' abcdefghijklmnopqrstuvxyzабвгдеёжзийклмнопрстуфхцчшщъыьэюя1234567890-+.\u0301'
+    allowed_chars = ' abcdefghijklmnopqrstuvwxyzабвгдеёжзийклмнопрстуфхцчшщъыьэюя1234567890-+.\u0301'
     words = ""
     for ch in text: words += ch if ch.lower() in allowed_chars else ' '
     text = words.replace( ',',' ' ).replace( '  ',' ' ).strip().split( ' ' )
@@ -291,7 +291,7 @@ def normalizePhrases( phrases ) -> str:
     Пример "включи свет,выключи свет,сделай что-то"
     """
     if phrases is None : return ''
-    allowed_chars = 'abcdefghijklmnopqrstuvxyzабвгдеёжзийклмнопрстуфхцчшщъыьэюя 1234567890-,'
+    allowed_chars = 'abcdefghijklmnopqrstuvwxyzабвгдеёжзийклмнопрстуфхцчшщъыьэюя 1234567890-,'
     phrases = str(phrases).lower()
     cleaned = ''
     for ch in phrases: cleaned += ch if ch in allowed_chars else ' '

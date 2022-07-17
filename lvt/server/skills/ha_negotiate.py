@@ -5,7 +5,7 @@ from lvt.server.utterances import Utterances, isInteger
 from lvt.server.skill import Skill
 import lvt.server.api as api
 
-TIMEOUT_REPEAT = 15
+TIMEOUT_REPEAT = 40
 
 """
 Запуск диалога с HomeAssistantNegotiateSkill:
