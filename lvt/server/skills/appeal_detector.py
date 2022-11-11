@@ -41,11 +41,11 @@ class AppealDetectorSkill(Skill):
                     if len(matches)>0 :
                         self.stopParsing( ANIMATION_ACCEPT )
                         if matches[0].id=='voice':
-                            await self.sayAsync( ['Гав. Гав-гав.', 'мяаау блин.', 'отстаньте от меня','не мешайте, я за домом присматриваю','не мешайте, я думаю', 'шутить изволите?'] )
+                            await self.sayAsync( ['Гав. Гав-гав.', 'мяаау блин', 'отстаньте от меня','не мешайте, я за домом присматриваю','не мешайте. я думаю', 'шутить изволите?'] )
                         elif matches[0].id=='alive':
-                            await self.sayAsync( ['да, конечно', 'куда же я денусь', 'пока всё еще да','живее всех живых','не мешайте, я думаю', 'шутить изволите?'] )
+                            await self.sayAsync( ['да. конечно', 'куда же я денусь', 'пока всё еще да','живее всех живых','не мешайте. я думаю', 'шутить изволите?'] )
                         elif matches[0].id=='hearing':
-                            await self.sayAsync( ['ну конечно слышу', 'да, '+self.appeal+' не ' + self.conformToAppeal( 'глухая' ), 'слышу-слышу', 'само собой'] )
+                            await self.sayAsync( ['ну конечно слышу', 'да. '+self.appeal+' не ' + self.conformToAppeal( 'глухая' ), 'слышу-слышу', 'само собой'] )
 
 
     def detectAppeals( self ):

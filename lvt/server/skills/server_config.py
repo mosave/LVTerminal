@@ -15,8 +15,8 @@ class ServerConfigSkill(Skill):
         self.priority = 5000
         self.subscribe( TOPIC_DEFAULT )
         self.utterances = Utterances( self.terminal )
-        self.utterances.add("update", "обнови терминал")
-        self.utterances.add("reboot", "[перезагрузить, перезапустить, пере загрузи, пере запусти] терминал")
+        self.utterances.add("update", "обнови [терминал, колонку]")
+        self.utterances.add("reboot", "[перезагрузить, перезапустить, пере загрузи, пере запусти] [терминал, колонку]")
 
 
         self.utterances.add("volume:Up", "Сделай [терминал, колонку, динамик, звук, ] [немного,чуть, ] [громче,погромче]")

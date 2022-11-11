@@ -73,7 +73,8 @@ async def printStatusThread():
             rms = microphone.rms
             if rms > scale : rms = scale
             graph = ''
-            for i in range( 0,int( rms * width / scale ) + 1 ): graph += '='
+            if not microphone.muted:
+                for i in range( 0,int( rms * width / scale ) + 1 ): graph += '='
             graph = f'{graph:40}'
 
             pL = int( microphone.noiseLevel * width / scale )
@@ -83,7 +84,11 @@ async def printStatusThread():
             pR = 1 if pR < 1 else width if pR > width else pR
             if pL >= pR : pR = pL + 1
 
-            graph = graph[:pL] + '|' + graph[pL:pR] + '|' + graph[pR + 1:]
+            if not microphone.muted:
+                graph = graph[:pL] + '|' + graph[pL:pR] + '|' + graph[pR + 1:]
+            else:
+                graph += ' '
+
             if lmsPlayer is not None and lmsPlayer.mode=="play" and lmsPlayer.volume>1:
                 mouth = 'o'
             else:
@@ -256,17 +261,19 @@ async def lmsThread( session ):
         lmsPlayer = None
         try:
             players = await lmsServer.async_get_players()
+            # log(f"server={lmsServer}, player={lmsPlayer}")
             if config.lmsPlayer is None:
                 id_host = str(socket.gethostname()).lower()
                 id_ip = str(socket.gethostbyname(socket.gethostname()))
                 if id_ip == "127.0.0.1":
+                    # log("LMS thread: resolving local IP address over google")
                     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
                     s.connect(("8.8.8.8", 80))
                     id_ip = s.getsockname()[0]
                 id_name = str(config.terminalId).lower()
             else:
                 id_host = id_ip = id_name = str(config.lmsPlayer).lower()
-            #log( f'LMS thread: searching for name="{id_name}", host="{id_host}",  ip="{id_ip}" ')
+            # log( f'LMS thread: searching for name="{id_name}", host="{id_host}",  ip="{id_ip}, players={len(players)}" ')
 
             lmp = None
             if players is not None:
@@ -274,7 +281,7 @@ async def lmsThread( session ):
                     await p.async_update()
                     p_ip = p._status['player_ip'] if ( p._status is not None and 'player_ip' in p._status ) else ''
                     p_ip = str(list((p_ip+':111').partition(':'))[0])
-                    #log( f'LMS thread, checking "{p.name}"/"{p._id}"/"{p_ip}"')
+                    # log( f'LMS thread, checking "{p.name}"/"{p._id}"/"{p_ip}"')
                     if str(p.name).lower() == id_name \
                         or str(p.name).lower() == id_host \
                         or str(p._id).lower().replace(':','') == id_name.lower().replace(':','') \

@@ -210,7 +210,7 @@ async def server( request ):
 
 
                     # Журналируем голос (если заказано в настройках)
-                    if (int(config.voiceLogLevel)>=3) or (int(config.voiceLogLevel)==2 and not isProcessed  ):
+                    if (int(config.voiceLogLevel)>=3) or (int(config.voiceLogLevel)>=2 and terminal.isAppealed and not isProcessed   ):
                         wavFileName = datetime.datetime.today().strftime(f'{terminal.id}_%Y%m%d_%H%M%S.wav')
                         wav = wave.open(os.path.join( config.voiceLogDir, wavFileName),'w')
                         wav.setnchannels(1)
@@ -222,11 +222,11 @@ async def server( request ):
                         wavFileName = ''
 
                     # Журналируем расспознанный текст (если заказано)
-                    if int(config.voiceLogLevel)>=3   or   not isProcessed and int(config.voiceLogLevel)>0 :
+                    if (len(text)>0) and ( (int(config.voiceLogLevel)>=3) or (int(config.voiceLogLevel)>=1 and terminal.isAppealed and not isProcessed ) ):
                         with open(os.path.join( config.voiceLogDir, 'voice.log'), 'a') as voiceLog:
                             dt = datetime.datetime.today().strftime(f'%Y-%m-%d %H:%M:%S')
-                            voiceLog.write( f'{dt}\t{terminal.id}\t{wavFileName}\n' +
-                                f'\t{text}\n' )
+                            fn = f"\t{wavFileName}" if len(wavFileName)>0 else ""
+                            voiceLog.write( f'{dt}\t{terminal.id}{fn}\t{text}\n' )
 
                     # # Освобождаем память
                     # if recognizer is not None : del(recognizer)
@@ -235,7 +235,7 @@ async def server( request ):
                     voiceData = None
                     speakerSignature = None
                     isActive = False
-
+                    terminal.isAppealed = False
                     # Переводим терминал в режим ожидания
                     sendMessage( MSG_IDLE )
 

@@ -4,10 +4,9 @@ aiohttp==3.8.1
 webrtcvad
 rhvoice_wrapper 
 spidev
-numpy>=1.22
+numpy==1.16.2
 gpiozero
 rpi.gpio
 pkg_resources
-pysqueezebox==0.5.5
-#socket
+pysqueezebox
 
