@@ -255,7 +255,7 @@ async def playAsync( data ):
 async def lmsThread( session ):
     global shared
     global lmsPlayer
-    log( "Запуск мониторинга LMS" )
+    log( "Монитор LMS: Запуск" )
     lmsServer = lms.Server(session, config.lmsAddress, port=config.lmsPort, username=config.lmsUser, password=config.lmsPassword )
     while not shared.isTerminated:
         lmsPlayer = None
@@ -287,7 +287,7 @@ async def lmsThread( session ):
                         or str(p._id).lower().replace(':','') == id_name.lower().replace(':','') \
                         or p_ip == id_ip :
                         if lmsPlayer is None or lmsPlayer._id != p._id:
-                            log( f'LMS thread, bound to player "{p.name}", MAC address: {p._id}, IP address: {p_ip}')
+                            log( f'Монитор LMS: "{p.name}", MAC: {p._id}, IP: {p_ip}')
                         lmp = p
                         break
             lmsPlayer = lmp
@@ -295,13 +295,13 @@ async def lmsThread( session ):
                 await lmsPlayer.async_update()
                 await asyncio.sleep(3)
         except Exception as e:
-            logError( f'LMS thread {type(e).__name__}: {e}' )
-        except:
-            logError( f'LMS thread break' )
+            logError( f'Монитор LMS: {type(e).__name__}: {e}' )
+        except KeyboardInterrupt:
+            logError( f'Монитор LMS: получен сигнал на завершение' )
             break
         await asyncio.sleep( 10 )
         lmsPlayer = None
-    log( "Завершение мониторинга LMS" )
+    log( "Монитор LMS: завершшение" )
 #endregion
 
 #region playerMuteAsync() / playerUnmuteAsync() ########################################
@@ -355,31 +355,37 @@ async def playerUnmuteAsync()-> bool:
 async def microphoneThread( connection ):
     global shared
     global microphone
-    try:
-        with Microphone() as mic:
-            microphone = mic
-            _active = False
-            while not shared.isTerminated:
-                if microphone.active : 
-                    try:
-                        if not _active and shared.serverStatus['StoreAudio']=='True' :
-                            await connection.send(MESSAGE(MSG_TEXT,f'CH:{microphone.channel}: RMS {microphone.rms} MAXPP {microphone.maxpp}, VAD:{microphone.vadLevel}'))
-                    except Exception as e:
-                        print( f'{e}' )
+    log( "Микрофон: Запуск" )
+    while True:
+        try:
+            with Microphone() as mic:
+                microphone = mic
+                _active = False
+                while not shared.isTerminated:
+                    if microphone.active : 
+                        try:
+                            if not _active and shared.serverStatus['StoreAudio']=='True' :
+                                await connection.send(MESSAGE(MSG_TEXT,f'CH:{microphone.channel}: RMS {microphone.rms} MAXPP {microphone.maxpp}, VAD:{microphone.vadLevel}'))
+                        except Exception as e:
+                            print( f'{e}' )
+                            pass
+                        _active = True
+                        data = microphone.read()
+                        if not microphone.muted and data is not None : 
+                            await connection.send_bytes( data )
+                    else:
+                        _active = False
                         pass
-                    _active = True
-                    data = microphone.read()
-                    if not microphone.muted and data is not None : 
-                        await connection.send_bytes( data )
-                else:
-                    _active = False
-                    pass
 
-                await asyncio.sleep( 0.2 )
-    except Exception as e:
-        print()
-        logError(f"Microphone thread: {type(e).__name__}: {e}")
+                    await asyncio.sleep( 0.2 )
+        except KeyboardInterrupt:
+            log( "Микрофон: Получен сигнал на завершение" )
+            break;
+        except Exception as e:
+            print()
+            logError(f"Микрофон: {type(e).__name__}: {e}")
     microphone = None
+    log( "Микрофон: Завершение" )
 #endregion
 
 #region messageThread() ################################################################
@@ -389,7 +395,7 @@ async def messageThread( connection ):
     global lmsPlayer
 
     unmute(MUTE_REASON_SERVER)
-
+    log("Starting message thread")
     while True:
         try:
             if lmsPlayer is not None:
@@ -451,10 +457,9 @@ async def messageThread( connection ):
                             shared.isTerminated = True
                             restart()
                 elif m == MSG_REBOOT:
-                    print( 'Перезагрузка устройства еще не реализована. Перезапускаю клиент...' )
                     restart()
                 else:
-                    print( f'Unknown message received: "{m}"' )
+                    logError( f'Unknown message received: "{m}"' )
                 #endregion
             elif msg.type == aiohttp.WSMsgType.CLOSED:
                 break
@@ -463,7 +468,9 @@ async def messageThread( connection ):
         except KeyboardInterrupt:
             break
         except Exception as e:
-            print( f'Message "{m}" processing {type(e).__name__}: {e}' )
+            logError( f'Message thread: {type(e).__name__} processing "{m}": {e}' )
+
+    log("Exiting message thread")
 #endregion
 
 #region client() #######################################################################
@@ -546,7 +553,7 @@ def onCtrlC():
     try:
         if not shared.isTerminated:
             print()
-            print( "Terminating..." )
+            print( "Завершение программы..." )
         shared.isTerminated = True
     except:
         pass
@@ -558,7 +565,7 @@ def onCtrlC():
 def restart():
     """  Перезапуск клиента в надежде что он запущен из скрипта в цикле """
     global shared
-    print( 'Перезапуск...' )
+    log( 'Перезапуск...' )
     shared.isTerminated = True
     shared.exitCode = 42 # перезапуск
 #endregion
