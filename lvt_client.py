@@ -356,7 +356,7 @@ async def microphoneThread( connection ):
     global shared
     global microphone
     log( "Микрофон: Запуск" )
-    while True:
+    while not shared.isTerminated:
         try:
             with Microphone() as mic:
                 microphone = mic
@@ -395,8 +395,8 @@ async def messageThread( connection ):
     global lmsPlayer
 
     unmute(MUTE_REASON_SERVER)
-    log("Starting message thread")
-    while True:
+    log("Основной цикл: Запуск")
+    while not shared.isTerminated:
         try:
             if lmsPlayer is not None:
                 try:
@@ -454,7 +454,6 @@ async def messageThread( connection ):
                     if p is not None: 
                         package = json.loads( p )
                         if updater.updateClient( package ) :
-                            shared.isTerminated = True
                             restart()
                 elif m == MSG_REBOOT:
                     restart()
@@ -468,9 +467,9 @@ async def messageThread( connection ):
         except KeyboardInterrupt:
             break
         except Exception as e:
-            logError( f'Message thread: {type(e).__name__} processing "{m}": {e}' )
+            logError( f'Основной цикл, {m}: {type(e).__name__}: {e}' )
 
-    log("Exiting message thread")
+    log("Основной цикл: остановка")
 #endregion
 
 #region client() #######################################################################
@@ -568,6 +567,7 @@ def restart():
     log( 'Перезапуск...' )
     shared.isTerminated = True
     shared.exitCode = 42 # перезапуск
+    sys.exit(42)
 #endregion
 
 #region Main program ###################################################################
@@ -678,7 +678,7 @@ if __name__ == '__main__':
         del( animator )
 
     if shared.exitCode == 42 :
-        print( 'Перезапуск' )
+        log( 'Перезапуск' )
         sys.exit(shared.exitCode)
     else:
         print( 'Завершение работы' )
