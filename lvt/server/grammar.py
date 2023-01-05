@@ -1,12 +1,12 @@
 from argparse import ArgumentError
 import math
-import pymorphy2
+import pymorphy3
 
 from lvt.logger import logError
-# PyMorphy2: 
+# PyMorphy3: 
 # https://pymorphy2.readthedocs.io/en/stable/user/guide.html
 #
-morphy = pymorphy2.MorphAnalyzer( lang='ru' )
+morphy = pymorphy3.MorphAnalyzer( lang='ru' )
 
 #region PyMorphy parse*, transcribe*, normalFormOf, inflect*, conform ######################
 def parseWord( word: str ):
@@ -118,7 +118,7 @@ def extractTags( tags: str):
                     tag = morphy.TagClass(s)
                     if bool(tag): result.add(s)
                 except ValueError as ve:
-                    logError(f'pymorphy2: неизвестный тег "{t}"')
+                    logError(f'pymorphy3: неизвестный тег "{t}"')
                     pass
     return result
 #endregion

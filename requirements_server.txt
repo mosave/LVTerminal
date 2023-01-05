@@ -1,8 +1,8 @@
 aiohttp
-numpy>=1.22
+numpy
 psutil
-pymorphy2
-pymorphy2-dicts-ru
+pymorphy3
+pymorphy3-dicts-ru
 rhvoice-wrapper
 vosk
-aiohttp==3.8.1
+aiohttp

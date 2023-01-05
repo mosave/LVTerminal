@@ -1,4 +1,4 @@
-py ./lvt_server.py -c=D:\SmartHome\LVTerminal\LVTerminal\config\server_mosave1.cfg
+py ./lvt_server.py -c=K:\House\MultiRoom\LVTerminal\config\server_aepc.cfg
 
 goto exit
 
