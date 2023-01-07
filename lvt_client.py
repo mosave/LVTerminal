@@ -356,35 +356,21 @@ async def microphoneThread( connection ):
     global shared
     global microphone
     log( "Микрофон: Запуск" )
-    while not shared.isTerminated:
+    with Microphone() as mic:
+        microphone = mic
         try:
-            with Microphone() as mic:
-                microphone = mic
-                _active = False
-                while not shared.isTerminated:
-                    if microphone.active : 
-                        try:
-                            if not _active and shared.serverStatus['StoreAudio']=='True' :
-                                await connection.send(MESSAGE(MSG_TEXT,f'CH:{microphone.channel}: RMS {microphone.rms} MAXPP {microphone.maxpp}, VAD:{microphone.vadLevel}'))
-                        except Exception as e:
-                            print( f'{e}' )
-                            pass
-                        _active = True
-                        data = microphone.read()
-                        if not microphone.muted and data is not None : 
-                            await connection.send_bytes( data )
-                    else:
-                        _active = False
-                        pass
-
-                    await asyncio.sleep( 0.2 )
+            while not shared.isTerminated:
+                if microphone.active : 
+                    data = microphone.read()
+                    if not microphone.muted and data is not None : 
+                        await connection.send_bytes( data )
+                await asyncio.sleep( 0.2 )
         except KeyboardInterrupt:
             log( "Микрофон: Получен сигнал на завершение" )
-            break;
         except Exception as e:
             print()
             logError(f"Микрофон: {type(e).__name__}: {e}")
-    microphone = None
+        microphone = None
     log( "Микрофон: Завершение" )
 #endregion
 

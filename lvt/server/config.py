@@ -13,7 +13,6 @@ sslCertFile = None
 sslKeyFile = None
 model = None
 gModel = None
-storeAudio = False
 recognitionThreads : int = 4
 storageFile : str = None
 
@@ -51,7 +50,6 @@ def init():
     global sslKeyFile
     global model
     global gModel 
-    global storeAudio
     global recognitionThreads
     global storageFile
 
@@ -107,8 +105,6 @@ def init():
     if bool(storageFile) and not os.path.isabs(storageFile):
         storageFile = os.path.join( ROOT_DIR, storageFile )
 
-
-    storeAudio = bool(p.getValue(section,'StoreAudio','0') != '0')
 
     ### Voice recognition configuration 
     recognitionThreads = p.getIntValue( section, 'RecognitionThreads',int(str(os.cpu_count())) )

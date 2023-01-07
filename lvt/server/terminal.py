@@ -554,7 +554,6 @@ def getState( ) -> dict:
         'VoiceEngine': config.ttsEngine,
         'LogLevel': config.logLevel,
         'PrintLevel': config.printLevel,
-        'StoreAudio':config.storeAudio,
         'TerminalsTotal': len(terminals),
         'TerminalsConnected': terminalsConnected,
         'Terminals': states,
