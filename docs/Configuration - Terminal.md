@@ -56,7 +56,7 @@ sudo apt-get autoclean
 
 10. Устанавливаем Python3 и необходимые библиотеки для запуска терминального клиента:
     '''
-    sudo apt-get install python3 python3-venv python3-pyaudio python3-alsaaudio python3-numpy python3-rpi.gpio libatlas-base-dev 
+    sudo apt-get install python3 python3-venv python3-pyaudio python3-alsaaudio python3-numpy libatlas-base-dev 
 
     '''
 
@@ -75,8 +75,6 @@ sudo apt-get autoclean
     * rhvoice_wrapper 
     * numpy
     * spidev
-    * gpiozero (при использовании APA102 )
-    * RPi.GPIO (при использовании APA102)
 
 11. Добиваемся чтобы клиент запускался, подключался к серверу и "слышал" звук
   * ./lvt_client.py --help    # подсказка по параметрам командной строки

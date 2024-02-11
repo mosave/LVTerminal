@@ -71,7 +71,6 @@ class Skill:
     @property
     def topic( self ) -> str: return self.terminal.topic
 
-    def animate( self, animation:str ): self.terminal.animate( animation )
     async def sayAsync( self, text ): await self.terminal.sayAsync ( text )
     async def playAsync( self, waveFileName ): await self.terminal.playAsync( waveFileName )
     def conformToAppeal( self, text:str ): return self.terminal.conformToAppeal( text )
@@ -235,10 +234,8 @@ class Skill:
         """Изменить текущий топик на newTopic с параметрами params"""
         await self.terminal.changeTopicAsync( newTopic, params )
 
-    def stopParsing( self, animation: str=None ):
+    def stopParsing( self ):
         """Прервать исполнение цепочки скиллов после выхода из обработчика onText"""
-        if animation is not None : 
-            self.terminal.animate( animation )
         self.terminal.parsingStopped = True
 
     def restartParsing( self ):

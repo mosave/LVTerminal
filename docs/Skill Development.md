@@ -45,7 +45,6 @@
  * topic
 
 ### Методы базового класса Skill:
- * animate( this, animation:str )
  * say( this, text )
  * play( this, waveFileName )
  * log( this, msg:str )
@@ -67,7 +66,7 @@
  * isSubscribed( this, topic ):
  * extendVocabulary( this, words, tags=None ):
  * changeTopic( this, newTopic, *params, **kwparams ):
- * stopParsing( this, animation: str=None ):
+ * stopParsing( this ):
  * restartParsing( this ):
 
 ### Свойства терминала (this.terminal)

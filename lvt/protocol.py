@@ -14,6 +14,10 @@ MSG_STATUS = "Status" # [<terminal status, JSON>]
 # Server => Terminal: Текущее состояние сервера (JSON пакет)
 MSG_LVT_STATUS = "LVTStatus" # [<Server status, JSON>]
 
+# Terminal => Server: текущее состояние аудиопотоков: основного и голосового. 
+# 1 - звук выводится, 0 - звук не выводится
+MSG_SPEAKER_STATUS = "SpeakerStatus" # <Playing> <Speaking>
+
 # Terminal => Server: Завершение текущей сессии
 # Server => Terminal: Завершение текущей сессии
 MSG_DISCONNECT = "Disconnect"
@@ -21,20 +25,13 @@ MSG_DISCONNECT = "Disconnect"
 # Server => Terminal: Текст для отображения на терминале (если поддерживается)
 MSG_TEXT = "Text" # text string to display
 
-# Server => Terminal: play terminal animation (if supported by terminal)
-# See const.ANIMATION* constants
-MSG_ANIMATE = "Animate" # None|Awake|Think|Accept|Cancel 
-
-# Server => Terminal: выключить/включить микрофон
-MSG_MUTE = "Mute"
-MSG_UNMUTE = "Unmute"
-
 # Server => Terminal: установить громкость терминала
 MSG_VOLUME = "Volume"
 
 # Server => Terminal: поставить плеер на паузу (убрать громкость)
 MSG_MUTE_PLAYER = "MutePlayer"
 MSG_UNMUTE_PLAYER = "UnmutePlayer"
+
 
 # Server => Terminal: terminal client update package
 MSG_UPDATE = "Update" # <client update JSON package>
@@ -56,8 +53,8 @@ MSG_TERMINAL = "Terminal"# <TerminalId> <Password> <Version>
 # All available commands
 MSG_ALL = { \
     MSG_IDLE, MSG_STATUS, MSG_LVT_STATUS, MSG_DISCONNECT, MSG_TERMINAL, MSG_REBOOT, \
-    MSG_TEXT, MSG_ANIMATE, MSG_UPDATE, \
-    MSG_MUTE, MSG_UNMUTE, MSG_VOLUME, \
+    MSG_TEXT, MSG_UPDATE, \
+    MSG_SPEAKER_STATUS, MSG_VOLUME, \
     MSG_MUTE_PLAYER, MSG_UNMUTE_PLAYER \
     }
 
@@ -73,10 +70,10 @@ MSG_API_SERVER_STATUS = 'ServerStatus'
 MSG_API_TERMINAL_STATUS = 'Status'
 
 #  Проговорить текст
-MSG_API_SAY = 'Say' # {"Sound": sound, "Importance": importance, "Terminals": speakers}
+MSG_API_SAY = 'Say' # {"Say": text, "Importance": importance, "Terminals": speakers}
 
 #  Проиграть звуковой эффект
-MSG_API_PLAY = 'Play' # {"Say": text, "Importance": importance, "Terminals": speakers}
+MSG_API_PLAY = 'Play' # {"Sound": sound, "Importance": importance, "Terminals": speakers}
 
 MSG_API_NEGOTIATE = 'Negotiate' 
 MSG_API_LISTENING_START = 'ListeningStart'

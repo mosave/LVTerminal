@@ -19,7 +19,6 @@ Lite Voice Terminal это клиент-серверная платформа с
 Запланированные изменения:
  - Отказ от избыточной универсальности, поддержка только русского языка.
  - Упрощение и оптимизация серверной части
- - Интеграция с [Logitech Media Server (Squeezebox)](https://mysqueezebox.com/index/Home)) на уровне сервера.
  - Расширение протоколов управления LVT и разработка модуля интеграции с Home Assistant.
  - Оптимизация клиента LVT
 
@@ -33,7 +32,6 @@ Lite Voice Terminal это клиент-серверная платформа с
 задается в файле настройки.
 - [ ] Идентификация говорящего по голосу (работает только на достаточно длинных фразах, на текущий момент отключено)
 - [x] Возможность расширения функций ассистента за счет написания своих модулей 
-- [x] Совместная работа LVT клиента и squeezebox lite (плеер-клиент [Logitech Media Server](https://mysqueezebox.com/index/Home))
 - [x] Интеграция в **Home Assistant**
 - [x] Запуск сервера LVT на Unix
 - [x] Запуск сервера LVT на Windows
@@ -48,7 +46,6 @@ Lite Voice Terminal это клиент-серверная платформа с
 * [vosk API](https://github.com/alphacep/vosk-api): программный интерфейс для kaldi
 * [pymorphy2](https://github.com/kmike/pymorphy2): морфологический анализатор для русского и украинского языков
 * [RHVoice](https://github.com/Olga-Yakovleva/RHVoice):  синтез голоса для русского языка
-* [APA102](https://pypi.org/project/apa102): управление светодиодной лентой
 * [WebRTC VAD](https://github.com/wiseman/py-webrtcvad): Определение наличия голоса во входном потоке
 * [ReSpeaker components](https://github.com/respeaker): Взаимодействие с микрофоном и методы обработки звуков
 * [mdmTerminal2](https://github.com/Aculeasis/mdmTerminal2): Много идей и кода позаимствовано из реализации голосового терминала MajorDoMo
@@ -58,7 +55,6 @@ Lite Voice Terminal это клиент-серверная платформа с
  * [Установка и настройка терминала LVT](https://github.com/mosave/LVTerminal/blob/master/docs/Configuration%20-%20Terminal.md)
  * Примеры реализации терминалов
     * [Raspberry Pi3 A+ и Respeaker 4 MIC](https://github.com/mosave/LVTerminal/tree/master/hardware/RPi%203A%2B%20with%20Respeaker4/readme.md)
-    * [Raspberry Pi ZeroW и Respeaker 4 MIC Linear Array](https://github.com/mosave/LVTerminal/tree/master/hardware/RPi%20Zero%20with%20Respeaker4%20Linear%20Array/readme.md)
     * [Raspberry Pi ZeroW и Respeaker 2 MIC](https://github.com/mosave/LVTerminal/tree/master/hardware/RPi%20Zero%20with%20Respeaker2/readme.md)
  * [Описание протокола LVT](https://github.com/mosave/LVTerminal/blob/master/docs/LVT%20Protocol.md)
  * [Разработка скиллов (skill, навык)](https://github.com/mosave/LVTerminal/blob/master/docs/Skill%20Development.md)

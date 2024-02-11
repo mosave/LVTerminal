@@ -83,7 +83,6 @@ cd LVTerminal
  * rhvoice_wrapper 
  * rhvoice_wrapper_bin (Windows)
  * numpy
- * pysqueezebox
  * vosk
 
 ### 5. Установка серверной части в виде сервиса

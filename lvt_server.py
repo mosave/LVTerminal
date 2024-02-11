@@ -126,6 +126,12 @@ async def server( request ):
                 elif m == MSG_TEXT:
                     if terminal is None : break
                     log(f'[{terminal.id}] {p}')
+                elif m == MSG_SPEAKER_STATUS:
+                    playing, speaking = split2( p )
+                    if terminal is not None:
+                        terminal.isPlaying = playing
+                        terminal.isSpeaking = speaking
+                        pass
                 elif m == MSG_TERMINAL :
                     id, password, version = split3( p )
                     terminal = terminals.authorize( id, password, version )
@@ -133,7 +139,7 @@ async def server( request ):
                         terminal.ipAddress = request.remote
                         terminal.version = version
                         await terminal.onConnectAsync( messageQueue )
-                        if terminal.autoUpdate==2 and version != VERSION :
+                        if terminal.autoUpdate==2 and terminal.version != VERSION :
                             await terminal.updateClient()
                     else:
                         print( 'Not authorized. Disconnecting' )
@@ -270,14 +276,9 @@ def showHelp():
 #region background task start/cleanup ##################################################
 async def start_background_tasks(app):
     pass
-    # if config.playerIntegration == PLAYER_INTEGRATION_LMS:
-    #     app['lms_client'] = asyncio.create_task(lms.client())
 
 async def cleanup_background_tasks(app):
     pass
-    # if config.playerIntegration == PLAYER_INTEGRATION_LMS:
-    #     app['lms_client'].cancel()
-    #     await app['lms_client']
 #endregion
 
 #region onCtrlC/ restart ###############################################################
@@ -377,7 +378,6 @@ if __name__ == '__main__':
     try:
     
         # loop = asyncio.get_event_loop()
-        # task = loop.create_task( lmsClient() )
 
         app = web.Application()
         app.on_startup.append(start_background_tasks)

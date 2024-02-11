@@ -30,7 +30,7 @@ class ParrotModeSkill(Skill):
             self.remindOn = time.time() + REMINDER_TIMEOUT
             matches = self.utterances.match(self.words)
             if (len(matches)>0) and (matches[0].id=='off'):
-                self.stopParsing( ANIMATION_ACCEPT )
+                self.stopParsing()
                 await self.changeTopicAsync( TOPIC_DEFAULT )
             else:
                 await self.sayAsync( self.terminal.originalText )
@@ -39,21 +39,20 @@ class ParrotModeSkill(Skill):
             matches = self.utterances.match(self.words)
             if (len(matches)>0) and (matches[0].id=='on'):
                 await self.changeTopicAsync( TOPIC_PARROT_MODE )
-                self.stopParsing( ANIMATION_ACCEPT )
+                self.stopParsing()
 
     async def onTopicChangeAsync( self, newTopic: str, params={} ):
         if newTopic == TOPIC_PARROT_MODE:
             self.terminal.useVocabulary = False
 
         if self.topic == TOPIC_DEFAULT and newTopic == TOPIC_PARROT_MODE :
-            self.animate( ANIMATION_AWAKE )
             await self.sayAsync( 'Окей, говорите и я буду повторять всё, что услышу!. ' + 'Для завершения скажите: "перестань за мной повторять"' )
             # Задаем время проговаривания напоминания
             self.remindOn = time.time() + REMINDER_TIMEOUT
         elif self.topic == TOPIC_PARROT_MODE :
             await self.sayAsync( 'Режим попугая выключен' )
             self.remindOn = 0
-            self.stopParsing( ANIMATION_NONE )
+            self.stopParsing()
        
     async def onTimerAsync( self ):
         if( self.topic == TOPIC_PARROT_MODE ):

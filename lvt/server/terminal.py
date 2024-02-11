@@ -47,6 +47,13 @@ class Terminal():
         self.lastAppealed = None
         self.isAppealed = False
         self.isReacted = False
+
+        # Терминал в текущий момент проигрывает аудио. Обновляется клиентом
+        self.isPlaying = False
+
+        # Терминал произносит текст. Обновляется клиентом
+        self.isSpeaking = False
+
         # messages are local output messages buffer used while terminal is
         # disconnected
         self.messages = list()
@@ -78,8 +85,6 @@ class Terminal():
         else:
             self.tts = None
 
-        self.lastAnimation = ''
-
         self.appeal = wordsToList( config.assistantNames )[0]
 
         self.__volume = 50
@@ -104,15 +109,16 @@ class Terminal():
 
 #region sayAsync / playVoiceAsync / playAsync / playerMute / playerUnmute
     def playerMute(self):
-        if self.playerMuted<=0:
+        if self.playerMuted <= 0:
             self.sendMessage(MSG_MUTE_PLAYER)
         self.playerMuted += 1
 
     def playerUnmute(self):
         if self.playerMuted>0:
             self.playerMuted -= 1
-            if self.playerMuted==0:
+            if self.playerMuted <= 0:
                 self.sendMessage(MSG_UNMUTE_PLAYER)
+                self.playerMuted = 0
     
     async def sayAsync( self, text ):
         """Проговорить сообщение на терминал. 
@@ -244,12 +250,9 @@ class Terminal():
         else: # Необходимо переинициализировать состояние терминала
             self.reset()
 
-        self.sendMessage( MSG_ANIMATE, ANIMATION_NONE )
         self.sendMessage( MSG_LVT_STATUS, json.dumps(getState()) )
         if bool(self.sayOnConnect) :
-            self.sendMessage(MSG_MUTE)
             await self.sayAsync(self.sayOnConnect)
-            self.sendMessage(MSG_UNMUTE)
             self.sayOnConnect = None
         #await self.sayAsync('Terminal Connected. Терминал подключен.')
 
@@ -318,11 +321,6 @@ class Terminal():
                 await self.playAsync('asr_ok.wav')
             else:
                 await self.playAsync( 'asr_error.wav' )
-
-       
-
-        if self.topic == TOPIC_DEFAULT and self.lastAnimation != ANIMATION_NONE : 
-            self.animate( ANIMATION_NONE )
 
         self.originalText = ''
 
@@ -415,7 +413,7 @@ class Terminal():
         raise Exception( message )
 #endregion
 
-#region Messages, animate, getState
+#region Messages, getState
     def getState( self ):
         """JSON строка с описанием текущего состояния терминала на стороне сервера
         """
@@ -432,12 +430,6 @@ class Terminal():
             'Filter': self.filter
         }
         return states[self.id]
-
-    def animate( self, animation:str ):
-        """Передать клиенту запрос на анимацию"""
-        if animation != self.lastAnimation:
-            self.lastAnimation = animation if animation in ANIMATION_STICKY  else ANIMATION_NONE
-            self.sendMessage( MSG_ANIMATE, animation )
 
     def sendMessage( self, msg:str, p1:str=None, p2:str=None ):
         message = MESSAGE( msg, p1, p2 )

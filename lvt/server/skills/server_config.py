@@ -24,7 +24,7 @@ class ServerConfigSkill(Skill):
         self.utterances.add("volume:Up", "увеличить громкость [звука, колонки, терминала, динамика]")
         self.utterances.add("volume:Down", "уменьшить громкость [звука, колонки, терминала, динамика]")
 
-        self.utterances.add("volume:Set", "[установить, сделать] [громкость, звук] [терминала, колонки, динамика, звука, ] [на, в, ] volume=<number> процентов")
+        self.utterances.add("volume:Set", "[установить, сделать, ] [громкость, звук] [терминала, колонки, динамика, звука, ] [на, в, ] volume=<number> процентов")
 
         self.utterances.add("plusVolume:Up", "[сделай, сделай еще, еще, ] [громче, погромче]")
         self.utterances.add("plusVolume:Down", "[сделай, сделай еще, еще, ] [тише, потише]")

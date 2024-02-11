@@ -3,8 +3,6 @@
   + Поддержка WebSocketSecure, разрешать self-signed certificates
   + Паролирование терминальных подключений
   + Самообновление терминального клиента
-  + TextAnimator
-  + APA120 Animator для светодиодной ленты на базе APA120 
   + RHVoice as first TTS engine (should be installed on LVT Server environment)
   - Привести к балансу серверные и клиентские файлы конфигурации терминалов 
   - Skill: при пустой базе голосов предлагать сделать первого говорящего администратором

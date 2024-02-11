@@ -23,8 +23,9 @@ class AppealDetectorSkill(Skill):
         self.aNames = wordsToList( config.assistantNames )
         self.utterances = Utterances( self.terminal )
         self.utterances.add("voice", "[Голос, подай голос, скажи что-нибудь]")
-        self.utterances.add("alive", "[ты здесь, ты живой, ты еще живой, ты там живой, ты там еще живой]")
-        self.utterances.add("hearing", "[ты меня слышишь, ты слышишь, ты там меня слышишь]")
+        # "ты" в фразе распознается ненадежно. В шаблоне просто исключим его из распознавания
+        self.utterances.add("alive", "[здесь, живой, еще живой, там живой, там еще живой]")
+        self.utterances.add("hearing", "[меня слышишь, слышишь, там меня слышишь]")
         self.setVocabulary( TOPIC_DEFAULT, self.utterances.vocabulary )
 
     async def onTextAsync( self ):
@@ -32,14 +33,13 @@ class AppealDetectorSkill(Skill):
         if self.detectAppeals():
             self.lastSound = time.time()
             if self.topic == TOPIC_DEFAULT :
-                self.terminal.animate( ANIMATION_AWAKE )
                 # В случае если фраза содержит только обращение - завершаем обработку фразы
                 if len( self.words ) == 0:
                     self.stopParsing()
                 else:
                     matches = self.utterances.match(self.words)
                     if len(matches)>0 :
-                        self.stopParsing( ANIMATION_ACCEPT )
+                        self.stopParsing()
                         if matches[0].id=='voice':
                             await self.sayAsync( ['Гав. Гав-гав.', 'мяаау блин', 'отстаньте от меня','не мешайте, я за домом присматриваю','не мешайте. я думаю', 'шутить изволите?'] )
                         elif matches[0].id=='alive':

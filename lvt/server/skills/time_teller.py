@@ -15,9 +15,12 @@ class TellTheTimeSkill(Skill):
         self.priority = 1000
         self.subscribe( TOPIC_DEFAULT )
         self.utterances = Utterances( self.terminal )
+        self.utterances.add("time", "скажи время")
         self.utterances.add("time", "* сколько времени")
         self.utterances.add("time", "* сколько сейчас времени")
         self.utterances.add("time", "* который час")
+        self.utterances.add("date", "скажи дату")
+        self.utterances.add("date", "скажи день недели")
         self.utterances.add("date", "* какой сегодня день недели")
         self.utterances.add("date", "* какое сегодня число")
         self.utterances.add("date", "* какая сегодня дата")

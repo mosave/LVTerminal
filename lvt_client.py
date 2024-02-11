@@ -1,40 +1,33 @@
 #!/usr/bin/env python3 
-from asyncio import protocols
 import sys
 import time
 import io
 import json
 import asyncio
 import pyaudio
-import socket
 import wave
 import ssl
 import aiohttp
-import multiprocessing
-import pysqueezebox as lms
 
 from lvt.const import *
 from lvt.protocol import *
 from lvt.logger import *
 from lvt.client.microphone import Microphone
-from lvt.client.animator import Animator
 import lvt.client.config as config
 import lvt.client.updater as updater
 
-MUTE_REASON_CLIENT = 0
-MUTE_REASON_SERVER = 1
-MUTE_REASON_PLAYER = 2
-
 audio : pyaudio.PyAudio
-shared = None
 microphone : Microphone = None
-animator : Animator = None
-mutedByServer : bool = False
-mutedByPlayer : bool = False
-mutedByClient : bool = False
-
 defaultPlayerVolume : int = 0
-lmsPlayer : lms.Player = None
+
+isQuiet = False
+isTerminated = False
+exitCode = 0
+isConnected = False
+terminalStatus = '{"Terminal":""}'
+serverStatus = '{}'
+
+
 
 
 #region showHelp(), showDevices() ######################################################
@@ -61,13 +54,11 @@ def showDevices():
 
 #region printStatus() ##################################################################
 async def printStatusThread():
-    global shared
     global microphone
-    global animator
-    global lmsPlayer
+    global isTerminated
 
-    while not shared.isTerminated:
-        if not shared.quiet and animator is not None and microphone is not None :
+    while not isTerminated:
+        if microphone is not None :
             width = 38
             scale = 5000
             rms = microphone.rms
@@ -89,62 +80,22 @@ async def printStatusThread():
             else:
                 graph += ' '
 
-            if lmsPlayer is not None and lmsPlayer.mode=="play" and lmsPlayer.volume>1:
-                mouth = 'o'
-            else:
-                mouth = '_'
+            mouth = 'o' if microphone.speaking else '_'
             face = f'*{mouth}*' if microphone.active else f'-{mouth}-'
             face = f'x({face})x' if microphone.muted else f'@({face})@'
-            sys.__stdout__.write( f'[{animator.animation:^10}] {face} CH:{microphone.channel} RMS:{microphone.rms:>5} VAD:{microphone.vadLevel:>3} [{graph}]  \r' )
+            playing = 'P' if microphone.playing else 'p'
+            sys.__stdout__.write( f'  {face} [{playing}] CH:{microphone.channel} RMS:{microphone.rms:>5} VAD:{microphone.vadLevel:>3} [{graph}]  \r' )
         await asyncio.sleep(1)
-#endregion
-
-#region mute(reason) / unmute(reason) ##################################################
-def mute( reason: int ):
-    '''MUTE_REASON_CLIENT / MUTE_REASON_SERVER / MUTE_REASON_PLAYER'''
-    global mutedByServer
-    global mutedByPlayer
-    global mutedByClient
-
-    if reason == MUTE_REASON_CLIENT:
-        mutedByClient = True
-    elif reason == MUTE_REASON_SERVER:
-        mutedByServer = True
-    elif reason == MUTE_REASON_PLAYER:
-        mutedByPlayer = True
-    else:
-        raise ValueError("Invalid mute reason!")
-    
-    if microphone is not None: microphone.muted = True
-    if animator is not None: animator.muted = True
-
-def unmute( reason: int ):
-    '''MUTE_CLIENT / MUTE_SERVER / MUTE_PLAYER'''
-    global mutedByServer
-    global mutedByPlayer
-    global mutedByClient
-
-    if reason == MUTE_REASON_CLIENT:
-        mutedByClient = False
-    elif reason == MUTE_REASON_SERVER:
-        mutedByServer = False
-    elif reason == MUTE_REASON_PLAYER:
-        mutedByPlayer = False
-    else:
-        raise ValueError("Invalid mute reason!")
-    
-    if mutedByClient or mutedByServer or mutedByPlayer:
-        return
-
-    if microphone is not None: microphone.muted = False
-    if animator is not None: animator.muted = False
 #endregion
 
 #region ALSA: <get|set>[Player]Volume() ################################################
 def getVolume():
     global alsaaudio
-    if config.volumeControl is not None:
-        return alsaaudio.Mixer(cardindex=config.volumeCardIndex, control=config.volumeControl ).getvolume()[0]
+    global microphone
+    if config.volumeControlVoice is not None:
+        volume = alsaaudio.Mixer(cardindex=config.volumeCardIndex, control=config.volumeControlVoice ).getvolume()[0]
+        if microphone is not None: microphone.voiceVolume = volume
+        return volume
     else:
         return None
 
@@ -152,6 +103,7 @@ def getPlayerVolume():
     global alsaaudio
     if config.volumeControlPlayer is not None:
         volume = alsaaudio.Mixer(cardindex=config.volumeCardIndex, control=config.volumeControlPlayer ).getvolume()[0]
+        if microphone is not None: microphone.playerVolume = volume
         return volume
     else:
         return 0
@@ -161,7 +113,8 @@ def setVolume( volume: int ):
     volume = 100 if volume>100 else (0 if volume<0 else volume)
 
     try:
-        alsaaudio.Mixer(cardindex=config.volumeCardIndex, control=config.volumeControl ).setvolume(volume)
+        alsaaudio.Mixer(cardindex=config.volumeCardIndex, control=config.volumeControlVoice ).setvolume(volume)
+        if microphone is not None: microphone.voiceVolume = volume
     except Exception as e:
         pass
 
@@ -170,25 +123,48 @@ def setPlayerVolume( volume ):
     volume = 100 if volume>100 else (0 if volume<0 else volume)
     try:
         alsaaudio.Mixer(cardindex=config.volumeCardIndex, control=config.volumeControlPlayer ).setvolume(volume)
+        if microphone is not None: microphone.playerVolume = volume
     except Exception as e:
         pass
+#endregion
+
+#region mutePlayerAsync() / unmutePlayerAsync() ##################################################
+async def mutePlayerAsync():
+    global defaultPlayerVolume
+    v = getPlayerVolume()
+    if v is not None and v>0: 
+        defaultPlayerVolume = v
+        while v>0:
+            v -= 5
+            if v<0: v=0
+            setPlayerVolume(v)
+            await asyncio.sleep( 0.01 )
+
+        await asyncio.sleep( 0.5 )
+
+async def unmutePlayerAsync():
+    global defaultPlayerVolume
+    v = getPlayerVolume()
+    if v is not None and defaultPlayerVolume > v: 
+        await asyncio.sleep( 1 )
+        while v < defaultPlayerVolume:
+            v += 5
+            if v>defaultPlayerVolume: v=defaultPlayerVolume
+            setPlayerVolume(v)
+            await asyncio.sleep( 0.01 )
+
 #endregion
 
 #region playAsync() ####################################################################
 async def playAsync( data ):
     global audio
-    global shared
     global microphone
-    global animator
 
     try:
         #fn = datetime.datetime.today().strftime(f'{config.terminalId}_%Y%m%d_%H%M%S_play.wav')
         #f = open(os.path.join( ROOT_DIR, 'logs',fn),'wb')
         #f.write(data)
         #f.close()
-        #volume = getVolume()
-        #setVolume('0%')
-        #await asyncio.sleep(0.1)
         with wave.open( io.BytesIO( data ), 'rb' ) as wav:
             #print(f'len={len(data)}')
             sampwidth = wav.getsampwidth()
@@ -215,7 +191,6 @@ async def playAsync( data ):
         logError( f'Аудиофрагмент пустой' )
         return
 
-    mute(MUTE_REASON_CLIENT)
     try:
         #print(f'open {nframes} frames ({len(frames)} bytes), nchannels={nchannels}, framerate={framerate} ')
         audioStream = audio.open(
@@ -247,124 +222,31 @@ async def playAsync( data ):
         try: audioStream.close()
         except:pass
         pass
-    unmute(MUTE_REASON_CLIENT)
 
-#endregion
-
-#region lmsThread() ####################################################################
-async def lmsThread( session ):
-    global shared
-    global lmsPlayer
-    log( "Монитор LMS: Запуск" )
-    lmsServer = lms.Server(session, config.lmsAddress, port=config.lmsPort, username=config.lmsUser, password=config.lmsPassword )
-    while not shared.isTerminated:
-        lmsPlayer = None
-        try:
-            players = await lmsServer.async_get_players()
-            # log(f"server={lmsServer}, player={lmsPlayer}")
-            if config.lmsPlayer is None:
-                id_host = str(socket.gethostname()).lower()
-                id_ip = str(socket.gethostbyname(socket.gethostname()))
-                if id_ip == "127.0.0.1":
-                    # log("LMS thread: resolving local IP address over google")
-                    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-                    s.connect(("8.8.8.8", 80))
-                    id_ip = s.getsockname()[0]
-                id_name = str(config.terminalId).lower()
-            else:
-                id_host = id_ip = id_name = str(config.lmsPlayer).lower()
-            # log( f'LMS thread: searching for name="{id_name}", host="{id_host}",  ip="{id_ip}, players={len(players)}" ')
-
-            lmp = None
-            if players is not None:
-                for p in players:
-                    await p.async_update()
-                    p_ip = p._status['player_ip'] if ( p._status is not None and 'player_ip' in p._status ) else ''
-                    p_ip = str(list((p_ip+':111').partition(':'))[0])
-                    # log( f'LMS thread, checking "{p.name}"/"{p._id}"/"{p_ip}"')
-                    if str(p.name).lower() == id_name \
-                        or str(p.name).lower() == id_host \
-                        or str(p._id).lower().replace(':','') == id_name.lower().replace(':','') \
-                        or p_ip == id_ip :
-                        if lmsPlayer is None or lmsPlayer._id != p._id:
-                            log( f'Монитор LMS: "{p.name}", MAC: {p._id}, IP: {p_ip}')
-                        lmp = p
-                        break
-            lmsPlayer = lmp
-            while not shared.isTerminated and lmsPlayer is not None:
-                await lmsPlayer.async_update()
-                await asyncio.sleep(3)
-        except Exception as e:
-            logError( f'Монитор LMS: {type(e).__name__}: {e}' )
-        except KeyboardInterrupt:
-            logError( f'Монитор LMS: получен сигнал на завершение' )
-            break
-        await asyncio.sleep( 10 )
-        lmsPlayer = None
-    log( "Монитор LMS: завершшение" )
-#endregion
-
-#region playerMuteAsync() / playerUnmuteAsync() ########################################
-async def playerMuteAsync()-> bool:
-    global lmsPlayer
-    global defaultPlayerVolume
-    if lmsPlayer is not None:
-        if config.lmsMode == LMS_MODE_PAUSE:
-            defaultPlayerVolume = 100 if lmsPlayer.mode=="play" else 0
-            if defaultPlayerVolume>0:
-                await lmsPlayer.async_pause()
-                await asyncio.sleep(0.5)
-                return True
-        else:
-            defaultPlayerVolume = 0 if lmsPlayer.muting else 100
-            if defaultPlayerVolume>0:
-                await lmsPlayer.async_set_muting(True)
-                await asyncio.sleep(0.5)
-                return True
-    else:
-        defaultPlayerVolume = getPlayerVolume()
-        if defaultPlayerVolume is not None and defaultPlayerVolume>0:
-            setPlayerVolume(0)
-            return True
-
-    return False
-
-async def playerUnmuteAsync()-> bool:
-    global lmsPlayer
-    global defaultPlayerVolume
-    if lmsPlayer is not None:
-        if config.lmsMode == LMS_MODE_PAUSE:
-            if (defaultPlayerVolume > 0) and (lmsPlayer.mode!="play"):
-                await asyncio.sleep(0.7)
-                await lmsPlayer.async_play()
-                return True
-        else:
-            if (defaultPlayerVolume>0) and lmsPlayer.muting:
-                await asyncio.sleep(0.7)
-                await lmsPlayer.async_set_muting(False)
-                return True
-    else:
-        v = getPlayerVolume()
-        if defaultPlayerVolume!= v:
-            setPlayerVolume(v)
-            return True
-    return False
 #endregion
 
 #region microphoneThread() #############################################################
 async def microphoneThread( connection ):
-    global shared
+    global isTerminated
     global microphone
     log( "Микрофон: Запуск" )
     with Microphone() as mic:
         microphone = mic
+        _speakerStatus = "? ?"
         try:
-            while not shared.isTerminated:
+            while not isTerminated:
                 if microphone.active : 
                     data = microphone.read()
-                    if not microphone.muted and data is not None : 
+                    if data is not None : 
                         await connection.send_bytes( data )
                 await asyncio.sleep( 0.2 )
+
+                speakerStatus = f'{1 if microphone.playing else 0} {1 if microphone.speaking else 0}' 
+                if speakerStatus != _speakerStatus:
+                    await connection.send_str( MESSAGE( MSG_SPEAKER_STATUS, speakerStatus ) )
+                    _speakerStatus = speakerStatus
+                    await asyncio.sleep( 0.2 )
+
         except KeyboardInterrupt:
             log( "Микрофон: Получен сигнал на завершение" )
         except Exception as e:
@@ -376,25 +258,14 @@ async def microphoneThread( connection ):
 
 #region messageThread() ################################################################
 async def messageThread( connection ):
-    global shared
+    global isTerminated
+    global isConnected
+    global terminalStatus
     global microphone
-    global lmsPlayer
 
-    unmute(MUTE_REASON_SERVER)
     log("Основной цикл: Запуск")
-    while not shared.isTerminated:
+    while not isTerminated:
         try:
-            if lmsPlayer is not None:
-                try:
-                    if lmsPlayer.mode=="play" and lmsPlayer.volume>1:
-                        mute( MUTE_REASON_PLAYER )
-                    else:
-                        unmute( MUTE_REASON_PLAYER )
-                except Exception:
-                    pass
-            else: # Other players are here
-                pass
-
             msg = await connection.receive()
             m = None
             if msg.type == aiohttp.WSMsgType.BINARY:
@@ -407,39 +278,31 @@ async def messageThread( connection ):
             
                 #region Handling message m
                 if m == MSG_STATUS:
-                    if p is not None : 
-                        shared.terminalStatus = json.loads(p)
-                        setVolume(int(shared.terminalStatus['Terminals'][config.terminalId]['Volume']))
+                    if p is not None:
+                        terminalStatus = json.loads(p)
+                        setVolume(int(terminalStatus['Terminals'][config.terminalId]['Volume']))
                 elif m == MSG_LVT_STATUS:
-                    if p is not None : shared.serverStatus = json.loads(p)
-                elif m == MSG_WAKEUP: 
+                    if p is not None : serverStatus = json.loads(p)
+                elif m == MSG_WAKEUP:
                     microphone.active = True
-                elif m == MSG_IDLE: 
+                elif m == MSG_IDLE:
                     microphone.active = False
                 elif m == MSG_DISCONNECT:
-                    shared.isConnected = True
+                    isConnected = True
                 elif m == MSG_TEXT:
-                    if p is not None :
+                    if p is not None:
                         print()
                         print( p )
-                elif m == MSG_MUTE: 
-                    mute(MUTE_REASON_SERVER)
-                elif m == MSG_UNMUTE: 
-                    unmute(MUTE_REASON_SERVER)
                 elif m == MSG_VOLUME: 
                     setVolume(p)
                 elif m == MSG_MUTE_PLAYER:
-                    await playerMuteAsync()
+                    await mutePlayerAsync()
                 elif m == MSG_UNMUTE_PLAYER:
-                    await playerUnmuteAsync()
-                elif m == MSG_ANIMATE:
-                    if p is None : p = ANIMATION_NONE
-                    if animator is not None and p in ANIMATION_ALL:
-                        animator.animate( p )
+                    await unmutePlayerAsync()
                 elif m == MSG_UPDATE:
                     if p is not None: 
                         package = json.loads( p )
-                        if updater.updateClient( package ) :
+                        if updater.updateClient( package ):
                             restart()
                 elif m == MSG_REBOOT:
                     restart()
@@ -461,7 +324,9 @@ async def messageThread( connection ):
 #region client() #######################################################################
 async def client( ):
     global microphone
-    global shared
+    global isQuiet
+    global isTerminated
+    global isConnected
 
     log( "Запуск основного сервиса" )
     if config.ssl :
@@ -475,12 +340,11 @@ async def client( ):
         protocol = "http"
 
     async with aiohttp.ClientSession() as session:
-        lmsTask = asyncio.ensure_future( lmsThread(session) ) if config.lmsAddress is not None and config.lmsAddress != '' else None
-        printStatusTask = asyncio.ensure_future( printStatusThread() ) if not shared.quiet else None
+        printStatusTask = asyncio.ensure_future( printStatusThread() ) if not isQuiet else None
 
 
-        while not shared.isTerminated:
-            shared.isConnected = False
+        while not isTerminated:
+            isConnected = False
             try:
                 async with session.ws_connect(
                     f"{protocol}://{config.serverAddress}:{config.serverPort}", 
@@ -488,7 +352,7 @@ async def client( ):
                     heartbeat=10,
                     ssl= sslContext,
                     ) as connection: 
-                    shared.isConnected = True
+                    isConnected = True
 
                     await connection.send_str( MESSAGE( MSG_TERMINAL, config.terminalId, config.password, VERSION ) )
                     microphoneTask = asyncio.ensure_future( microphoneThread(connection))
@@ -497,12 +361,11 @@ async def client( ):
                     tasks = []
                     tasks.append( microphoneTask )
                     tasks.append( messageTask )
-                    if lmsTask is not None: tasks.append( lmsTask )
                     if printStatusTask is not None: tasks.append( printStatusTask )
 
                     done, pending = await asyncio.wait( tasks, return_when=asyncio.FIRST_COMPLETED )
 
-                    shared.isConnected = False
+                    isConnected = False
                     logError("Disconnected")
                     if microphoneTask in pending:
                         microphoneTask.cancel()
@@ -510,19 +373,15 @@ async def client( ):
                         messageTask.cancel()
 
             except Exception as e:
-                shared.isConnected = False
+                isConnected = False
                 print()
                 logError( f'Client error {type(e).__name__}: {e}' )
                 await asyncio.sleep( 10 )
             except:
-                shared.isConnected = False
+                isConnected = False
                 onCtrlC()
             finally:
-                shared.isConnected = False
-
-    if lmsTask is not None: 
-        lmsTask.cancel()
-        lmsTask = None
+                isConnected = False
 
     if printStatusTask is not None:
         printStatusTask.cancel()
@@ -534,12 +393,12 @@ async def client( ):
 #region onCtrlC(), restart #############################################################
 def onCtrlC():
     """ Gracefuly terminate program """
-    global shared
+    global isTerminated
     try:
-        if not shared.isTerminated:
+        if not isTerminated:
             print()
             print( "Завершение программы..." )
-        shared.isTerminated = True
+        isTerminated = True
     except:
         pass
     try: 
@@ -549,10 +408,11 @@ def onCtrlC():
 
 def restart():
     """  Перезапуск клиента в надежде что он запущен из скрипта в цикле """
-    global shared
+    global isTerminated
+    global exitCode
     log( 'Перезапуск...' )
-    shared.isTerminated = True
-    shared.exitCode = 42 # перезапуск
+    isTerminated = True
+    exitCode = 42 # перезапуск
     sys.exit(42)
 #endregion
 
@@ -569,16 +429,6 @@ if __name__ == '__main__':
 
     defaultPlayerVolume = getPlayerVolume()
 
-    config.init( audio )
-
-    shared = multiprocessing.Manager().Namespace()
-    shared.quiet = False
-    shared.isTerminated = False
-    shared.exitCode = 0
-    shared.isConnected = False
-    shared.terminalStatus = '{"Terminal":""}'
-    shared.serverStatus = '{}'
-
     for arg in sys.argv[1:]:
         a = arg.strip().lower()
         if ( a == '-h' ) or ( a == '--help' ) or ( a == '/?' ) :
@@ -588,32 +438,25 @@ if __name__ == '__main__':
             showDevices()
             exit( 0 )
         elif ( a == '-q' ) or ( a == '--quiet' ) :
-            shared.quiet = True
+            isQuiet = True
         elif ( a.startswith('-с=' ) or a.startswith('--config=') ):
             #config parameter is already processed
             pass
         else:
             logError( f'Неизвестный параметр: "{arg}"' )
 
+    config.init( audio )
+
     Microphone.init( audio )
 
-    if config.animator == "text":
-        from lvt.client.animator import Animator
-        animator = Animator( shared )
-        animator.start()
-    elif config.animator == "apa102":
-        from lvt.client.animator_apa102 import APA102Animator
-        animator = APA102Animator( shared )
-        animator.start()
-        animator.animate(ANIMATION_THINK)
-    else:
-        animator = None
-
-
+    print( f'ID терминала: "{config.terminalId}"' )
     print( f'Устройство для захвата звука: #{config.audioInputDevice} "{config.audioInputName}"' )
     print( f'Устройство для вывода звука: #{config.audioOutputDevice} "{config.audioOutputName}"' )
+    print( f'Канал микрофона: {config.microphones}' )
+    print( f'Канал Voice loopback: {config.loopbackVoice}' )
+    print( f'Канал Player loopback: {config.loopbackPlayer}' )
 
-    if config.volumeControl is not None or config.volumeControlPlayer is not None :
+    if config.volumeControlVoice is not None or config.volumeControlPlayer is not None :
         import alsaaudio
         
         try:
@@ -621,13 +464,13 @@ if __name__ == '__main__':
         except alsaaudio.ALSAAudioError:
             logError(f"Неправильный индекс устройства alsamixer ({config.volumeCardIndex})" )
             config.volumeCardIndex = 0
-            config.volumeControl = None
+            config.volumeControlVoice = None
             config.volumeControlPlayer = None
             volumeControls = []
         showControls = False
-        if config.volumeControl is not None and config.volumeControl not in volumeControls:
-            logError( f"Неправильное название громкости LVT: {config.volumeControl}" )
-            config.volumeControl = None
+        if config.volumeControlVoice is not None and config.volumeControlVoice not in volumeControls:
+            logError( f"Неправильное название громкости LVT: {config.volumeControlVoice}" )
+            config.volumeControlVoice = None
             showControls = True
         if config.volumeControlPlayer is not None and config.volumeControlPlayer not in volumeControls:
             logError( f"Неправильное название громкости аудиоплеера: {config.volumeControlPlayer}" )
@@ -637,18 +480,17 @@ if __name__ == '__main__':
             print( "Допустимые названия каналов управления громкостью:" )
             print( f"{', '.join(volumeControls)}" )
 
-    if config.volumeControl is not None or config.volumeControlPlayer is not None :
+    if config.volumeControlVoice is not None or config.volumeControlPlayer is not None :
         #print( f'Устройство для управления громкостью: "{alsaaudio.cards()[config.volumeCardIndex]}"' )
-        if config.volumeControl is not None :
-            print( f'Громкость LVT: {getVolume()}% ({config.volumeControl})' )
+        if config.volumeControlVoice is not None :
+            print( f'Громкость LVT: {getVolume()}% ({config.volumeControlVoice})' )
         if config.volumeControlPlayer is not None :
             print( f'Громкость плеера: {getPlayerVolume()}% ({config.volumeControlPlayer})' )
 
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
     try:
-        loop = asyncio.get_event_loop()
         loop.run_until_complete( client() )
-
-        #loop.run_until_complete( websockClient( url, sslContext) )
     except KeyboardInterrupt as e:
         onCtrlC()
     except Exception as e:
@@ -656,16 +498,12 @@ if __name__ == '__main__':
     except:
         onCtrlC()
 
-    shared.isTerminated = True
+    isTerminated = True
     time.sleep(1)
 
-    if animator is not None : 
-        animator.off()
-        del( animator )
-
-    if shared.exitCode == 42 :
+    if exitCode == 42:
         log( 'Перезапуск' )
-        sys.exit(shared.exitCode)
+        sys.exit( exitCode )
     else:
         print( 'Завершение работы' )
 #endregion

@@ -1,6 +1,6 @@
 import sys
-import time
 import os
+import socket
 import pyaudio
 from lvt.const import *
 from lvt.logger import *
@@ -27,27 +27,18 @@ audioInputDevice = None
 audioInputName = None
 
 volumeCardIndex = 0
-volumeControl = None
+volumeControlVoice = None
 volumeControlPlayer = None
 
-lmsAddress = ''
-lmsPort = 9000
-lmsUser = None
-lmsPassword = None
-lmsPlayer = None
-lmsMode = LMS_MODE_PAUSE
-
 channels = 1
+loopbackPlayer = -1
+loopbackVoice = -1
 microphones = [1]
 micSelection = 'avg'
 
 noiseThreshold = 200
 vadSelectivity = 3
 vadConfidence = 80
-
-animator = 'text'
-apa102LedCount = 3
-apa102MuteLeds = [0]
 
 def init( audio: pyaudio.PyAudio ):
     global fileName
@@ -66,28 +57,20 @@ def init( audio: pyaudio.PyAudio ):
     global audioInputName
 
     global volumeCardIndex
-    global volumeControl
+    global volumeControlVoice
     global volumeControlPlayer
 
-    global lmsAddress
-    global lmsPort
-    global lmsUser
-    global lmsPassword
-    global lmsPlayer
-    global lmsMode
-
     global channels
+    global loopbackPlayer
+    global loopbackVoice
     global microphones
+    global micSelection
     global noiseThreshold
     global vadSelectivity
     global vadConfidence
-    global animator
-    global apa102LedCount
-    global apa102MuteLeds
 
     withConfig = False
 
-    fileName = 'client.cfg'
     fileName = 'client.cfg'
     for arg in sys.argv[1:]:
         a = arg.strip().lower()
@@ -104,9 +87,11 @@ def init( audio: pyaudio.PyAudio ):
     if not bool( serverAddress.strip() ):
         __error( "Не задан адрес сервера","serverAddress" )
     serverPort = p.getIntValue( '', "ServerPort", 2700 )
+
     terminalId = p.getValue( '', "TerminalId", '' ).replace( ' ','' ).lower()
+
     if not bool( terminalId ):
-        __error( "Не задан ID терминала","TerminalId" )
+        terminalId = socket.gethostname().lower()
 
     password = p.getValue( '', "Password",'' ).replace( ' ','' )
 
@@ -128,25 +113,9 @@ def init( audio: pyaudio.PyAudio ):
     #Audio output settings
     (audioOutputDevice, audioOutputName ) = __getAudioDevice( audio, p.getValue( "", 'AudioOutputDevice', None ), False )
 
-    volumeControl = p.getValue("","VolumeControl",None)
+    volumeControlVoice = p.getValue("","VoiceVolumeControl",None)
     volumeControlPlayer = p.getValue("","PlayerVolumeControl",None)
     volumeCardIndex = p.getIntValue("", "VolumeCardIndex", 0 )
-
-    lmsAddress = p.getValue("","LMSAddress", '')
-    lmsPort = p.getIntValue("","LMSPort", 9000)
-    lmsUser = p.getValue("","LMSUser", None)
-    lmsPassword = p.getValue("","LMSPassword", None)
-    lmsPlayer = p.getValue("","LMSPlayer", None )
-
-    s = p.getValue( "", "LMSMode", 'mute' ).lower()
-    if s=='mute':
-        lmsMode = LMS_MODE_MUTE
-    elif s=='pause':
-        lmsMode = LMS_MODE_PAUSE
-    else:
-        __error( f'Неверный режим интеграции LMS. Допустимые значения "Volume" и "Pause"','LMSMode', "" )
-
-
 
     # Microphone settings
     (audioInputDevice, audioInputName) = __getAudioDevice( audio, p.getValue( "", 'AudioInputDevice', None ), True )
@@ -165,6 +134,21 @@ def init( audio: pyaudio.PyAudio ):
         if (mic<0) or (mic>=channels):
             __error("Неверно указаны индексы микрофонных каналов","Microphones")
 
+    loopbackVoice = p.getIntValue( '', 'VoiceLoopback', -1 )
+    if loopbackVoice<-1 or loopbackVoice>=channels: 
+        __error( "Неверный индекс VoiceLoopback канала","VoiceLoopback")
+
+    loopbackPlayer = p.getIntValue( '', 'PlayerLoopback', -1 )
+    if loopbackPlayer<-1 or loopbackPlayer>=channels: 
+        __error( "Неверный индекс PlayerLoopback канала","PlayerLoopback")
+
+    if ( loopbackVoice in microphones):
+        microphones.remove(loopbackVoice)
+
+    if ( loopbackPlayer in microphones):
+        microphones.remove(loopbackPlayer)
+
+
     micSelection = p.getValue( '', "MicSelection",'avg' ).strip().lower()
     if micSelection not in ['avg', 'rms'] : 
         __error( f"Неверный метод группировки микрофонных каналов [AVG, RMS]","MicSelection" )
@@ -180,22 +164,6 @@ def init( audio: pyaudio.PyAudio ):
     vadConfidence = p.getIntValue( '', "VADConfidence", 80 )
     if vadConfidence<10 or vadConfidence>100: 
         __error("Неверное значение коэффициента надежности детектора голоса [10..100]","VADConfidence")
-
-
-           
-    animator = p.getValue( '', "Animator",'text' ).strip().lower()
-    if animator not in ['apa102','text'] : 
-        __error( "Недопустимый тип аниматора [text, apa102]","Animator" )
-    if animator=='apa102' :
-        n = p.getIntValue('','APA102LEDCount',3)
-        apa102LedCount = 1 if n<1 else 127 if n>127 else n
-        apa102MuteLeds = set()
-        leds = p.getValue( '', "APA102MuteLEDs",'0' ).strip().split(',')
-        for s in leds :
-            try: n = int(s)
-            except: n=-1
-            if (n>=0) and (n<apa102LedCount) : 
-                apa102MuteLeds.add(n)
 
     loggerInit( sys.modules[__name__] )
 

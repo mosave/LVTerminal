@@ -26,19 +26,25 @@ class Microphone:
         self.vad = webrtcvad.Vad(config.vadSelectivity)
         self.buffer = []
         self.__muted = False
+        self.voiceVolume = 100
+        self.playerVolume = 100
         self.ignoreFirstFrame = False
         self.__active = False
+        self.__lastSpeak = 0
+        self.__lastPlay = 0
         self.audioStream = None
-        self.channels = config.channels
         self.vadLevel = 0
         self.__ratecvState = None
+
 
         # Init audio subsystem
         self.sampleSize = audio.get_sample_size( pyaudio.paInt16 )
         deviceInfo = audio.get_device_info_by_index( config.audioInputDevice )
 
         try: self.channels = int(deviceInfo.get( "maxInputChannels" ))
-        except: self.channels = 128
+        except: self.channels = config.channels
+
+        if self.channels>config.channels: self.channels = config.channels 
 
         try: self.sampleRate = int(deviceInfo.get( "defaultSampleRate" ))
         except: self.sampleRate = VOICE_SAMPLING_RATE
@@ -47,7 +53,6 @@ class Microphone:
 
         self.inputFramesPerChunk = int( self.sampleRate / CHUNKS_PER_SECOND)
         self.framesPerChunk = int( VOICE_SAMPLING_RATE / CHUNKS_PER_SECOND)
-        if self.channels>config.channels: self.channels = config.channels 
 
         #chunkSize = int( self.framesPerChunk * self.sampleSize * self.channels )
         #print(f"Channels={self.channels}, rate={VOICE_SAMPLING_RATE} ")
@@ -116,6 +121,14 @@ class Microphone:
         if not newValue : self.buffer.clear()
         self.__active = newValue
 
+    @property
+    def speaking(self)->bool:
+        return time.time() - self.__lastSpeak < 2
+
+    @property
+    def playing(self)->bool:
+        return time.time() - self.__lastPlay < 2
+
     def _callback( self, data, frame_count, time_info, status):
         # Если микрофон замьючен - ничего не делаем
         if self.muted :
@@ -163,7 +176,7 @@ class Microphone:
                 __rms = audioop.rms( channels[ch], self.sampleSize )
                 __maxpp = audioop.maxpp( channels[ch], self.sampleSize )
 
-                if (__rms>rmsBest) and (__rms<5000) and (__maxpp<64000) :
+                if (__rms>rmsBest) and (__rms<30000) and (__maxpp<31000) :
                     rmsBest = __rms
                     maxBest = __maxpp
                     chBest = ch
@@ -186,7 +199,7 @@ class Microphone:
             data = channels[self.channel]
 
         # "Среднее по микрофонным каналам":
-        else :
+        else:
             self.channel = "avg"
             factor = 1.0 / len(config.microphones)
             #print(f'factor={factor} ')
@@ -199,6 +212,43 @@ class Microphone:
 
             self.__rms = audioop.rms( data, self.sampleSize )
             self.__maxpp = audioop.maxpp( data, self.sampleSize )
+
+        loopbackData = None
+        fVoice = 0
+        fPlayer = 0
+
+        if config.loopbackVoice>=0 and audioop.rms( channels[config.loopbackVoice], self.sampleSize ) > 100:
+            self.__lastSpeak = time.time()
+            fVoice = self.voiceVolume
+
+        if config.loopbackPlayer>=0 and audioop.rms( channels[config.loopbackPlayer], self.sampleSize ) > 100:
+            self.__lastPlay = time.time()
+            fPlayer = self.playerVolume
+
+        if fVoice + fPlayer > 5:
+            if fVoice > 0:
+                loopbackData = audioop.mul( channels[config.loopbackVoice], 2, fVoice / (fVoice + fPlayer) )
+            if fPlayer:
+                ldPlayer = audioop.mul( channels[config.loopbackPlayer], 2, fPlayer / (fVoice + fPlayer) )
+                loopbackData = ldPlayer if loopbackData is None else audioop.add( loopbackData, ldPlayer, 2 )
+                
+        if loopbackData is not None:
+            # TODO: Реализовать эхоподавление, вычитая из data loopbackData
+            pass
+
+
+        # Сейчас эхоподавления нет и звук на колонке перегружает
+        # микрофоны, ухудшая качество распознавания голоса.
+        # Поэтому пока просто игнорируем все что приходит во время
+        # проигрывания звука, эмулируя Mute
+        if self.speaking or self.playing:
+            self.channel = "x"
+            self.__rms = 0
+            self.vadLevel = 0
+            self.buffer.clear()
+            self.ignoreFirstFrame = True
+            return None, pyaudio.paContinue
+        
 
         #print(f"Final data: channel={self.channel}, rms={self.rms}, maxpp={self.maxpp} ")
         #print(numpy.fromstring(data, dtype='int16'))
