@@ -28,8 +28,6 @@ terminalStatus = '{"Terminal":""}'
 serverStatus = '{}'
 
 
-
-
 #region showHelp(), showDevices() ######################################################
 def showHelp():
     """Display usage instructions"""
@@ -58,9 +56,10 @@ async def printStatusThread():
     global isTerminated
 
     while not isTerminated:
+        delay = 1
         if microphone is not None :
             width = 38
-            scale = 5000
+            scale = 15000
             rms = microphone.rms
             if rms > scale : rms = scale
             graph = ''
@@ -84,8 +83,13 @@ async def printStatusThread():
             face = f'*{mouth}*' if microphone.active else f'-{mouth}-'
             face = f'x({face})x' if microphone.muted else f'@({face})@'
             playing = 'P' if microphone.playing else 'p'
-            sys.__stdout__.write( f'  {face} [{playing}] CH:{microphone.channel} RMS:{microphone.rms:>5} VAD:{microphone.vadLevel:>3} [{graph}]  \r' )
-        await asyncio.sleep(1)
+            if microphone.dbgInfo:
+                dbgInfo = f'[{microphone.dbgInfo}]'
+                delay = 0.5
+            else:
+                dbgInfo = ''
+            sys.__stdout__.write( f' {dbgInfo} {face} [{playing}] CH:{microphone.channel} RMS:{microphone.rms:>5} P2P:{microphone.maxpp:>5} VAD:{microphone.vadLevel:>3} [{graph}]  \r' )
+        await asyncio.sleep( delay )
 #endregion
 
 #region ALSA: <get|set>[Player]Volume() ################################################
@@ -229,30 +233,35 @@ async def playAsync( data ):
 async def microphoneThread( connection ):
     global isTerminated
     global microphone
-    log( "Микрофон: Запуск" )
-    with Microphone() as mic:
-        microphone = mic
-        _speakerStatus = "? ?"
-        try:
-            while not isTerminated:
-                if microphone.active : 
-                    data = microphone.read()
-                    if data is not None : 
-                        await connection.send_bytes( data )
-                await asyncio.sleep( 0.2 )
-
-                speakerStatus = f'{1 if microphone.playing else 0} {1 if microphone.speaking else 0}' 
-                if speakerStatus != _speakerStatus:
-                    await connection.send_str( MESSAGE( MSG_SPEAKER_STATUS, speakerStatus ) )
-                    _speakerStatus = speakerStatus
+    while not isTerminated:
+        log( "Микрофон: инициализация" )
+        with Microphone() as mic:
+            microphone = mic
+            _speakerStatus = "? ?"
+            try:
+                while not isTerminated and microphone.alive:
+                    if microphone.active : 
+                        data = microphone.read()
+                        if data is not None : 
+                            await connection.send_bytes( data )
                     await asyncio.sleep( 0.2 )
 
-        except KeyboardInterrupt:
-            log( "Микрофон: Получен сигнал на завершение" )
-        except Exception as e:
-            print()
-            logError(f"Микрофон: {type(e).__name__}: {e}")
-        microphone = None
+                    speakerStatus = f'{1 if microphone.playing else 0} {1 if microphone.speaking else 0}' 
+                    if speakerStatus != _speakerStatus:
+                        await connection.send_str( MESSAGE( MSG_SPEAKER_STATUS, speakerStatus ) )
+                        _speakerStatus = speakerStatus
+                        await asyncio.sleep( 0.2 )
+
+                if not microphone.alive:
+                    logError( "Микрофон: потеря данных!")
+
+            except KeyboardInterrupt:
+                isTerminated = True
+                log( "Микрофон: Получен сигнал на завершение" )
+            except Exception as e:
+                print()
+                logError(f"Микрофон: {type(e).__name__}: {e}")
+            microphone = None
     log( "Микрофон: Завершение" )
 #endregion
 
@@ -284,9 +293,11 @@ async def messageThread( connection ):
                 elif m == MSG_LVT_STATUS:
                     if p is not None : serverStatus = json.loads(p)
                 elif m == MSG_WAKEUP:
-                    microphone.active = True
+                    if microphone is not None:
+                        microphone.active = True
                 elif m == MSG_IDLE:
-                    microphone.active = False
+                    if microphone is not None:
+                        microphone.active = False
                 elif m == MSG_DISCONNECT:
                     isConnected = True
                 elif m == MSG_TEXT:
@@ -439,6 +450,9 @@ if __name__ == '__main__':
             exit( 0 )
         elif ( a == '-q' ) or ( a == '--quiet' ) :
             isQuiet = True
+        elif ( a == '-i' ) or ( a == '--init' ) or ( a == '--initialize' ) :
+            # Параметр для инициализации virtual environment в скрипте запуска. Просто игнорируем.
+            pass
         elif ( a.startswith('-с=' ) or a.startswith('--config=') ):
             #config parameter is already processed
             pass
@@ -455,6 +469,7 @@ if __name__ == '__main__':
     print( f'Канал микрофона: {config.microphones}' )
     print( f'Канал Voice loopback: {config.loopbackVoice}' )
     print( f'Канал Player loopback: {config.loopbackPlayer}' )
+    print( f'Эхоподавление: {"доступно" if Microphone.aecAvailable else "недоступно"}' )
 
     if config.volumeControlVoice is not None or config.volumeControlPlayer is not None :
         import alsaaudio

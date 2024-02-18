@@ -6,22 +6,42 @@ import numpy
 from lvt.const import *
 from lvt.logger import *
 import lvt.client.config as config
+
 # Допустимые значения - 10, 20 или 30 мс
 VAD_FRAME = 30 # ms
 # Обрабатываем звук полусекундными интервалами
 CHUNKS_PER_SECOND = 2
-# "идеальное" значение громкости в алгоритме выбора канала "rms"
+
+# Параметры эхоподавления sppedxdsp 
+
+AEC_BLOCKSIZE = 256
+AEC_BUFFERSIZE = 2048
+
+# Создаем SpeexDSP Echo Canceller (если соответствующая библиотека доступна)
+try:
+    from speexdsp import EchoCanceller
+    echoCanceller = EchoCanceller.create( AEC_BLOCKSIZE, AEC_BUFFERSIZE, VOICE_SAMPLING_RATE )
+except:
+    echoCanceller = None
+    pass
+
+
 
 audio = None
 
 class Microphone:
+    global echoCanceller
+    aecAvailable = echoCanceller is not None
+
     def __init__( self ):
         global audio
 
         self.__rms = 50
-        self.__maxpp = 50
+        self.__maxpp = 1000
         self.channel = 0
         self.__noiseLevel = 1000
+        self.__tmLastFrame = time.time()
+        self.dbgInfo = ""
 
         self.vad = webrtcvad.Vad(config.vadSelectivity)
         self.buffer = []
@@ -54,6 +74,7 @@ class Microphone:
         self.inputFramesPerChunk = int( self.sampleRate / CHUNKS_PER_SECOND)
         self.framesPerChunk = int( VOICE_SAMPLING_RATE / CHUNKS_PER_SECOND)
 
+            
         #chunkSize = int( self.framesPerChunk * self.sampleSize * self.channels )
         #print(f"Channels={self.channels}, rate={VOICE_SAMPLING_RATE} ")
         # Открываем аудиопоток, читаем его полусекундными кусками
@@ -82,7 +103,6 @@ class Microphone:
             try: del(self.vad)
             except:pass
             self.vad = None
-
 
     @property
     def muted(self)->bool:
@@ -122,6 +142,10 @@ class Microphone:
         self.__active = newValue
 
     @property
+    def alive(self)->bool:
+        return time.time() - self.__tmLastFrame < 5
+
+    @property
     def speaking(self)->bool:
         return time.time() - self.__lastSpeak < 2
 
@@ -130,11 +154,28 @@ class Microphone:
         return time.time() - self.__lastPlay < 2
 
     def _callback( self, data, frame_count, time_info, status):
+        global echoCanceller
+        global AEC_BLOCKSIZE
+        global AEC_BUFFERSIZE
+
+        self.__tmLastFrame = time.time()
+        # print( '0' )
+
+        if status:
+            print( f'STATUS FLAGS: {status} ')
+            return None, pyaudio.paContinue
+        
+        if self.sampleRate != VOICE_SAMPLING_RATE:
+            data, self.__ratecvState = audioop.ratecv( data, 2, self.channels, self.sampleRate, VOICE_SAMPLING_RATE, self.__ratecvState )
+
+        data = numpy.frombuffer( data, dtype='int16')
+
         # Если микрофон замьючен - ничего не делаем
         if self.muted :
             self.buffer.clear()
             self.ignoreFirstFrame = True
             return None, pyaudio.paContinue
+        
         # А еще игнорируем первый фрейм после unmute:
         if self.ignoreFirstFrame :
             self.ignoreFirstFrame = False
@@ -145,14 +186,7 @@ class Microphone:
 
         while len(self.buffer)>maxBufferSize : 
             self.buffer.pop(0)
-
-        data = numpy.fromstring( data, dtype='int16')
-
-        if self.sampleRate != VOICE_SAMPLING_RATE:
-            data, self.__ratecvState = audioop.ratecv( data.tobytes(), 2, self.channels, self.sampleRate, VOICE_SAMPLING_RATE, self.__ratecvState )
-            data = numpy.fromstring( data, dtype='int16')
-
-        #print(f"channels:")
+        # print( '1' )
 
         # Раскидываем на каналы
         channels = [0]*self.channels
@@ -161,48 +195,44 @@ class Microphone:
             #print(numpy.fromstring(channels[ch], dtype='int16'))
 
 
-        # "Оптимальный уровень громкости"
+        # Наибольший RMS, но без искажений
         if config.micSelection == "rms":
+            # Выбираем лучший канал только в режиме ожидания:
+            if not self.active:
+                chBest = -1
+                rmsBest = 0
+                chGood = -1
+                rmsGood = 100000
 
-            # Вариант 2: "наибольший RMS, но без искажений".
-            chBest = -1
-            rmsBest = 0
-            maxBest = 0
-            chGood = -1
-            rmsGood = 100000
-            maxGood = 0
+                for ch in config.microphones:
+                    __rms = audioop.rms( channels[ch], self.sampleSize )
+                    __maxpp = audioop.maxpp( channels[ch], self.sampleSize )
 
-            for ch in config.microphones:
-                __rms = audioop.rms( channels[ch], self.sampleSize )
-                __maxpp = audioop.maxpp( channels[ch], self.sampleSize )
+                    if (__rms>rmsBest) and (__rms<30000) and (__maxpp<31000) :
+                        rmsBest = __rms
+                        chBest = ch
+                    if (chGood<0) or (__rms < rmsGood) :
+                        rmsGood = __rms
+                        rmsBest = __maxpp
+                        chGood = ch
 
-                if (__rms>rmsBest) and (__rms<30000) and (__maxpp<31000) :
-                    rmsBest = __rms
-                    maxBest = __maxpp
-                    chBest = ch
-                if (chGood<0) or (__rms < rmsGood) :
-                    rmsGood = __rms
-                    rmsBest = __maxpp
-                    chGood = ch
+                if chBest>=0:
+                    self.channel = chBest
+                    self.__rms = rmsBest
+                else:
+                    self.channel = chGood
+                    self.__rms = rmsGood
 
-            #print(f'rms:[{__rms[0]},{__rms[1]}], maxpp:[{__maxpp[0]},{__maxpp[1]}], rmsBest={rmsBest}({chBest}), rmsGood={rmsGood}({chGood})')
-            #print(f'rmsBest={rmsBest}({chBest}), rmsGood={rmsGood}({chGood})')
-            if chBest>=0:
-                self.channel = chBest
-                self.__rms = rmsBest
-                self.__maxpp = maxBest
+                data = channels[self.channel]
             else:
-                self.channel = chGood
-                self.__rms = rmsGood
-                self.__maxpp = maxGood
-
-            data = channels[self.channel]
+                # В активном режиме по каналам не прыгаем, используем последний выбранный 
+                data = channels[self.channel]
+                self.__rms = audioop.rms( data, self.sampleSize )
 
         # "Среднее по микрофонным каналам":
         else:
-            self.channel = "avg"
+            self.channel = "AVG"
             factor = 1.0 / len(config.microphones)
-            #print(f'factor={factor} ')
             data = None
             for ch in config.microphones :
                 if data is None :
@@ -211,7 +241,8 @@ class Microphone:
                     data = audioop.add( data, audioop.mul( channels[ch], 2, factor ), 2 )
 
             self.__rms = audioop.rms( data, self.sampleSize )
-            self.__maxpp = audioop.maxpp( data, self.sampleSize )
+
+        # print( '2' )
 
         loopbackData = None
         fVoice = 0
@@ -225,38 +256,47 @@ class Microphone:
             self.__lastPlay = time.time()
             fPlayer = self.playerVolume
 
-        if fVoice + fPlayer > 5:
+        if fVoice + fPlayer > 5 and echoCanceller is not None:
             if fVoice > 0:
                 loopbackData = audioop.mul( channels[config.loopbackVoice], 2, fVoice / (fVoice + fPlayer) )
             if fPlayer:
                 ldPlayer = audioop.mul( channels[config.loopbackPlayer], 2, fPlayer / (fVoice + fPlayer) )
                 loopbackData = ldPlayer if loopbackData is None else audioop.add( loopbackData, ldPlayer, 2 )
-                
-        if loopbackData is not None:
-            # TODO: Реализовать эхоподавление, вычитая из data loopbackData
-            pass
+            
 
+        # Играет
+        if self.playing or self.speaking:
+            # Без эхоподавления звук на колонке перегружает микрофоны, ухудшая качество распознавания голоса.
+            # Поэтому если эходав отсутствует - будем игнорировать микрофон во время проигрывания звука
+            if echoCanceller is None:
+                self.__rms = 0
+                self.vadLevel = 0
+                self.buffer.clear()
+                self.ignoreFirstFrame = True
+                return None, pyaudio.paContinue
 
-        # Сейчас эхоподавления нет и звук на колонке перегружает
-        # микрофоны, ухудшая качество распознавания голоса.
-        # Поэтому пока просто игнорируем все что приходит во время
-        # проигрывания звука, эмулируя Mute
-        if self.speaking or self.playing:
-            self.channel = "x"
-            self.__rms = 0
-            self.vadLevel = 0
-            self.buffer.clear()
-            self.ignoreFirstFrame = True
-            return None, pyaudio.paContinue
-        
+            # loopbackData = None
+            # И наконец - если на колонку выводится звук - вычтем его из микрофонного входа:            
+            if loopbackData is not None:
+                filtered = bytearray()
+                blockSize = AEC_BLOCKSIZE*2
+                p = 0
+                while p<len(data):
+                    if p+blockSize >= len(data): blockSize = len(data) - p
+                    filtered += bytearray( echoCanceller.process( data[p:p+blockSize], loopbackData[p:p+blockSize ] ) )[:blockSize]
+                    p += blockSize
 
-        #print(f"Final data: channel={self.channel}, rms={self.rms}, maxpp={self.maxpp} ")
+                # print( f' {len(filtered)} / { len(data)} bytes  ')
+                data = bytes(filtered)
+                self.__rms = audioop.rms( data, self.sampleSize )
+
+        # print( '3' )
+        #print(f"Final data: channel={self.channel}, rms={self.rms} ")
         #print(numpy.fromstring(data, dtype='int16'))
 
-        # Сохранить фрагмент в буфере:
-        self.buffer.append( data )
-
         if not self.active:
+            self.__maxpp = audioop.maxpp( data, 2 )
+
             # Если уровень звука "немного меньше" фонового шума - снизить значение порогового шума
             if self.__rms + config.noiseThreshold < self.__noiseLevel:
                 self.__noiseLevel = self.__rms + int( config.noiseThreshold / 4 )
@@ -281,19 +321,23 @@ class Microphone:
             if self.__rms + config.noiseThreshold > self.__noiseLevel :
                 self.__noiseLevel = self.__rms
 
+
+        # print( '4' )
+        
+        # Сохранить фрагмент в буфере:
+        self.buffer.append( data )
+
+        # self.dbgInfo =  f'{int((time.time()-tmStart)*1000)}ms, {audioop.maxpp(data,self.sampleSize) }'
+
         return None, pyaudio.paContinue
 
     def read(self, wait: bool = False):
-        n = 0
-        # Немного подождем если в буфере нет данных
-        while wait and len( self.buffer ) <= 0 and n <= 3 :
-            time.sleep( (1 / CHUNKS_PER_SECOND) / 2 )
-            n += 1
-
         # Если в буфере есть данные - возвращаем их
         if len( self.buffer ) > 0: 
             data = self.buffer[0]
             self.buffer.pop( 0 )
+            if self.maxpp < 15000:
+                data = audioop.mul( data, 2, 15000/self.maxpp  )
             return data
         else:
             return None

@@ -5,3 +5,4 @@ webrtcvad
 spidev
 numpy
 pkg_resources
+speexdsp

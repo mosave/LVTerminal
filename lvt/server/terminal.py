@@ -382,9 +382,9 @@ class Terminal():
         vocabulary = set()
         if self.topic == TOPIC_DEFAULT:
             vocabulary.update( wordsToVocabulary( config.assistantNames ) )
-            vocabulary.update( wordsToVocabulary(' эй слушай' ) )
-        for skill in self.skills:
-            vocabulary.update( skill.getVocabulary(self.topic) )
+        if not self.isPlaying:
+            for skill in self.skills:
+                vocabulary.update( skill.getVocabulary(self.topic) )
         return vocabulary
 #endregion
 

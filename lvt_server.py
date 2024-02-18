@@ -214,9 +214,8 @@ async def server( request ):
                     else:
                         isProcessed = False
 
-
                     # Журналируем голос (если заказано в настройках)
-                    if (int(config.voiceLogLevel)>=3) or (int(config.voiceLogLevel)>=2 and terminal.isAppealed and not isProcessed   ):
+                    if (int(config.voiceLogLevel)>=3) or (int(config.voiceLogLevel)>=2 and terminal.isAppealed  ):
                         wavFileName = datetime.datetime.today().strftime(f'{terminal.id}_%Y%m%d_%H%M%S.wav')
                         wav = wave.open(os.path.join( config.voiceLogDir, wavFileName),'w')
                         wav.setnchannels(1)
@@ -228,11 +227,23 @@ async def server( request ):
                         wavFileName = ''
 
                     # Журналируем расспознанный текст (если заказано)
-                    if (len(text)>0) and ( (int(config.voiceLogLevel)>=3) or (int(config.voiceLogLevel)>=1 and terminal.isAppealed and not isProcessed ) ):
+                    if (int(config.voiceLogLevel)>=3) or (int(config.voiceLogLevel)>=1 and terminal.isAppealed ):
+                        if terminal.useVocabulary:
+                            r2 = KaldiRecognizer( gModel, VOICE_SAMPLING_RATE )
+                            (c, text2, signature) = await processVoice( voiceData, r2 )
+                            del(r2)
+                        else:
+                            text2 = ""
+
                         with open(os.path.join( config.voiceLogDir, 'voice.log'), 'a') as voiceLog:
-                            dt = datetime.datetime.today().strftime(f'%Y-%m-%d %H:%M:%S')
-                            fn = f"\t{wavFileName}" if len(wavFileName)>0 else ""
-                            voiceLog.write( f'{dt}\t{terminal.id}{fn}\t{text}\n' )
+                            fn = f'\t{wavFileName}' if len(wavFileName)>0 else ''
+                            dt = datetime.datetime.today().strftime('%Y-%m-%d %H:%M:%S')
+                            ps = 'Обработано' if isProcessed else 'Не обработано'
+                            voiceLog.write( f'{dt}\t{terminal.id}\t{ps}{fn}\n' )
+
+                            if text2 :
+                                voiceLog.write( f'       Без словаря:\t{text2}\n' )
+                            voiceLog.write( f'       Со словарем:\t{text}\n' )
 
                     # # Освобождаем память
                     # if recognizer is not None : del(recognizer)

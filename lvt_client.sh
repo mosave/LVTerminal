@@ -1,10 +1,23 @@
-#!/bin/sh
+#!/bin/bash
 
 dir="$(dirname "$(readlink -f "$0")")"
 venv="$dir/.venv_client"
 
+while [ $# -ne 0 ]
+do
+    case "$1" in
+        -i)
+            init="Y"
+            ;;
+        --initialize)
+            init="Y"
+            ;;
+    esac
+    shift
+done
+
 do_activate () {
-  if [ ! -d "$venv" ]; then
+  if [ "$init" ] || [ ! -d "$venv" ] ; then
     echo "Initializing virtual environment in $venv"
     python3 -m venv "$venv"
     . "$venv/bin/activate"
