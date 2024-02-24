@@ -74,14 +74,14 @@ class HomeAssistantNegotiateSkill(Skill):
             self.terminal.volumeOverride = params["Volume"] if "Volume" in params else None
 
             if "Say" not in params or params['Say'] is None:
-                await self.sayAsync("Запуск диалога: стартовая фраза не задана")
-                await self.changeTopicAsync(TOPIC_DEFAULT)
+                await self.terminal.sayAsync("Запуск диалога: стартовая фраза не задана")
+                await self.terminal.changeTopicAsync(TOPIC_DEFAULT)
                 return
-            await self.sayAsync( params["Say"] )
+            await self.terminal.sayAsync( params["Say"] )
 
             if "Options" not in params or not isinstance(params['Options'], list):
-                await self.sayAsync("Ошибка. Не описаны варианты ответов")
-                await self.changeTopicAsync(TOPIC_DEFAULT)
+                await self.terminal.sayAsync("Ошибка. Не описаны варианты ответов")
+                await self.terminal.changeTopicAsync(TOPIC_DEFAULT)
                 return
 
 
@@ -92,12 +92,12 @@ class HomeAssistantNegotiateSkill(Skill):
             i = 0
             for o in params['Options']:
                 if not isinstance(o, dict):
-                    await self.sayAsync(f"Ошибка. Неверное описание ответа {i+1}")
-                    await self.changeTopicAsync(TOPIC_DEFAULT)
+                    await self.terminal.sayAsync(f"Ошибка. Неверное описание ответа {i+1}")
+                    await self.terminal.changeTopicAsync(TOPIC_DEFAULT)
                     return
                 elif 'Utterance' not in o:
-                    await self.sayAsync(f"Ошибка. Не задан шаблон ключевой фразы (Utterance) для варианта {i+1}")
-                    await self.changeTopicAsync(TOPIC_DEFAULT)
+                    await self.terminal.sayAsync(f"Ошибка. Не задан шаблон ключевой фразы (Utterance) для варианта {i+1}")
+                    await self.terminal.changeTopicAsync(TOPIC_DEFAULT)
                     return
                 utterances = o['Utterance'] if isinstance(o['Utterance'],list) else [str(o['Utterance'])]
                 for u in utterances:
@@ -126,7 +126,7 @@ class HomeAssistantNegotiateSkill(Skill):
             self.dtCancel = time.time() + self.defaultTimeout
 
     async def onTextAsync( self ):
-        if self.topic == HA_NEGOTIATE_SKILL: 
+        if self.terminal.topic == HA_NEGOTIATE_SKILL: 
             self.dtCancel = time.time() + self.defaultTimeout
             self.dtRepeat = time.time() + TIMEOUT_REPEAT
             matches = self.utterances.match(self.words)
@@ -139,12 +139,12 @@ class HomeAssistantNegotiateSkill(Skill):
                 elif str(m.id)=='default':
                     await self.fireIntentAsync( self.defaultIntent, self.defaultSay, m.values )
                 else:
-                    await self.changeTopicAsync( TOPIC_DEFAULT )
+                    await self.terminal.changeTopicAsync( TOPIC_DEFAULT )
                     self.stopParsing()
 
 
     async def onTimerAsync( self ):
-        if self.topic == HA_NEGOTIATE_SKILL :
+        if self.terminal.topic == HA_NEGOTIATE_SKILL :
             if (self.dtCancel>0) and (time.time() > self.dtCancel) :
                 if( self.defaultIntent is not None):
                     await self.fireIntentAsync( self.defaultIntent, self.defaultSay, None)
@@ -153,20 +153,20 @@ class HomeAssistantNegotiateSkill(Skill):
             if (self.dtRepeat>0) and (time.time() > self.dtRepeat) :
                 self.dtRepeat = time.time() + TIMEOUT_REPEAT
                 if bool(self.prompt):
-                    await self.sayAsync(self.prompt)
+                    await self.terminal.sayAsync(self.prompt)
                 return
 
     async def fireIntentAsync( self, intent, say, data ):
         self.dtCancel = 0
         self.dtRepeat = 0
         if bool(say):
-            await self.sayAsync( say )
+            await self.terminal.sayAsync( say )
 
         if bool(intent):
             data = data if isinstance( data,dict) else {}
             data['importance'] = self.importance
             api.fireIntent( intent, self.terminal.id, self.terminal.originalText, data)
             
-        await self.changeTopicAsync( TOPIC_DEFAULT )
+        await self.terminal.changeTopicAsync( TOPIC_DEFAULT )
         self.stopParsing()
 

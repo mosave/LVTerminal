@@ -26,37 +26,37 @@ class ParrotModeSkill(Skill):
 
     async def onTextAsync( self ):
 
-        if self.topic == TOPIC_PARROT_MODE:
+        if self.terminal.topic == TOPIC_PARROT_MODE:
             self.remindOn = time.time() + REMINDER_TIMEOUT
             matches = self.utterances.match(self.words)
             if (len(matches)>0) and (matches[0].id=='off'):
                 self.stopParsing()
-                await self.changeTopicAsync( TOPIC_DEFAULT )
+                await self.terminal.changeTopicAsync( TOPIC_DEFAULT )
             else:
-                await self.sayAsync( self.terminal.originalText )
+                await self.terminal.sayAsync( self.terminal.originalText )
 
-        elif self.isAppealed :
+        elif self.terminal.isAppealed :
             matches = self.utterances.match(self.words)
             if (len(matches)>0) and (matches[0].id=='on'):
-                await self.changeTopicAsync( TOPIC_PARROT_MODE )
+                await self.terminal.changeTopicAsync( TOPIC_PARROT_MODE )
                 self.stopParsing()
 
     async def onTopicChangeAsync( self, newTopic: str, params={} ):
         if newTopic == TOPIC_PARROT_MODE:
             self.terminal.useVocabulary = False
 
-        if self.topic == TOPIC_DEFAULT and newTopic == TOPIC_PARROT_MODE :
-            await self.sayAsync( 'Окей, говорите и я буду повторять всё, что услышу!. ' + 'Для завершения скажите: "перестань за мной повторять"' )
+        if self.terminal.topic == TOPIC_DEFAULT and newTopic == TOPIC_PARROT_MODE :
+            await self.terminal.sayAsync( 'Окей, говорите и я буду повторять всё, что услышу!. ' + 'Для завершения скажите: "перестань за мной повторять"' )
             # Задаем время проговаривания напоминания
             self.remindOn = time.time() + REMINDER_TIMEOUT
-        elif self.topic == TOPIC_PARROT_MODE :
-            await self.sayAsync( 'Режим попугая выключен' )
+        elif self.terminal.topic == TOPIC_PARROT_MODE :
+            await self.terminal.sayAsync( 'Режим попугая выключен' )
             self.remindOn = 0
             self.stopParsing()
        
     async def onTimerAsync( self ):
-        if( self.topic == TOPIC_PARROT_MODE ):
+        if( self.terminal.topic == TOPIC_PARROT_MODE ):
             if time.time() > self.remindOn:
-                await self.sayAsync( 'Для завершения скажите "выключить режим попугая" или "перестань за мной повторять"!' )
+                await self.terminal.sayAsync( 'Для завершения скажите "выключить режим попугая" или "перестань за мной повторять"!' )
                 self.remindOn = time.time() + REMINDER_TIMEOUT
 

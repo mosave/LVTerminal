@@ -46,16 +46,16 @@ class HomeAssistantListenerSkill(Skill):
             self.terminal.volumeOverride = params["Volume"] if "Volume" in params else None
 
             if "Say" not in params or params['Say'] is None:
-                await self.sayAsync("Распознавание без словаря: стартовая фраза не задана")
-                await self.changeTopicAsync(TOPIC_DEFAULT)
+                await self.terminal.sayAsync("Распознавание без словаря: стартовая фраза не задана")
+                await self.terminal.changeTopicAsync(TOPIC_DEFAULT)
                 return
             if "Intent" not in params or params['Intent'] is None:
-                await self.sayAsync("Распознавание без словаря: Intent не задан")
-                await self.changeTopicAsync(TOPIC_DEFAULT)
+                await self.terminal.sayAsync("Распознавание без словаря: Intent не задан")
+                await self.terminal.changeTopicAsync(TOPIC_DEFAULT)
                 return
 
 
-            await self.sayAsync( params["Say"] )
+            await self.terminal.sayAsync( params["Say"] )
 
             self.intent = params["Intent"]
             self.prompt = params["Prompt"] if "Prompt" in params else "Режим прослушивания все еще активен" # Фраза (список) - напоминание в процессе ожидания ответа
@@ -72,30 +72,30 @@ class HomeAssistantListenerSkill(Skill):
 
 
     async def onTextAsync( self ):
-        if self.topic == HA_LISTENER_SKILL :
+        if self.terminal.topic == HA_LISTENER_SKILL :
             await self.fireIntentAsync( self.intent, None )
             self.dtRepeat = time.time() + TIMEOUT_REPEAT
             self.dtCancel = time.time() + self.defaultTimeout
 
     async def onTimerAsync( self ):
-        if self.topic == HA_LISTENER_SKILL :
+        if self.terminal.topic == HA_LISTENER_SKILL :
             if (self.dtCancel>0) and (time.time() > self.dtCancel) :
                 if( self.defaultIntent is not None):
                     await self.fireIntentAsync( self.defaultIntent, self.defaultSay )
                 self.dtRepeat = 0
                 self.dtCancel = 0
-                await self.changeTopicAsync(TOPIC_DEFAULT)
+                await self.terminal.changeTopicAsync(TOPIC_DEFAULT)
                 return
 
             if (self.dtRepeat>0) and (time.time() > self.dtRepeat) :
                 self.dtRepeat = time.time() + TIMEOUT_REPEAT
                 if bool(self.prompt):
-                    await self.sayAsync(self.prompt)
+                    await self.terminal.sayAsync(self.prompt)
                 return
 
     async def fireIntentAsync( self, intent, say ):
         if bool(say):
-            await self.sayAsync( say )
+            await self.terminal.sayAsync( say )
 
         if bool(intent):
             data = {}

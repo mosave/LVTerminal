@@ -50,6 +50,8 @@ class Terminal():
 
         # Терминал в текущий момент проигрывает аудио. Обновляется клиентом
         self.isPlaying = False
+        # Здесь сокхраняется текущее состояние для восстановления при playerUnmute()
+        self.__wasPlaying = False
 
         # Терминал произносит текст. Обновляется клиентом
         self.isSpeaking = False
@@ -110,6 +112,8 @@ class Terminal():
 #region sayAsync / playVoiceAsync / playAsync / playerMute / playerUnmute
     def playerMute(self):
         if self.playerMuted <= 0:
+            self.__wasPlaying = self.isPlaying
+            self.isPlaying = False
             self.sendMessage(MSG_MUTE_PLAYER)
         self.playerMuted += 1
 
@@ -117,6 +121,7 @@ class Terminal():
         if self.playerMuted>0:
             self.playerMuted -= 1
             if self.playerMuted <= 0:
+                self.isPlaying = self.__wasPlaying
                 self.sendMessage(MSG_UNMUTE_PLAYER)
                 self.playerMuted = 0
     
@@ -382,7 +387,7 @@ class Terminal():
         vocabulary = set()
         if self.topic == TOPIC_DEFAULT:
             vocabulary.update( wordsToVocabulary( config.assistantNames ) )
-        if not self.isPlaying:
+        if not self.isPlaying or self.isAppealed:
             for skill in self.skills:
                 vocabulary.update( skill.getVocabulary(self.topic) )
         return vocabulary

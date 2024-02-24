@@ -83,6 +83,8 @@ async def printStatusThread():
             face = f'*{mouth}*' if microphone.active else f'-{mouth}-'
             face = f'x({face})x' if microphone.muted else f'@({face})@'
             playing = 'P' if microphone.playing else 'p'
+            if config.volumeControlPlayer is not None and microphone is not None:
+                playing = playing + f' {microphone.playerVolume}%'
             if microphone.dbgInfo:
                 dbgInfo = f'[{microphone.dbgInfo}]'
                 delay = 0.5
@@ -233,28 +235,22 @@ async def playAsync( data ):
 async def microphoneThread( connection ):
     global isTerminated
     global microphone
-    while not isTerminated:
+    while not isTerminated and isConnected:
         log( "Микрофон: инициализация" )
         with Microphone() as mic:
             microphone = mic
-            _speakerStatus = "? ?"
             try:
                 while not isTerminated and microphone.alive:
+                    delay = 0.5
                     if microphone.active : 
                         data = microphone.read()
                         if data is not None : 
                             await connection.send_bytes( data )
-                    await asyncio.sleep( 0.2 )
+                        delay = 0.1
 
-                    speakerStatus = f'{1 if microphone.playing else 0} {1 if microphone.speaking else 0}' 
-                    if speakerStatus != _speakerStatus:
-                        await connection.send_str( MESSAGE( MSG_SPEAKER_STATUS, speakerStatus ) )
-                        _speakerStatus = speakerStatus
-                        await asyncio.sleep( 0.2 )
-
+                    await asyncio.sleep( delay )
                 if not microphone.alive:
                     logError( "Микрофон: потеря данных!")
-
             except KeyboardInterrupt:
                 isTerminated = True
                 log( "Микрофон: Получен сигнал на завершение" )
@@ -273,8 +269,21 @@ async def messageThread( connection ):
     global microphone
 
     log("Основной цикл: Запуск")
-    while not isTerminated:
+    speakerStatus = "? ?"
+    tmVolumeTracked = time.time()
+    while not isTerminated and isConnected:
         try:
+            if microphone is not None:
+                s = f'{1 if microphone.playing else 0} {1 if microphone.speaking else 0}' 
+                if s != speakerStatus:
+                    await connection.send_str( MESSAGE( MSG_SPEAKER_STATUS, s ) )
+                    speakerStatus = s
+                if time.time()-tmVolumeTracked > 2:
+                    getPlayerVolume()
+            else:
+                speakerStatus = "? ?"
+
+
             msg = await connection.receive()
             m = None
             if msg.type == aiohttp.WSMsgType.BINARY:
@@ -299,7 +308,7 @@ async def messageThread( connection ):
                     if microphone is not None:
                         microphone.active = False
                 elif m == MSG_DISCONNECT:
-                    isConnected = True
+                    isConnected = False
                 elif m == MSG_TEXT:
                     if p is not None:
                         print()
@@ -352,7 +361,6 @@ async def client( ):
 
     async with aiohttp.ClientSession() as session:
         printStatusTask = asyncio.ensure_future( printStatusThread() ) if not isQuiet else None
-
 
         while not isTerminated:
             isConnected = False

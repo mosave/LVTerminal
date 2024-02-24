@@ -27,12 +27,12 @@ class TellTheTimeSkill(Skill):
         self.setVocabulary( TOPIC_DEFAULT, self.utterances.vocabulary )
 
     async def onTextAsync( self ):
-        if self.isAppealed :
+        if self.terminal.isAppealed :
             matches = self.utterances.match(self.words)
             if len(matches)>0:
                 self.stopParsing()
                 if matches[0].id == 'time':
                     s = transcribeTime(  datetime.datetime.today() ).replace('часа', 'часа́')
-                    await self.sayAsync( s )
+                    await self.terminal.sayAsync( s )
                 else:
-                    await self.sayAsync('Сегодня '+ transcribeDate(datetime.datetime.today()) )
+                    await self.terminal.sayAsync('Сегодня '+ transcribeDate(datetime.datetime.today()) )

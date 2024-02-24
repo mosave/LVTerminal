@@ -37,7 +37,7 @@ class ServerConfigSkill(Skill):
 
 
     async def onTextAsync( self ):
-        if self.topic == TOPIC_DEFAULT and self.isAppealed :
+        if self.terminal.topic == TOPIC_DEFAULT and self.terminal.isAppealed :
             matches = self.utterances.match(self.words)
             if len(matches)>0:
                 if matches[0].id=='update':
@@ -50,7 +50,7 @@ class ServerConfigSkill(Skill):
                     await self.onVolumeCmd( matches[0].id, matches[0].values )
                     self.stopParsing()
 
-        elif self.topic == TOPIC_DEFAULT:
+        elif self.terminal.topic == TOPIC_DEFAULT:
             if datetime.datetime.now() < self.plusVolumeThreshold:
                 matches = self.utterances.match(self.words)
                 if (len(matches)>0) and matches[0].id.startswith('plusVolume'):
@@ -90,8 +90,8 @@ class ServerConfigSkill(Skill):
         self.plusVolumeThreshold = datetime.datetime.now() + datetime.timedelta( seconds=10 )
 
     async def onTimerAsync( self ):
-        if self.topic == TOPIC_DEFAULT and self.lastAppealed :
-            if datetime.datetime.now() > self.lastAppealed + datetime.timedelta( seconds=10 ) \
+        if self.terminal.topic == TOPIC_DEFAULT and self.terminal.lastAppealed :
+            if datetime.datetime.now() > self.terminal.lastAppealed + datetime.timedelta( seconds=10 ) \
                 and datetime.datetime.now() > self.nextVersionCheck \
                 and 8 <= datetime.datetime.now().hour <= 22 :
 
@@ -100,5 +100,5 @@ class ServerConfigSkill(Skill):
                     if self.terminal.autoUpdate == 2 :
                         await self.terminal.updateClient()
                     if self.terminal.autoUpdate == 1 :
-                        await self.sayAsync( 'Версия терминала устарела. Вы можете обновить его командой "Обновить терминал"' )
+                        await self.terminal.sayAsync( 'Версия терминала устарела. Вы можете обновить его командой "Обновить терминал"' )
 

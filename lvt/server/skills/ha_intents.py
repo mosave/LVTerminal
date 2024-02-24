@@ -18,7 +18,7 @@ class HomeAssistantIntentsSkill(Skill):
         self.subscribe( TOPIC_DEFAULT )
 
     async def onTextAsync( self ):
-        if self.isAppealed and (self.topic == TOPIC_DEFAULT):
+        if self.terminal.isAppealed and (self.terminal.topic == TOPIC_DEFAULT):
             matches = self.utterances.match(self.words)
             if len(matches)>0:
                 #for match in matches:

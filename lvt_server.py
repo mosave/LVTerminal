@@ -25,8 +25,8 @@ import lvt.server.api as api
 
 
 #region processVoice ###################################################################
-async def processVoice( waveChunk, recognizer: KaldiRecognizer):
-    """ Recognize audio chunk and process with terminal.onTextAsync() """
+def processVoice( waveChunk, recognizer: KaldiRecognizer):
+    """ Recognize audio chunk """
     signature = None
     text = ''
     final = False
@@ -41,10 +41,6 @@ async def processVoice( waveChunk, recognizer: KaldiRecognizer):
             # Получить распознанный текст
             j = json.loads( recognizer.PartialResult() )
             text = str( j['partial'] ).strip() if 'partial' in j else ''
-
-#        if len(text)>0:
-#            logDebug(f'recognizing: {text}')
-
 
         # Попытаться извлечь сигнатуру голоса:
         signature = j["spk"] if 'spk' in j else []
@@ -69,10 +65,7 @@ async def server( request ):
     currentUseVocabulary = True
 
     # Currently connected Terminal
-    terminal = None
-
-    # Assistant names
-    aNames = wordsToList(config.assistantNames)
+    terminal : terminals.Terminal = None
 
     # temp vars to track Terminal
     messageQueue = list()
@@ -82,7 +75,6 @@ async def server( request ):
     isActive = False
     text = ''
     speakerSignature = None
-    terminal = None
     
     def sendDatagram( data ):
         messageQueue.append( data )
@@ -129,8 +121,8 @@ async def server( request ):
                 elif m == MSG_SPEAKER_STATUS:
                     playing, speaking = split2( p )
                     if terminal is not None:
-                        terminal.isPlaying = playing
-                        terminal.isSpeaking = speaking
+                        terminal.isPlaying = ( playing == '1' )
+                        terminal.isSpeaking = ( speaking == '1' )
                         pass
                 elif m == MSG_TERMINAL :
                     id, password, version = split3( p )
@@ -142,7 +134,7 @@ async def server( request ):
                         if terminal.autoUpdate==2 and terminal.version != VERSION :
                             await terminal.updateClient()
                     else:
-                        print( 'Not authorized. Disconnecting' )
+                        logError( 'Not authorized. Disconnecting' )
                         sendMessage( MSG_TEXT,'Wrong terminal Id or password' )
                         sendMessage( MSG_DISCONNECT )
                         break
@@ -152,59 +144,43 @@ async def server( request ):
                     break
             # Получен аудиофрагмент приемлемой длины и терминал авторизован
             elif message.type == WSMsgType.BINARY and terminal is not None:
-                if not isActive:
+                vocabulary = json.dumps( list( terminal.getVocabulary() ), ensure_ascii=False )
+                if not isActive or recognizer is None:
                     isActive = True
-                    # Сохраняем аудиофрагмент в буффере
-                    voiceData = None
-                    if recognizer is not None:
-                        if terminal.useVocabulary != currentUseVocabulary:
-                            del(recognizer)
-                            recognizer = None
-                        elif terminal.useVocabulary and gModel is not None \
-                            and currentVocabulary != json.dumps( list( terminal.getVocabulary() ), ensure_ascii=False ):
-                            del(recognizer)
-                            recognizer = None
-                        
-
-                # Добавляем аудиофрагмент в буффер:
-                voiceData = message.data if voiceData is None else voiceData + message.data
+                    text = ""
+                    voiceData = message.data
+                else:
+                    # Добавляем аудиофрагмент в буффер:
+                    voiceData += message.data
+                if recognizer is not None and ( terminal.useVocabulary != currentUseVocabulary or terminal.useVocabulary == True and currentVocabulary != vocabulary ):
+                    del(recognizer)
+                    recognizer = None
 
                 if recognizer is None:
+                    print( f'[{terminal.id}]: Vocabulary: {currentUseVocabulary}, {len(vocabulary)} words' )
                     if terminal.useVocabulary:
                         # Распознавалка "со словарем"
-                        if gModel is not None:
-                            currentVocabulary = json.dumps( list( terminal.getVocabulary() ), ensure_ascii=False )
-                            recognizer = KaldiRecognizer( gModel, VOICE_SAMPLING_RATE, currentVocabulary )
-                        # elif spkModel is not None : 
-                        #     # Включить идентификацию по голосу
-                        #     recognizer = KaldiRecognizer( model, VOICE_SAMPLING_RATE, spkModel )
-                        else: 
-                            # Не идентифицировать голос:
-                            recognizer = KaldiRecognizer( model, VOICE_SAMPLING_RATE )
+                        recognizer = KaldiRecognizer( gModel, VOICE_SAMPLING_RATE, vocabulary )
                     else:
                         # Нефильтрованная распознавалка
-                        if terminal.preferFullModel :
+                        if terminal.preferFullModel:
                             m = model if model is not None else gModel
                         else:
                             m = gModel if gModel is not None else model
-                            
                         recognizer = KaldiRecognizer( m, VOICE_SAMPLING_RATE )
 
-                        # ( spkModel is not None ): 
-                        # # Включить идентификацию по голосу
-                        # recognizer = KaldiRecognizer( 
-                        #     model if model is not None else gModel, 
-                        #     VOICE_SAMPLING_RATE, 
-                        #     spkModel 
-                        # )
+                    currentUseVocabulary = terminal.useVocabulary
+                    currentVocabulary = vocabulary
 
                 # Распознаем очередной фрагмент голоса
-                (completed, text, signature) = await processVoice( 
-                    message.data, 
-                    recognizer
-                )
+                (completed, text, signature) = processVoice( message.data, recognizer )
 
                 if signature is not None : speakerSignature = signature
+
+                # При проигрывании музыки достаточно распознать только обращение поэтому 
+                # обрабатываем любое распознанное слово (а это, благодаря словарю, может быть только обращение)
+                if terminal.isPlaying and text:
+                    completed = True
 
                 # Если фраза завершена
                 if completed:
@@ -215,7 +191,7 @@ async def server( request ):
                         isProcessed = False
 
                     # Журналируем голос (если заказано в настройках)
-                    if (int(config.voiceLogLevel)>=3) or (int(config.voiceLogLevel)>=2 and terminal.isAppealed  ):
+                    if (int(config.voiceLogLevel)>=3) or (int(config.voiceLogLevel)>=2 and terminal.isAppealed and len(text)>0 ):
                         wavFileName = datetime.datetime.today().strftime(f'{terminal.id}_%Y%m%d_%H%M%S.wav')
                         wav = wave.open(os.path.join( config.voiceLogDir, wavFileName),'w')
                         wav.setnchannels(1)
@@ -227,10 +203,10 @@ async def server( request ):
                         wavFileName = ''
 
                     # Журналируем расспознанный текст (если заказано)
-                    if (int(config.voiceLogLevel)>=3) or (int(config.voiceLogLevel)>=1 and terminal.isAppealed ):
+                    if len(text)>0 and ((int(config.voiceLogLevel)>=3) or (int(config.voiceLogLevel)>=1 and terminal.isAppealed )):
                         if terminal.useVocabulary:
                             r2 = KaldiRecognizer( gModel, VOICE_SAMPLING_RATE )
-                            (c, text2, signature) = await processVoice( voiceData, r2 )
+                            (c, text2, signature2) = processVoice( voiceData, r2 )
                             del(r2)
                         else:
                             text2 = ""
@@ -245,14 +221,16 @@ async def server( request ):
                                 voiceLog.write( f'       Без словаря:\t{text2}\n' )
                             voiceLog.write( f'       Со словарем:\t{text}\n' )
 
-                    # # Освобождаем память
-                    # if recognizer is not None : del(recognizer)
-                    # recognizer = None
+                    # Освобождаем память
+                    if recognizer is not None : del(recognizer)
+                    recognizer = None
+
                     del(voiceData)
                     voiceData = None
                     speakerSignature = None
                     isActive = False
                     terminal.isAppealed = False
+                    text = ""
                     # Переводим терминал в режим ожидания
                     sendMessage( MSG_IDLE )
 

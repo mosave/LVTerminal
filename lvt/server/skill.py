@@ -3,13 +3,14 @@ from lvt.logger import *
 from lvt.server.grammar import *
 import lvt.server.config as config
 from lvt.server.entities import *
+import lvt.server.terminal as terminals
 
 class Skill:
     """Базовый класс скиллов
     Описания класса используются для автодокументирования возможностей ассистента.
     """
     def __init__( self, terminal, moduleFileName: str, name: str, cfg: dict ):
-        self.terminal = terminal
+        self.terminal: terminals.Terminal = terminal
         self.moduleFileName = moduleFileName
         self.name = name
         self.cfg = cfg
@@ -54,26 +55,12 @@ class Skill:
 
 #region Terminal wrappers #############################################################
     @property
-    def isAppealed( self ): return self.terminal.isAppealed
-    @property
-    def lastAppealed( self ): return self.terminal.lastAppealed
-    @property
-    def appeal( self ): return self.terminal.appeal
-    @property
-    def location( self ): return self.terminal.location
-
-    @property
     def words( self ): return self.terminal.words
     @property
     def text( self ) -> str: return self.terminal.text
     @property
     def originalText( self ) -> str: return self.terminal.originalText
-    @property
-    def topic( self ) -> str: return self.terminal.topic
 
-    async def sayAsync( self, text ): await self.terminal.sayAsync ( text )
-    async def playAsync( self, waveFileName ): await self.terminal.playAsync( waveFileName )
-    def conformToAppeal( self, text:str ): return self.terminal.conformToAppeal( text )
     def log( self, msg:str ): log( f'[{self.terminal.id}.{self.name}]: {msg}' )
     def logError( self, msg:str ): logError( f'[{self.terminal.id}.{self.name}]: {msg}' )
     def logDebug( self, msg:str ): logDebug( f'[{self.terminal.id}.{self.name}]: {msg}' )
@@ -229,10 +216,6 @@ class Skill:
             vocabulary = self.__vocabulary[topic] if topic in self.__vocabulary else set()
 
         return vocabulary
-
-    async def changeTopicAsync( self, newTopic, params = None ):
-        """Изменить текущий топик на newTopic с параметрами params"""
-        await self.terminal.changeTopicAsync( newTopic, params )
 
     def stopParsing( self ):
         """Прервать исполнение цепочки скиллов после выхода из обработчика onText"""

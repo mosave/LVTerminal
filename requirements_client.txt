@@ -1,6 +1,6 @@
 pyaudio
 pyalsaaudio
-aiohttp==3.9.1
+aiohttp
 webrtcvad
 spidev
 numpy

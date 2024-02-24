@@ -147,11 +147,11 @@ class Microphone:
 
     @property
     def speaking(self)->bool:
-        return time.time() - self.__lastSpeak < 2
+        return (time.time() - self.__lastSpeak < 1) and (config.volumeControlVoice is None or (self.voiceVolume != 0 ))
 
     @property
     def playing(self)->bool:
-        return time.time() - self.__lastPlay < 2
+        return (time.time() - self.__lastPlay < 1) and (config.volumeControlPlayer is None or (self.playerVolume !=0 ))
 
     def _callback( self, data, frame_count, time_info, status):
         global echoCanceller
@@ -264,8 +264,16 @@ class Microphone:
                 loopbackData = ldPlayer if loopbackData is None else audioop.add( loopbackData, ldPlayer, 2 )
             
 
-        # Играет
-        if self.playing or self.speaking:
+        if self.speaking:
+            # Всегда игнорируем микрофонный вход если озвучивается голосовое сообщение.
+            # 
+            self.__rms = 0
+            self.vadLevel = 0
+            self.buffer.clear()
+            self.ignoreFirstFrame = True
+            return None, pyaudio.paContinue
+
+        if self.playing:
             # Без эхоподавления звук на колонке перегружает микрофоны, ухудшая качество распознавания голоса.
             # Поэтому если эходав отсутствует - будем игнорировать микрофон во время проигрывания звука
             if echoCanceller is None:
@@ -276,7 +284,7 @@ class Microphone:
                 return None, pyaudio.paContinue
 
             # loopbackData = None
-            # И наконец - если на колонку выводится звук - вычтем его из микрофонного входа:            
+            # И наконец - если на колонку выводится звук - вычтем его из микрофонного входа:
             if loopbackData is not None:
                 filtered = bytearray()
                 blockSize = AEC_BLOCKSIZE*2
