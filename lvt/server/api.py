@@ -147,6 +147,7 @@ async def server( request ):
                             terminal.volumeOverride = data["Volume"] if "Volume" in data else None
                             await terminal.playVoiceAsync(voice)
                             terminal.volumeOverride = None
+                        del(voice)
 
                     elif message == MSG_API_PLAY:
                         sound = data["Sound"]

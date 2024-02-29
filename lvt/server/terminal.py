@@ -132,17 +132,19 @@ class Terminal():
         if self.tts is None: return
         voice = await self.tts.textToSpeechAsync(text)
         await self.playVoiceAsync(voice)
+        del(voice)
 
     async def playVoiceAsync( self, voice ):
-        if voice is not None:
-            self.playerMute()
-            try:
-                if time.time() - self.lastSound > 1 * 60:
-                    await self.playAsync("ding.wav")
-                self.lastSound = time.time()
-                self.sendDatagram( voice )
-            finally:
-                self.playerUnmute()
+        if voice is None:
+            return
+        self.playerMute()
+        try:
+            if time.time() - self.lastSound > 1 * 60:
+                await self.playAsync("ding.wav")
+            self.lastSound = time.time()
+            self.sendDatagram( voice )
+        finally:
+            self.playerUnmute()
 
     async def playAsync( self, waveFileName: str ):
         """Проиграть wave файл на терминале. Максимальный размер файла 500к """
@@ -386,7 +388,10 @@ class Terminal():
         """
         vocabulary = set()
         if self.topic == TOPIC_DEFAULT:
-            vocabulary.update( wordsToVocabulary( config.assistantNames ) )
+            # vocabulary.update( wordsToVocabulary( config.assistantNames ) )
+            aNames = config.assistantNames.replace( ',',' ' ).replace( '  ',' ' ).strip().split( ' ' )
+            vocabulary.update( aNames )
+
         if not self.isPlaying or self.isAppealed:
             for skill in self.skills:
                 vocabulary.update( skill.getVocabulary(self.topic) )

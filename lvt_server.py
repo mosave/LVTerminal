@@ -157,7 +157,7 @@ async def server( request ):
                     recognizer = None
 
                 if recognizer is None:
-                    print( f'[{terminal.id}]: Vocabulary: {currentUseVocabulary}, {len(vocabulary)} words' )
+                    # print( f'[{terminal.id}]: Vocabulary: {currentUseVocabulary}, {len(vocabulary)} words' )
                     if terminal.useVocabulary:
                         # Распознавалка "со словарем"
                         recognizer = KaldiRecognizer( gModel, VOICE_SAMPLING_RATE, vocabulary )
